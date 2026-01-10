@@ -385,7 +385,7 @@ namespace UltimateEnd.Views
                     await DialogService.Instance.ShowError("네트워크 오류가 발생했습니다.\n인터넷 연결을 확인해주세요.");
                     break;
                 default:
-                    await DialogService.Instance.ShowError($"예기치 않은 오류가 발생했습니다.\n{ex.Message}");
+                    await DialogService.Instance.ShowError(ex.Message);
                     break;
             }
         }

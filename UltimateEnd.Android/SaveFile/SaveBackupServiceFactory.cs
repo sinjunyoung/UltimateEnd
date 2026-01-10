@@ -14,14 +14,19 @@ namespace UltimateEnd.Android.SaveFile
             var folderPicker = FolderPickerFactory.Create?.Invoke();
 
             var melonds = new MelonDSSaveBackupService(_driveService, command, folderPicker);
-            
+            var edenstandard = new SwitchSaveBackupService(_driveService, command, folderPicker);
+            var edenlegacy = new SwitchSaveBackupService(_driveService, command, folderPicker, "dev.legacy.eden_emulator");
+            var edenoptimized = new SwitchSaveBackupService(_driveService, command, folderPicker, "com.miHoYo.Yuanshen");
+
             return command.Id switch
             {
                 "ppsspp" => new PPSSPPSaveBackupService(_driveService, command, folderPicker),
                 "melonds"  => melonds,
-                // "melonds.nightly" => melonds,
                 "melondsdual022" => melonds,
                 "melondsdual041" => melonds,
+                "edenstandard" => edenstandard,
+                "edenlegacy" => edenlegacy,
+                "edenoptimized" => edenoptimized,
                 _ => null,
             };
         }
@@ -34,9 +39,11 @@ namespace UltimateEnd.Android.SaveFile
             {
                 "ppsspp" => true,
                 "melonds" => true,
-                // "melonds.nightly" => true,
                 "melondsdual022" => true,
                 "melondsdual041" => true,
+                "edenstandard" => true,
+                "edenlegacy" => true,
+                "edenoptimized" => true,
                 _ => false,
             };
         }

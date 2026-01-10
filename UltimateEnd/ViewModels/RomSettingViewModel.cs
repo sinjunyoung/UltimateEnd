@@ -135,7 +135,7 @@ namespace UltimateEnd.ViewModels
                     {
                         try
                         {
-                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                            await Dispatcher.UIThread.InvokeAsync(() =>
                             {
                                 IsLoading = true;
                                 LoadingMessage = $"폴더 검색중: {basePath.Path}";
@@ -175,8 +175,10 @@ namespace UltimateEnd.ViewModels
                     string savedBasePath;
                     string savedFolderName;
 
-                    var foundBasePath = validBasePaths.FirstOrDefault(bp =>
-                        compositeKey.StartsWith(bp, StringComparison.OrdinalIgnoreCase));
+                    var foundBasePath = validBasePaths
+                        .Where(bp => compositeKey.StartsWith(bp, StringComparison.OrdinalIgnoreCase))
+                        .OrderByDescending(bp => bp.Length)
+                        .FirstOrDefault();
 
                     if (foundBasePath != null)
                     {
@@ -185,24 +187,23 @@ namespace UltimateEnd.ViewModels
                     }
                     else continue;
 
-                    if (validBasePaths.Contains(savedBasePath) && !allFolders.Any(f => f.BasePath == savedBasePath && f.Name == savedFolderName))
-                        allFolders.Add((savedBasePath, savedFolderName, "[경로 없음]", false));
+                    var alreadyScanned = allFolders.Any(f => f.BasePath.Equals(savedBasePath, StringComparison.OrdinalIgnoreCase) && f.Name.Equals(savedFolderName, StringComparison.OrdinalIgnoreCase));
+
+                    if (validBasePaths.Contains(savedBasePath) && !alreadyScanned) allFolders.Add((savedBasePath, savedFolderName, "[경로 없음]", false));
                 }
 
                 var platformCount = allFolders.Count;
                 _useLoadingOverlay = platformCount > LOADING_OVERLAY_THRESHOLD;
 
-                if (_useLoadingOverlay)
-                    await ShowLoadingOverlayAsync(platformCount);
+                if (_useLoadingOverlay) await ShowLoadingOverlayAsync(platformCount);
 
                 var tempList = await LoadPlatformsOptimizedAsync(allFolders, mappingConfig);
 
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     PlatformNames.Clear();
 
-                    foreach (var item in tempList)
-                        PlatformNames.Add(item);
+                    foreach (var item in tempList) PlatformNames.Add(item);
                 });
             }
             finally
@@ -256,19 +257,10 @@ namespace UltimateEnd.ViewModels
                         var compositeKey = Path.Combine(folder.BasePath, folder.Name);
 
                         var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-                        var mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath)
-                            ?? TryAutoMapPlatform(folder.Name);
-
-                        var normalizedMappedId = !string.IsNullOrEmpty(mappedPlatformId)
-                            ? PlatformInfoService.NormalizePlatformId(mappedPlatformId)
-                            : null;
-
-                        var selectedOption = _cachedAvailablePlatforms?.FirstOrDefault(p =>
-                            PlatformInfoService.NormalizePlatformId(p.Id) == normalizedMappedId);
-
-                        var customDisplayName = mappingConfig?.CustomDisplayNames?.TryGetValue(compositeKey, out var displayName) == true
-                            ? displayName
-                            : null;
+                        var mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? TryAutoMapPlatform(folder.Name);
+                        var normalizedMappedId = !string.IsNullOrEmpty(mappedPlatformId) ? PlatformInfoService.NormalizePlatformId(mappedPlatformId) : null;
+                        var selectedOption = _cachedAvailablePlatforms?.FirstOrDefault(p => PlatformInfoService.NormalizePlatformId(p.Id) == normalizedMappedId);
+                        var customDisplayName = mappingConfig?.CustomDisplayNames?.TryGetValue(compositeKey, out var displayName) == true ? displayName : null;
 
                         result.Add(new PlatformNameSetting
                         {
@@ -392,12 +384,12 @@ namespace UltimateEnd.ViewModels
                     if (string.IsNullOrEmpty(p.BasePath)) continue;
                     var compositeKey = Path.Combine(p.BasePath, p.FolderName);
 
-                    settings.PlatformSettings.Add(compositeKey, new PlatformSettings
+                    settings.PlatformSettings[compositeKey] = new PlatformSettings
                     {
                         Name = p.FolderName,
                         BasePath = p.BasePath,
                         ImagePath = null
-                    });
+                    };
                 }
 
                 SettingsService.SavePlatformSettings(settings);
@@ -445,7 +437,7 @@ namespace UltimateEnd.ViewModels
             if (RomsBasePaths.Count > 1)
             {
                 var platformsToRemove = PlatformNames
-                    .Where(p => NormalizePath(p.BasePath) == NormalizePath(item.Path))
+                    .Where(p => NormalizePath(p.BasePath).Equals(NormalizePath(item.Path), StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 foreach (var platform in platformsToRemove)

@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using UltimateEnd.SaveFile;
+﻿using UltimateEnd.SaveFile;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Desktop.SaveFile
@@ -12,9 +11,14 @@ namespace UltimateEnd.Desktop.SaveFile
         {
             if (command.IsRetroArch) return new RetroArchSaveBackupService(_driveService);
 
+            var sudachi = new SudachiSaveBackupService(_driveService, command);
+            var yuzu = new SudachiSaveBackupService(_driveService, command, "yuzu");
+
             return command.Id switch
             {
                 "ppsspp" => new PPSSPPSaveBackupService(_driveService, command),
+                "sudachi" => sudachi,
+                "yuzu" => yuzu,
                 _ => null,
             };
         }
@@ -26,6 +30,8 @@ namespace UltimateEnd.Desktop.SaveFile
             return command.Id switch
             {
                 "ppsspp" => true,
+                "sudachi" => true,
+                "yuzu" => true,
                 _ => false,
             };
         }

@@ -219,6 +219,10 @@ namespace UltimateEnd.SaveFile
 
                 return true;
             }
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
             catch
             {
                 return false;

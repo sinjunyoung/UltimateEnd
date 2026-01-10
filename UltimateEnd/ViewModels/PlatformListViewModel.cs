@@ -333,6 +333,13 @@ namespace UltimateEnd.ViewModels
                             return (Platform?)null;
                         }
 
+                        if(!mappingConfig.FolderMappings.ContainsKey(platformSetting.Key))
+                        {
+                            Interlocked.Increment(ref processed);
+                            UpdateLoadingProgressIfNeeded(processed, total, platformSetting.Key);
+                            return (Platform?)null;
+                        }
+
                         bool hasGames = MetadataService.HasGames(platformSetting.Key);
 
                         if (!hasGames)

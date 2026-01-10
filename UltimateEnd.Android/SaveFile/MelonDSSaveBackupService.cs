@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using UltimateEnd.Android.Utils;
 using UltimateEnd.Models;
 using UltimateEnd.SaveFile;
 using UltimateEnd.Services;
@@ -171,7 +172,7 @@ namespace UltimateEnd.Android.SaveFile
                 _cachedStatePath = null;
             }
 
-            var retry = await ShowErrorAndAskRetry($"{errorMessage}\n\n경로를 다시 설정하시겠습니까?");
+            var retry = await AndroidDialogHelper.ShowErrorAndAskRetryAsync($"{errorMessage}\n\n경로를 다시 설정하시겠습니까?");
 
             if (retry)
             {
@@ -214,11 +215,11 @@ namespace UltimateEnd.Android.SaveFile
             if (IsValidPath(selectedPath))
             {
                 SavePath(selectedPath, mode);
-                await ShowSuccessMessage($"{pathType} 경로가 설정되었습니다.");
+                await AndroidDialogHelper.ShowToastAsync($"{pathType} 경로가 설정되었습니다.");
                 return selectedPath;
             }
 
-            var retry = await ShowErrorAndAskRetry(
+            var retry = await AndroidDialogHelper.ShowErrorAndAskRetryAsync(
                 $"유효하지 않은 경로입니다.\n" +
                 $"{pathType} 파일이 저장되는 폴더를 선택해주세요.\n\n" +
                 $"예시:\n" +
@@ -390,54 +391,6 @@ namespace UltimateEnd.Android.SaveFile
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             return Path.Combine(appDataPath, fileName);
-        }
-
-        private static Task ShowSuccessMessage(string message)
-        {
-            try
-            {
-                var activity = MainActivity.Instance;
-                activity?.RunOnUiThread(() =>
-                {
-                    global::Android.Widget.Toast.MakeText(
-                        activity,
-                        message,
-                        global::Android.Widget.ToastLength.Short
-                    )?.Show();
-                });
-            }
-            catch { }
-
-            return Task.CompletedTask;
-        }
-
-        private static async Task<bool> ShowErrorAndAskRetry(string message)
-        {
-            try
-            {
-                var activity = MainActivity.Instance;
-
-                if (activity == null) return false;
-
-                var tcs = new TaskCompletionSource<bool>();
-
-                await activity.RunOnUiThreadAsync(() =>
-                {
-                    var builder = new global::Android.App.AlertDialog.Builder(activity);
-                    builder.SetTitle("오류");
-                    builder.SetMessage(message);
-                    builder.SetPositiveButton("재시도", (s, e) => tcs.TrySetResult(true));
-                    builder.SetNegativeButton("취소", (s, e) => tcs.TrySetResult(false));
-                    builder.SetCancelable(false);
-                    builder.Show();
-                });
-
-                return await tcs.Task;
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         #endregion

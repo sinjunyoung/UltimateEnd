@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using UltimateEnd.Android.Utils;
 using UltimateEnd.Models;
 using UltimateEnd.SaveFile;
 using UltimateEnd.Services;
@@ -86,7 +87,7 @@ namespace UltimateEnd.Android.SaveFile
         {
             _cachedPath = null;
 
-            var retry = await ShowErrorAndAskRetry($"{errorMessage}\n\n경로를 다시 설정하시겠습니까?");
+            var retry = await AndroidDialogHelper.ShowErrorAndAskRetryAsync($"{errorMessage}\n\n경로를 다시 설정하시겠습니까?");
 
             if (retry)
             {
@@ -116,11 +117,11 @@ namespace UltimateEnd.Android.SaveFile
             if (IsValidPPSSPPPath(pspPath))
             {
                 SavePath(pspPath);
-                await ShowSuccessMessage("경로가 설정되었습니다.");
+                await AndroidDialogHelper.ShowToastAsync("경로가 설정되었습니다.");
                 return pspPath;
             }
 
-            var retry = await ShowErrorAndAskRetry(
+            var retry = await AndroidDialogHelper.ShowErrorAndAskRetryAsync(
                 "유효하지 않은 경로입니다.\n" +
                 "PSP/SAVEDATA 폴더가 있는 경로를 선택해주세요.\n\n" +
                 "예시:\n" +
@@ -206,7 +207,7 @@ namespace UltimateEnd.Android.SaveFile
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
                 File.WriteAllText(configPath, path);
-                _cachedPath = path; // 캐시 업데이트
+                _cachedPath = path;
             }
             catch { }
         }
@@ -232,53 +233,6 @@ namespace UltimateEnd.Android.SaveFile
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             return Path.Combine(appDataPath, CONFIG_FILE_NAME);
-        }
-
-        private static Task ShowSuccessMessage(string message)
-        {
-            try
-            {
-                var activity = MainActivity.Instance;
-                activity?.RunOnUiThread(() =>
-                {
-                    global::Android.Widget.Toast.MakeText(
-                        activity,
-                        message,
-                        global::Android.Widget.ToastLength.Short
-                    )?.Show();
-                });
-            }
-            catch { }
-
-            return Task.CompletedTask;
-        }
-
-        private static async Task<bool> ShowErrorAndAskRetry(string message)
-        {
-            try
-            {
-                var activity = MainActivity.Instance;
-                if (activity == null) return false;
-
-                var tcs = new TaskCompletionSource<bool>();
-
-                await activity.RunOnUiThreadAsync(() =>
-                {
-                    var builder = new global::Android.App.AlertDialog.Builder(activity);
-                    builder.SetTitle("오류");
-                    builder.SetMessage(message);
-                    builder.SetPositiveButton("재시도", (s, e) => tcs.TrySetResult(true));
-                    builder.SetNegativeButton("취소", (s, e) => tcs.TrySetResult(false));
-                    builder.SetCancelable(false);
-                    builder.Show();
-                });
-
-                return await tcs.Task;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }
