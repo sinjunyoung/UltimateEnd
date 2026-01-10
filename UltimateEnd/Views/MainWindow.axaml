@@ -1,0 +1,12 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:UltimateEnd.ViewModels"
+        xmlns:views="using:UltimateEnd.Views"
+        x:Class="UltimateEnd.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Ultimate End"
+        WindowState="FullScreen"
+        SystemDecorations="None">
+
+	<views:MainContentView />
+</Window>

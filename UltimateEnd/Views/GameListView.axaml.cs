@@ -1,0 +1,597 @@
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using System;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using UltimateEnd.Enums;
+using UltimateEnd.Helpers;
+using UltimateEnd.Models;
+using UltimateEnd.Services;
+using UltimateEnd.Utils;
+using UltimateEnd.ViewModels;
+using UltimateEnd.Views.Overlays;
+
+namespace UltimateEnd.Views
+{
+    public partial class GameListView : GameViewBase
+    {
+        #region Fields
+
+        private IVideoViewInitializer? _videoViewInitializer;
+        private int _visibleItemCount = 13;
+        private bool _isResizing = false;
+        private bool _isScrollViewerInitialized = false;
+
+        #endregion
+
+        #region Abstract Properties Implementation
+
+        protected override ScrollViewer GameScrollViewerBase => GameScrollViewer;
+
+        protected override ItemsRepeater GameItemsRepeaterBase => GameItemsRepeater;
+
+        protected override TextBox SearchBoxBase => SearchBox;
+
+        protected override PathIcon ViewModeIconBase => ViewModeIcon;
+
+        protected override BackupListOverlay BackupListOverlayBase => BackupListOverlay;
+
+        #endregion
+
+        #region Constructor
+
+        public GameListView(): base()
+        {
+            InitializeComponent();
+
+            ThumbnailSettings.GameViewMode = GameViewMode.List;
+
+            LoadSplitterPosition();
+            LoadVerticalSplitterPosition();
+        }
+
+        #endregion
+
+        #region Splitter Position Management
+
+        private void LoadSplitterPosition()
+        {   
+            var settings = SettingsService.LoadSettings();            
+            var topLevel = TopLevel.GetTopLevel(this);
+            double windowWidth = topLevel?.Bounds.Width ?? 850;
+            var savedRatio = settings.GameListSplitterPosition;
+
+            if (MainGrid?.ColumnDefinitions.Count >= 3)
+            {
+                const double LEFT_MIN_WIDTH = 320;
+                const double RIGHT_MIN_WIDTH = 500;
+                const double SPLITTER_WIDTH = 12;
+
+                double availableStarWidth = windowWidth - SPLITTER_WIDTH;
+                double leftGridRatio;
+
+                if (availableStarWidth < (LEFT_MIN_WIDTH + RIGHT_MIN_WIDTH))
+                    leftGridRatio = 1.0;
+                else
+                {
+                    const double MAX_RATIO_LIMIT = 3.0;
+                    leftGridRatio = Math.Min(savedRatio, MAX_RATIO_LIMIT);
+                }
+
+                MainGrid.ColumnDefinitions[0].Width = new GridLength(leftGridRatio, GridUnitType.Star);
+                MainGrid.ColumnDefinitions[2].Width = new GridLength(1.0, GridUnitType.Star);
+            }
+        }
+
+        private void LoadVerticalSplitterPosition()
+        {
+            var settings = SettingsService.LoadSettings();
+            var leftGrid = this.FindControl<Grid>("LeftGrid");
+
+            if (leftGrid?.RowDefinitions.Count >= 4)
+            {
+                var ratio = settings.GameListVerticalSplitterPosition;
+
+                leftGrid.RowDefinitions[1] = new RowDefinition(ratio, GridUnitType.Star);
+                leftGrid.RowDefinitions[3] = new RowDefinition(1, GridUnitType.Star);
+            }
+        }
+
+        private void SaveSplitterPosition()
+        {
+            var mainGrid = this.FindControl<Grid>("MainGrid");
+
+            if (mainGrid?.ColumnDefinitions.Count >= 3)
+            {
+                double leftRatio = mainGrid.ColumnDefinitions[0].Width.Value;
+                double rightRatio = mainGrid.ColumnDefinitions[2].Width.Value;
+                double newRatio = leftRatio / rightRatio;
+                var settings = SettingsService.LoadSettings();
+
+                settings.GameListSplitterPosition = newRatio;
+                SettingsService.SaveSettingsQuiet(settings);
+            }
+        }
+
+        private void SaveVerticalSplitterPosition()
+        {
+            var leftGrid = this.FindControl<Grid>("LeftGrid");
+
+            if (leftGrid?.RowDefinitions.Count >= 4)
+            {
+                var videoRow = leftGrid.RowDefinitions[1];
+                var descRow = leftGrid.RowDefinitions[3];
+
+                if (videoRow.ActualHeight > 0 && descRow.ActualHeight > 0)
+                {
+                    var ratio = videoRow.ActualHeight / descRow.ActualHeight;
+                    var settings = SettingsService.LoadSettings();
+
+                    settings.GameListVerticalSplitterPosition = ratio;
+                    SettingsService.SaveSettingsQuiet(settings);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Hook Method Overrides
+
+        protected override void OnAttachedToVisualTreeCore(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTreeCore(e);
+
+            VideoContainer.PointerPressed += (s, args) => args.Handled = true;
+            GameScrollViewer.Loaded += OnScrollViewerLoaded;
+
+            InitializeVideoPlayer();
+            VideoContainer.IsVisible = true;
+
+            ViewModel.IsVideoContainerVisible = true;
+            ViewModel.EnableVideoPlayback();
+        }
+
+        protected override void OnDetachedFromVisualTreeCore(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTreeCore(e);
+
+            CleanupVideoPlayer();
+        }
+
+        protected override void OnDataContextChangedCore(EventArgs e) => InitializeVideoPlayer();
+
+        protected override void OnKeyDownCore(KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            switch (e.Key)
+            {
+                case Key.F2:
+                    if (ViewModel.SelectedGame != null)
+                        GameListViewModel.RenameGame(ViewModel.SelectedGame);
+                    e.Handled = true;
+
+                    break;
+            }
+        }
+
+        protected override bool HandleButtonBPress(KeyEventArgs e)
+        {
+            if (ViewModel?.SelectedGame?.IsEditingDescription == true)
+            {
+                ViewModel.SelectedGame.TempDescription = ViewModel.SelectedGame.Description;
+                ViewModel.SelectedGame.IsEditingDescription = false;
+                GameScrollViewerFocusLoaded();
+                e.Handled = true;
+
+                return true;
+            }
+
+            if (ViewModel?.IsEditingDescriptionOverlay == true)
+            {
+                ViewModel.IsEditingDescriptionOverlay = false;
+                if (ViewModel.SelectedGame != null && ViewModel.SelectedGame.HasVideo)
+                {
+                    VideoContainer.IsVisible = true;
+                    Dispatcher.UIThread.Post(() =>
+                        ViewModel.PlayInitialVideoCommand.Execute(ViewModel.SelectedGame).Subscribe(),
+                        DispatcherPriority.Background);
+                }
+                GameScrollViewerFocusLoaded();
+                e.Handled = true;
+
+                return true;
+            }
+
+            return base.HandleButtonBPress(e);
+        }
+
+        protected override void OnGameSelected(GameMetadata game) { }
+
+        #endregion
+
+        #region ScrollViewer Events
+
+        private void OnScrollViewerLoaded(object? sender, RoutedEventArgs e)
+        {
+            if (_isScrollViewerInitialized) return;
+
+            if (sender is ScrollViewer scrollViewer)
+            {
+                _isScrollViewerInitialized = true;
+                scrollViewer.Loaded -= OnScrollViewerLoaded;
+
+                var firstBorder = GameItemsRepeater.GetVisualDescendants()
+                                                .OfType<Border>()
+                                                .FirstOrDefault(b => b.Name == "GameItemBorder");
+
+                if (firstBorder != null)
+                {
+                    double itemHeight = firstBorder.Bounds.Height;
+                    var margin = firstBorder.Margin;
+                    itemHeight += margin.Top + margin.Bottom;
+
+                    double viewportHeight = scrollViewer.Viewport.Height;
+                    _visibleItemCount = (int)(viewportHeight / itemHeight);
+                }
+
+                if (ViewModel?.SelectedGame != null)
+                {
+                    int index = ViewModel.Games.IndexOf(ViewModel.SelectedGame);
+
+                    if (index >= 0) Dispatcher.UIThread.Post(() => ScrollToIndex(index), DispatcherPriority.Loaded);
+                }
+
+                if (!_isResizing && ViewModel?.SelectedGame?.HasVideo == true) Dispatcher.UIThread.Post(() => ViewModel?.PlayInitialVideoCommand.Execute(ViewModel.SelectedGame).Subscribe(), DispatcherPriority.Loaded);                    
+            }
+        }
+
+        #endregion
+
+        #region Abstract Methods Implementation
+
+        protected override void ScrollToItem(GameMetadata game)
+        {
+            Border? border = GameItemsRepeater.GetVisualDescendants()
+                                    .OfType<Border>()
+                                    .FirstOrDefault(b => b.Name == "GameItemBorder" && b.DataContext == game);
+
+            border?.BringIntoView();
+        }
+
+        protected override void ScrollToIndex(int index)
+        {
+            if (ViewModel?.Games.Count == 0) return;
+
+            if (index == 0)
+            {
+                GameScrollViewer.Offset = new Vector(0, 0);
+                return;
+            }
+            else if (index == ViewModel?.Games.Count - 1)
+            {
+                GameScrollViewer.Offset = new Vector(0, GameScrollViewer.ScrollBarMaximum.Y);
+                return;
+            }
+
+            var firstBorder = GameItemsRepeater.GetVisualDescendants()
+                                          .OfType<Border>()
+                                          .FirstOrDefault(b => b.Name == "GameItemBorder");
+
+            if (firstBorder == null) return;
+
+            double itemHeight = firstBorder.Bounds.Height;
+            var margin = firstBorder.Margin;
+            itemHeight += margin.Top + margin.Bottom;
+
+            double targetOffset = index * itemHeight;
+            GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, targetOffset);
+        }
+
+        protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            if (ViewModel.Games.Count == 0 || ViewModel.SelectedGame?.IsEditing == true) return;
+
+            await KeySoundHelper.PlaySoundForKeyEvent(e);
+
+            int count = ViewModel.Games.Count;
+            int currentIndex = ViewModel.Games.IndexOf(ViewModel.SelectedGame);
+
+            if (currentIndex < 0)
+                currentIndex = 0;
+
+            int newIndex = currentIndex;
+            bool isCircular = false;
+
+            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            {
+                if (currentIndex > 0)
+                    newIndex = currentIndex - 1;
+                else
+                {
+                    newIndex = count - 1;
+                    isCircular = true;
+                }
+
+                e.Handled = true;
+            }
+            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            {
+                if (currentIndex < count - 1)
+                    newIndex = currentIndex + 1;
+                else
+                {
+                    newIndex = 0;
+                    isCircular = true;
+                }
+
+                e.Handled = true;
+            }
+            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            {
+                ViewModel?.GoToPreviousPlatform();
+                ResetScrollToTop();
+                e.Handled = true;
+
+                return;
+            }
+            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            {
+                ViewModel?.GoToNextPlatform();
+                ResetScrollToTop();
+                e.Handled = true;
+
+                return;
+            }
+            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.RightBumper))
+            {
+                newIndex = Math.Min(currentIndex + _visibleItemCount, count - 1);
+                isCircular = true;
+                e.Handled = true;
+            }
+            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.LeftBumper))
+            {
+                newIndex = Math.Max(currentIndex - _visibleItemCount, 0);
+                isCircular = true;
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Home)
+            {
+                newIndex = 0;
+                isCircular = true;
+                e.Handled = true;
+            }
+            else if (e.Key == Key.End)
+            {
+                newIndex = count - 1;
+                isCircular = true;
+                e.Handled = true;
+            }
+
+            if (newIndex >= 0 && newIndex < count && newIndex != currentIndex)
+            {
+                ViewModel.SelectedGame = ViewModel.Games[newIndex];
+
+                if (isCircular)
+                    ScrollToIndex(newIndex);
+                else
+                    ScrollToItem(ViewModel.SelectedGame);
+            }
+            Dispatcher.UIThread.Post(() => GameScrollViewer.Focus(), DispatcherPriority.Input);
+        }
+
+        #endregion
+
+        #region Menu Button Override
+
+        protected override GameMetadata? GetGameFromMenuButton(Border menuButton)
+        {
+            var panel = menuButton.Parent as Panel;
+            var imageBorder = panel?.Parent as Border;
+            var grid = imageBorder?.Parent as Grid;
+            var itemBorder = grid?.Parent as Border;
+
+            if (itemBorder?.DataContext is GameMetadata game) return game;
+
+            return null;
+        }
+
+        #endregion
+
+        #region Rename Handlers
+
+        private void OnGameTitleLongPress(object? sender, object? dataContext)
+        {
+            if (dataContext is GameListViewModel vm && vm.SelectedGame != null)
+            {
+                vm.ContextMenuTargetGame = vm.SelectedGame;
+                ShowRenameOverlay(vm.ContextMenuTargetGame);
+            }
+        }
+
+        private void OnRenameTextBoxKeyDown(object sender, KeyEventArgs e)
+        {
+            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            {
+                e.Handled = true;
+
+                if (sender is TextBox textBox && textBox.DataContext is GameMetadata gameMetadata)
+                {
+                    GameListViewModel.FinishRename(gameMetadata);
+                    GameScrollViewerFocusLoaded();
+                }
+            }
+            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            {
+                e.Handled = true;
+
+                if (sender is TextBox textBox && textBox.DataContext is GameMetadata gameMetadata)
+                {
+                    gameMetadata.IsEditing = false;
+                    GameScrollViewerFocusLoaded();
+                }
+            }
+        }
+
+        private void OnRenameTextBoxLostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox && textBox.DataContext is GameMetadata gameMetadata)
+            {
+                if (!gameMetadata.IsEditing) return;
+
+                GameListViewModel.FinishRename(gameMetadata);
+                GameScrollViewerFocusLoaded();
+            }
+        }
+
+        private async void ShowRenameOverlay(GameMetadata game)
+        {
+            if (GameRenameOverlay == null) return;
+
+            VideoContainer.IsVisible = false;
+
+            await WavSounds.Click();
+
+            GameRenameOverlay.Text = game.GetTitle();
+            GameRenameOverlay.Show();
+        }
+
+        #endregion
+
+        #region Description Handlers
+
+        private async void OnDescriptionTextBoxLongPress(object? sender, object? dataContext)
+        {
+            await WavSounds.OK();
+
+            if (ViewModel?.SelectedGame != null) UiBehaviorFactory.Create?.Invoke().BeginDescriptionEdit(ViewModel, this);
+        }
+
+        private void OnDescriptionSaveClick(object? sender, RoutedEventArgs e)
+        {
+            if (ViewModel?.SelectedGame != null)
+            {
+                GameListViewModel.FinishEditDescription(ViewModel?.SelectedGame);
+                GameScrollViewerFocusLoaded();
+            }
+        }
+
+        private void OnDescriptionCancelClick(object? sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            if (ViewModel.SelectedGame != null)
+            {
+                ViewModel.SelectedGame.TempDescription = ViewModel.SelectedGame.Description;
+                ViewModel.SelectedGame.IsEditingDescription = false;
+                GameScrollViewerFocusLoaded();
+            }
+        }
+
+        private void OnDescriptionTextBoxLostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            var topLevel = TopLevel.GetTopLevel(this);
+
+            if (topLevel?.FocusManager == null) return;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                var focusedElement = topLevel.FocusManager.GetFocusedElement() as Control;
+
+                if (focusedElement == SaveDescriptionButton || focusedElement == CancelDescriptionButton) return;
+
+                if (ViewModel.SelectedGame != null)
+                {
+                    ViewModel.SelectedGame.TempDescription = ViewModel.SelectedGame.Description;
+                    ViewModel.SelectedGame.IsEditingDescription = false;
+                    GameScrollViewerFocusLoaded();
+                }
+            }, DispatcherPriority.Input);
+        }
+
+        private void OnDescriptionOverlayCancelClick(object? sender, RoutedEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            ViewModel.IsEditingDescriptionOverlay = false;
+
+            if (ViewModel.SelectedGame?.HasVideo == true)
+            {
+                VideoContainer.IsVisible = true;
+
+                Dispatcher.UIThread.Post(() => ViewModel.PlayInitialVideoCommand.Execute(ViewModel.SelectedGame).Subscribe(), DispatcherPriority.Background);
+            }
+
+            GameScrollViewerFocusLoaded();
+        }
+
+        #endregion
+
+        #region GridSplitter Events
+
+        private void OnGridSplitterDragStarted(object? sender, VectorEventArgs e)
+        {
+            _isResizing = true;
+
+            ViewModel?.StopVideo();
+        }
+
+        private void OnGridSplitterDragCompleted(object? sender, VectorEventArgs e)
+        {
+            _isResizing = false;
+            GameScrollViewerFocusLoaded();
+            SaveSplitterPosition();
+
+            Dispatcher.UIThread.Post(async () =>
+            {
+                if (ViewModel?.SelectedGame?.HasVideo == true && !ViewModel.IsLaunchingGame)
+                {
+                    await Task.Delay(100);
+                    await ViewModel.ResumeVideoAsync();
+                }
+            }, DispatcherPriority.Background);
+        }
+
+        private void OnVerticalGridSplitterDragCompleted(object? sender, VectorEventArgs e)
+        {
+            _isResizing = false;
+            GameScrollViewerFocusLoaded();
+            SaveVerticalSplitterPosition();
+
+            Dispatcher.UIThread.Post(async () =>
+            {
+                if (ViewModel?.SelectedGame?.HasVideo == true && !ViewModel.IsLaunchingGame)
+                {
+                    await Task.Delay(100);
+                    await ViewModel.ResumeVideoAsync();
+                }
+            }, DispatcherPriority.Background);
+        }
+
+        #endregion
+
+        #region Video Player Management
+
+        private void InitializeVideoPlayer()
+        {
+            _videoViewInitializer ??= VideoViewInitializerFactory.Create?.Invoke();
+            _videoViewInitializer?.Initialize(VideoContainer, ViewModel?.MediaPlayer);
+        }
+
+        private void CleanupVideoPlayer()
+        {
+            // 필요 시 정리 로직
+        }
+
+        #endregion
+    }
+}

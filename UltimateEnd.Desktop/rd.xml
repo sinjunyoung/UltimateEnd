@@ -1,0 +1,26 @@
+<Directives>
+  <Application>
+    <!-- 프로젝트 -->
+    <Assembly Name="UltimateEnd" Dynamic="Required All" />
+    <Assembly Name="UltimateEnd.Desktop" Dynamic="Required All" />
+    
+    <!-- Avalonia 핵심 -->
+    <Assembly Name="Avalonia.Base" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Controls" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Markup.Xaml" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Desktop" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Skia" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Themes.Fluent" Dynamic="Required All" />
+    
+    <!-- 플랫폼 -->
+    <Assembly Name="Avalonia.Win32" Dynamic="Required All" />
+        
+    <!-- ReactiveUI (사용 중이면) -->
+    <Assembly Name="ReactiveUI" Dynamic="Required All" />
+    <Assembly Name="DynamicData" Dynamic="Required All" />
+    
+    <!-- 시스템 -->
+    <Assembly Name="System.ComponentModel.TypeConverter" Dynamic="Required All" />
+    <Assembly Name="System.ObjectModel" Dynamic="Required All" />
+  </Application>
+</Directives>

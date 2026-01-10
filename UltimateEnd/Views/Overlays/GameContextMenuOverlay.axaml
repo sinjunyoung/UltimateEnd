@@ -1,0 +1,293 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:UltimateEnd.Converters"
+			 xmlns:models="using:UltimateEnd.Models"
+             x:Class="UltimateEnd.Views.Overlays.GameContextMenuOverlay"
+			 Focusable="True">
+	
+	<Grid Name="MainGrid"
+		  IsVisible="False"
+		  Background="#80000000"
+		  ZIndex="2200"
+		  PointerPressed="OnBackgroundClick">
+		<Grid.Resources>
+			<converters:BoolToToggleBackgroundConverter x:Key="BoolToToggleBackgroundConverter"/>
+			<converters:BoolToToggleAlignmentConverter x:Key="BoolToToggleAlignmentConverter"/>
+		</Grid.Resources>
+		<Border Name="GameContextMenuPanel"
+				Background="{DynamicResource Background.Card}"
+				CornerRadius="12,0,0,12"
+				Padding="5"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Stretch"
+				Width="{StaticResource Size.OverlayWidth}">
+			<Grid RowDefinitions="Auto,*" VerticalAlignment="Stretch">
+				<Border Grid.Row="0"
+						Background="{DynamicResource Background.Secondary}"
+						Padding="10"
+						BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource Background.Border}">
+					<Grid ColumnDefinitions="Auto,*">
+						<Border Grid.Column="0"
+								ClipToBounds="False"
+								PointerPressed="OnClose"
+								Cursor="Hand"
+								Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+									  Data="{StaticResource Icon.Back}"
+									  Width="{StaticResource IconSize.MenuIcon}"
+									  Height="{StaticResource IconSize.MenuIcon}"
+									  VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+								   x:Name="TitleText"
+								   Text="게임 메뉴"
+								   FontSize="20"
+								   FontWeight="Bold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   VerticalAlignment="Center"
+								   TextTrimming="CharacterEllipsis"/>
+					</Grid>
+				</Border>
+				<ScrollViewer Grid.Row="1">
+					<StackPanel Spacing="5" Margin="0,10,0,0">
+						<Border Name="LaunchGameItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnLaunchGame">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/run.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="게임 실행" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						
+						<Border Name="SetEmulatorItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnSetEmulator">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/emulator.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="에뮬레이터 변경" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						
+						<Border Name="SetSaveFileUploadItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnSetSaveFileUpload">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/upload.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="세이브 파일 백업" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						
+						<Border Name="SetSaveFileDownloadItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnSetSaveFileDownload">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/download.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="세이브 파일 복원" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						
+						<Border Name="ToggleFavoriteItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnToggleFavorite">
+							<Grid ColumnDefinitions="*,Auto">
+								<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,15,0">
+									<Image Source="avares://UltimateEnd/Assets/Icons/favorite.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+									<TextBlock Text="즐겨찾기" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
+								</StackPanel>
+								<Border Grid.Column="1" x:Name="FavoriteToggle" Width="50" Height="28" CornerRadius="14" Padding="2">
+									<Border Width="24" Height="24" CornerRadius="12" Background="White" x:Name="FavoriteToggleThumb"/>
+								</Border>
+							</Grid>
+						</Border>
+
+						<!-- 플레이리스트 추가 -->
+						<Border Name="AddToPlaylistItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnAddToPlaylist">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/playlist.png"
+									   Margin="0,0,5,0"
+									   Width="32"
+									   Height="32"
+									   Stretch="Uniform"/>
+								<TextBlock Text="플레이리스트에 추가" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						
+						<Border Name="ScrapItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnScrapGame">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/scrap.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="미디어 스크랩" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						<Border Height="1" Background="{DynamicResource Background.Border}" Margin="0,1"/>
+						<Border Name="RenameGameItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnRenameGame">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/rename.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="게임 이름 변경" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						<Border Name="ChangeGenreItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnChangeGenre">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/genre.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="장르 변경" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						<Border Name="ToggleKoreanItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnToggleKorean">
+							<Grid ColumnDefinitions="*,Auto">
+								<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,15,0">
+									<Image Source="avares://UltimateEnd/Assets/Icons/korea.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+									<TextBlock Text="한글 지원" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
+								</StackPanel>
+								<Border Grid.Column="1" x:Name="KoreanToggle" Width="50" Height="28" CornerRadius="14" Padding="2">
+									<Border Width="24" Height="24" CornerRadius="12" Background="White" x:Name="KoreanToggleThumb"/>
+								</Border>
+							</Grid>
+						</Border>						
+						<Border Height="1" Background="{DynamicResource Background.Border}" Margin="0,1"/>
+						<Border Name="SetLogoImageItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnSetLogoImage">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/image.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="로고 이미지 변경" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						<Border Name="SetCoverImageItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnSetCoverImage">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/image.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="커버 이미지 변경" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						<Border Name="SetGameVideoItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnSetGameVideo">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<Image Source="avares://UltimateEnd/Assets/Icons/video.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Text="동영상 변경" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}"/>
+							</StackPanel>
+						</Border>
+						<Border Name="ToggleIgnoreItem"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,12"
+								Cursor="Hand"
+								Tapped="OnToggleIgnore">
+							<Grid ColumnDefinitions="*,Auto">
+								<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,15,0">
+									<Image Source="avares://UltimateEnd/Assets/Icons/delete.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+									<TextBlock Text="목록에서 숨기기" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
+								</StackPanel>
+								<Border Grid.Column="1" x:Name="IgnoreToggle" Width="50" Height="28" CornerRadius="14" Padding="2">
+									<Border Width="24" Height="24" CornerRadius="12" Background="White" x:Name="IgnoreToggleThumb"/>
+								</Border>
+							</Grid>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

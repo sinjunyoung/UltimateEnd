@@ -1,0 +1,396 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:behaviors="using:UltimateEnd.Behaviors"
+			 xmlns:views="using:UltimateEnd.Views.Overlays"
+             x:Class="UltimateEnd.Desktop.Views.EmulatorSettingView"
+			 Focusable="True">
+	<Grid>
+		<ScrollViewer>
+			<StackPanel Margin="20" MaxWidth="900">
+
+				<TextBlock Text="에뮬레이터 커맨드 관리"
+						   Foreground="{DynamicResource Text.Primary}"
+						   FontSize="24"
+						   FontWeight="Bold"
+						   Margin="0,0,0,20"/>
+
+				<!-- 검색 및 필터 -->
+				<Grid ColumnDefinitions="2*,*" Margin="0,0,0,15">
+					<StackPanel Grid.Column="0" Margin="0,0,10,0">
+						<TextBlock Text="커맨드 검색" Foreground="{DynamicResource Text.Primary}"/>
+						<TextBox x:Name="SearchTextBox"
+								 Text="{Binding SearchText}"
+								 Foreground="{DynamicResource Text.Primary}"
+								 CaretBrush="{DynamicResource Text.Primary}"
+								 Watermark="커맨드 이름 또는 ID로 검색...">
+							<TextBox.KeyBindings>
+								<KeyBinding Gesture="Escape" Command="{Binding $parent[UserControl].DataContext.ClearSearchCommand}"/>
+							</TextBox.KeyBindings>
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+					</StackPanel>
+
+					<StackPanel Grid.Column="1">
+						<TextBlock Text="플랫폼 필터" Foreground="{DynamicResource Text.Primary}"/>
+						<ComboBox 
+							behaviors:InputMappingBehavior.Enable="True"
+							SelectedItem="{Binding FilterPlatform}"
+							ItemsSource="{Binding FilterPlatforms}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<StackPanel Orientation="Horizontal" Spacing="8">
+										<Image Source="{Binding Image}"
+											   Width="20"
+											   Height="20"
+											   IsVisible="{Binding Image, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+										<TextBlock Text="{Binding DisplayName}"
+												   VerticalAlignment="Center"/>
+									</StackPanel>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</StackPanel>
+				</Grid>
+
+				<!-- 커맨드 목록 -->
+				<TextBlock Text="등록된 커맨드" Foreground="{DynamicResource Text.Primary}"/>
+				<ListBox ItemsSource="{Binding FilteredCommands}"
+						 x:Name="CommandListBox"
+						 behaviors:InputMappingBehavior.Enable="True"
+						 Focusable="True"
+						 SelectedItem="{Binding SelectedCommand}"
+						 Height="180"
+						 Background="{DynamicResource Background.Input}"
+						 SelectionChanged="OnCommandSelectionChanged"
+						 Tapped="OnCommandTapped"
+						 Margin="0,0,0,20">
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Margin="5">
+								<StackPanel Orientation="Horizontal">
+									<Image Source="{Binding Icon}"
+										   Width="32"
+										   Height="32"
+										   Margin="0,0,10,0"
+										   IsVisible="{Binding Image, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+									<TextBlock Text="{Binding Name}"
+											   FontWeight="SemiBold"
+											   VerticalAlignment="Center"
+											   Foreground="{DynamicResource Text.Primary}"
+											   Width="200"/>
+									<TextBlock Text="[RetroArch]"
+											   Foreground="{DynamicResource Accent.Yellow}"
+											   FontSize="11"
+											   VerticalAlignment="Center"
+											   Margin="5,0"
+											   IsVisible="{Binding IsRetroArch}"/>
+								</StackPanel>
+								<TextBlock Text="{Binding Executable}"
+										   Foreground="{DynamicResource Text.Muted}"
+										   FontSize="11"
+										   TextTrimming="CharacterEllipsis"
+										   Margin="0,2,0,0"/>
+							</StackPanel>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+
+				<StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+					<Button Content="추가"
+							behaviors:SoundBehavior.ClickSound="OK"
+							Focusable="False"
+							Command="{Binding AddCommandCommand}"
+							Background="{DynamicResource Accent.Blue}"
+							Foreground="{DynamicResource Button.Foreground}"/>
+					<Button Content="복제"
+							behaviors:SoundBehavior.ClickSound="OK"
+							Focusable="False"
+							Command="{Binding DuplicateCommandCommand}"
+							Background="{DynamicResource Background.Hover}"
+							Foreground="{DynamicResource Text.Primary}"/>
+					<Button Content="삭제"
+							behaviors:SoundBehavior.ClickSound="Cancel"
+							Focusable="False"
+							Command="{Binding DeleteCommandCommand}"
+							Background="{DynamicResource Accent.Red}"
+							Foreground="{DynamicResource Button.Foreground}"/>
+				</StackPanel>
+
+				<Separator Margin="0,10,0,20" Background="{DynamicResource Background.Border}"/>
+
+				<!-- 커맨드 상세 설정 -->
+				<Border BorderBrush="{DynamicResource Background.Border}"
+						BorderThickness="1"
+						CornerRadius="5"
+						Padding="15"
+						Background="{DynamicResource Background.Card}"
+						IsVisible="{Binding SelectedCommand, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<StackPanel>
+
+						<TextBlock Text="커맨드 정보"
+								   FontSize="18"
+								   FontWeight="SemiBold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   Margin="0,0,0,15"/>
+
+						<TextBlock Text="커맨드 이름" Foreground="{DynamicResource Text.Primary}"/>
+						<TextBox Text="{Binding SelectedCommand.Name}"
+								 Foreground="{DynamicResource Text.Primary}"
+								 CaretBrush="{DynamicResource Text.Primary}"
+								 Watermark="예: RetroArch - mGBA">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+
+						<CheckBox Content="RetroArch 커맨드"
+								  IsChecked="{Binding SelectedCommand.IsRetroArch}"
+								  Foreground="{DynamicResource Text.Primary}"
+								  Margin="0,0,0,15">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+							
+						</CheckBox>
+
+						<TextBlock Text="Core 이름 (RetroArch 전용)"
+								   Foreground="{DynamicResource Text.Primary}"
+								   IsVisible="{Binding SelectedCommand.IsRetroArch}"/>
+						<TextBox Text="{Binding SelectedCommand.CoreName}"
+								 Foreground="{DynamicResource Text.Primary}"
+								 CaretBrush="{DynamicResource Text.Primary}"
+								 Watermark="예: mgba_libretro"
+								 IsVisible="{Binding SelectedCommand.IsRetroArch}">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+
+						<TextBlock Text="실행 파일 경로" Foreground="{DynamicResource Text.Primary}"/>
+						<Grid ColumnDefinitions="*,Auto">
+							<TextBox Grid.Column="0"
+									 Foreground="{DynamicResource Text.Primary}"
+									 CaretBrush="{DynamicResource Text.Primary}"
+									 Text="{Binding SelectedCommand.Executable}"
+									 Watermark="C:\RetroArch\retroarch.exe"
+									 Margin="0,0,10,15">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxColorFixBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+							<Button Grid.Column="1"
+									Content="찾아보기"
+									Focusable="False"
+									behaviors:SoundBehavior.ClickSound="OK"
+									Background="{DynamicResource Accent.Blue}"
+									Foreground="{DynamicResource Button.Foreground}"
+									Command="{Binding BrowseExecutableCommand}"
+									Margin="0,0,0,15"/>
+						</Grid>
+
+						<TextBlock Text="작업 디렉토리 (선택사항)" Foreground="{DynamicResource Text.Primary}"/>
+						<Grid ColumnDefinitions="*,Auto">
+							<TextBox Grid.Column="0"
+									 Foreground="{DynamicResource Text.Primary}"
+									 CaretBrush="{DynamicResource Text.Primary}"
+									 Text="{Binding SelectedCommand.WorkingDirectory}"
+									 Watermark="비워두면 실행 파일 위치 사용"
+									 Margin="0,0,10,15">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxColorFixBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+							<Button Grid.Column="1"
+									Content="찾아보기"
+									Focusable="False"
+									behaviors:SoundBehavior.ClickSound="OK"
+									Background="{DynamicResource Accent.Blue}"
+									Foreground="{DynamicResource Button.Foreground}"
+									Command="{Binding BrowseWorkingDirCommand}"
+									Margin="0,0,0,15"/>
+						</Grid>
+
+						<!-- 실행 인자 -->
+						<Grid RowDefinitions="Auto,Auto" Margin="0,0,0,15">
+							<Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
+								<TextBlock Grid.Column="0"
+										   Text="실행 인자 (Arguments)"
+										   Foreground="{DynamicResource Text.Primary}"/>
+								<Button Grid.Column="1"
+										x:Name="InsertVariableButton"
+										Click="OnInsertVariableClicked"
+										behaviors:SoundBehavior.ClickSound="OK"
+										Focusable="False"
+										Padding="8,4"
+										Background="{DynamicResource Accent.Blue}"
+										Foreground="{DynamicResource Button.Foreground}">
+									<StackPanel Orientation="Horizontal" Spacing="5">
+										<Image Source="avares://UltimateEnd/Assets/Icons/variable.png"
+											   Width="16"
+											   Height="16"/>
+										<TextBlock Text="변수"
+												   FontSize="12"
+												   VerticalAlignment="Center"/>
+									</StackPanel>
+								</Button>
+							</Grid>
+							<TextBox Grid.Row="1"
+									 x:Name="ArgumentsTextBox"
+									 Text="{Binding SelectedCommand.Arguments}"
+									 CaretBrush="{DynamicResource Text.Primary}"
+									 Foreground="{DynamicResource Text.Primary}"
+									 Watermark="-L &quot;{corePath}&quot; &quot;{romPath} -f&quot;"
+									 AcceptsReturn="True"
+									 Height="80"
+									 TextWrapping="Wrap">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxColorFixBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+						</Grid>
+
+						<TextBlock Text="• {rom} - ROM 파일 경로로 자동 치환됩니다"
+								   FontSize="12"
+								   Foreground="{DynamicResource Text.Muted}"
+								   Margin="0,0,0,15"/>
+
+						<!-- 지원 플랫폼 (태그 방식) -->
+						<TextBlock Text="지원 플랫폼" Foreground="{DynamicResource Text.Primary}"/>
+
+						<!-- 플랫폼 추가 -->
+						<Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+							<ComboBox Grid.Column="0"
+									  SelectedItem="{Binding SelectedPlatformToAdd}"
+									  ItemsSource="{Binding AvailablePlatforms}"
+									  behaviors:InputMappingBehavior.Enable="True"
+									  Margin="0,0,10,0">
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<StackPanel Orientation="Horizontal" Spacing="8">
+											<Image Source="{Binding Image}"
+												   Width="32"
+												   Height="32"/>
+											<TextBlock Text="{Binding DisplayName}"
+													   VerticalAlignment="Center"/>
+										</StackPanel>
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+							<Button Grid.Column="1"
+									Content="추가"
+									Focusable="False"
+									behaviors:SoundBehavior.ClickSound="OK"
+									Background="{DynamicResource Accent.Blue}"
+									Foreground="{DynamicResource Button.Foreground}"
+									Command="{Binding AddPlatformCommand}"
+									Padding="15,8"/>
+						</Grid>
+
+						<!-- 선택된 플랫폼 태그 -->
+						<Border BorderBrush="{DynamicResource Background.Border}"
+								BorderThickness="1"
+								CornerRadius="5"
+								Padding="10"
+								MinHeight="80"
+								Margin="0,0,0,15"
+								Background="{DynamicResource Background.Input}">
+							<ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="150">
+								<ItemsControl ItemsSource="{Binding SelectedPlatforms}">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<WrapPanel/>
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate>
+											<Border Background="{DynamicResource Accent.Blue.Transparent}"
+													BorderBrush="{DynamicResource Accent.Blue}"
+													BorderThickness="1"
+													CornerRadius="4"
+													Padding="8,4"
+													Margin="4">
+												<StackPanel Orientation="Horizontal" Spacing="8">
+													<Image Source="{Binding Image}"
+														   Width="32"
+														   Height="32"
+														   VerticalAlignment="Center"/>
+													<TextBlock Text="{Binding Id}"
+															   VerticalAlignment="Center"
+															   Foreground="{DynamicResource Text.Primary}"
+															   FontWeight="SemiBold"/>
+													<Button Content="×"
+															Focusable="False"
+															Command="{Binding DataContext.RemovePlatformCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+															CommandParameter="{Binding}"
+															Background="Transparent"
+															Foreground="{DynamicResource Accent.Red}"
+															BorderThickness="0"
+															Padding="4,0"
+															FontSize="16"
+															FontWeight="Bold"
+															Cursor="Hand"
+															ToolTip.Tip="제거"/>
+												</StackPanel>
+											</Border>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</ScrollViewer>
+						</Border>
+
+						<!-- LaunchCommand 미리보기 -->
+						<TextBlock Text="최종 LaunchCommand 미리보기" Foreground="{DynamicResource Text.Primary}"/>
+						<TextBox Text="{Binding SelectedCommand.LaunchCommand}"
+								 IsReadOnly="True"
+								 Foreground="{DynamicResource Text.Primary}"
+								 CaretBrush="{DynamicResource Text.Primary}"
+								 Background="{DynamicResource Background.Input}"
+								 AcceptsReturn="True"
+								 Height="60"
+								 TextWrapping="Wrap">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+							<Button Content="취소"
+									Focusable="False"
+									Command="{Binding GoBackCommand}"
+									Background="{DynamicResource Accent.Red}"
+									Foreground="{DynamicResource Button.Foreground}"
+									Cursor="Hand"/>
+							<Button Content="저장"
+									Focusable="False"
+									behaviors:SoundBehavior.ClickSound="OK"
+									Command="{Binding SaveCommandCommand}"
+									Background="{DynamicResource Accent.Blue}"
+									Foreground="{DynamicResource Button.Foreground}"/>
+						</StackPanel>
+
+					</StackPanel>
+				</Border>
+
+				<!-- 선택된 커맨드가 없을 때 -->
+				<Border BorderBrush="{DynamicResource Background.Border}"
+						BorderThickness="1"
+						CornerRadius="5"
+						Padding="40"
+						Background="{DynamicResource Background.Card}"
+						IsVisible="{Binding SelectedCommand, Converter={x:Static ObjectConverters.IsNull}}">
+					<TextBlock Text="커맨드를 선택하거나 새로 추가해주세요"
+							   HorizontalAlignment="Center"
+							   Foreground="{DynamicResource Text.Muted}"
+							   FontSize="14"/>
+				</Border>
+
+			</StackPanel>
+		</ScrollViewer>
+
+		<!-- 템플릿 변수 선택 오버레이 -->
+		<views:TemplateVariablePickerOverlay x:Name="TemplateVariablePickerOverlay" ZIndex="2000"/>
+	</Grid>
+
+</UserControl>

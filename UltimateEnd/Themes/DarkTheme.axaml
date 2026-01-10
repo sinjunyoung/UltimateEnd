@@ -1,0 +1,104 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!-- ============================================ -->
+	<!-- Windows 11 스타일 다크 테마 색상 정의 -->
+	<!-- ============================================ -->
+
+	<!-- 배경 색상 -->
+	<SolidColorBrush x:Key="Background.Primary">#202020</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Secondary">#2B2B2B</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Tertiary">#1C1C1C</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Card">#2B2B2B</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Input">#323232</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Hover">#3A3A3A</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Border">#3F3F3F</SolidColorBrush>
+
+	<!-- 텍스트 색상 -->
+	<SolidColorBrush x:Key="Text.Primary">#FFFFFF</SolidColorBrush>	
+	<SolidColorBrush x:Key="Text.Secondary">#E4E4E4</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Tertiary">#A0A0A0</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Disabled">#6D6D6D</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Muted">#8A8A8A</SolidColorBrush>
+
+	<!-- 액센트 색상 (다크 테마용 - 흰색 계열) -->
+	<SolidColorBrush x:Key="Accent.Blue">#FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Red">#D13438</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Green">#107C10</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Yellow">#FFB900</SolidColorBrush>
+
+	<!-- 반투명 액센트 -->
+	<SolidColorBrush x:Key="Accent.Blue.Transparent">#40FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Red.Transparent">#40D13438</SolidColorBrush>
+
+	<!-- 그라디언트 정의 -->
+	<LinearGradientBrush x:Key="Gradient.Primary" StartPoint="0%,0%" EndPoint="100%,100%">
+		<GradientStop Color="#FFFFFF" Offset="0"/>
+		<GradientStop Color="#CCCCCC" Offset="1"/>
+	</LinearGradientBrush>
+
+	<LinearGradientBrush x:Key="Gradient.Background" StartPoint="0,0" EndPoint="1,1">
+		<GradientStop Color="#1C1C1C" Offset="0.0"/>
+		<GradientStop Color="#202020" Offset="0.5"/>
+		<GradientStop Color="#2B2B2B" Offset="1.0"/>
+	</LinearGradientBrush>
+
+	<RadialGradientBrush x:Key="Gradient.Glow.Blue">
+		<GradientStop Color="#0078D4" Offset="0"/>
+		<GradientStop Color="Transparent" Offset="1"/>
+	</RadialGradientBrush>
+
+	<RadialGradientBrush x:Key="Gradient.Glow.Red">
+		<GradientStop Color="#D13438" Offset="0"/>
+		<GradientStop Color="Transparent" Offset="1"/>
+	</RadialGradientBrush>
+
+	<!-- 컴포넌트별 색상 -->
+	<!-- TextBox -->
+	<SolidColorBrush x:Key="TextBox.Background">#323232</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.Foreground">#FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.BorderBrush">#5A5A5A</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.CaretBrush">#FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.SelectionBrush">#404040</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.SelectionForegroundBrush">#FFFFFF</SolidColorBrush>
+
+	<!-- Description -->
+	<SolidColorBrush x:Key="Description.Foreground">#A0A0A0</SolidColorBrush>
+	<SolidColorBrush x:Key="Description.PlaceholderForeground">#6D6D6D</SolidColorBrush>
+
+	<!-- Button -->
+	<SolidColorBrush x:Key="Button.Primary.Background">#0078D4</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Danger.Background">#D13438</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Foreground">#000000</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Hover.Foreground">#FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Hover.Background">#3A3A3A</SolidColorBrush>
+
+	<!-- ComboBox -->
+	<SolidColorBrush x:Key="ComboBox.Background">#323232</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Foreground">#FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Border">#5A5A5A</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Item.Background">#2B2B2B</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Item.Hover">#3A3A3A</SolidColorBrush>
+
+	<!-- CheckBox -->	
+	<SolidColorBrush x:Key="CheckBox.Foreground">#FFFFFF</SolidColorBrush>
+	<SolidColorBrush x:Key="CheckBox.Box.BorderBrush">#FFFFFF</SolidColorBrush>	
+
+	<!-- Shadow/Effect 색상 -->
+	<Color x:Key="Shadow.Color">#000000</Color>
+	<Color x:Key="Logo.Shadow.Color">#FFFFFF</Color>
+	<Color x:Key="Glow.Blue">#0078D4</Color>
+	<Color x:Key="Glow.Red">#D13438</Color>
+
+	<!-- Focus 색상 -->
+	<SolidColorBrush x:Key="Focus.BorderBrush">#FFFFFF</SolidColorBrush>
+	<Thickness x:Key="Focus.BorderThickness">2</Thickness>
+
+	<SolidColorBrush x:Key="Selection.BorderBrush">#FFFFFF</SolidColorBrush>
+	
+	<!-- x토글바 색상 -->
+	<SolidColorBrush x:Key="Toggle.Background">#CCCCCC</SolidColorBrush>
+	<SolidColorBrush x:Key="Toggle.SelectionBackground">#4CAF50</SolidColorBrush>	
+
+
+</ResourceDictionary>

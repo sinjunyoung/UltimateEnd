@@ -1,0 +1,200 @@
+<overlays:BaseOverlay xmlns="https://github.com/avaloniaui"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:overlays="using:UltimateEnd.Views.Overlays"
+                      x:Class="UltimateEnd.Views.Overlays.MessageOverlay">
+	<Grid Name="MainGrid" IsVisible="False">
+		<!-- 배경 딤 -->
+		<Border Background="#80000000"
+                PointerPressed="OnBackgroundClick"/>
+
+		<!-- 메시지 박스 -->
+		<Border Width="450"
+                MinHeight="280"
+                MaxHeight="500"
+                CornerRadius="16"
+                Background="{DynamicResource Background.Card}"
+                BorderBrush="{DynamicResource Background.Border}"
+                BorderThickness="2"
+                BoxShadow="0 10 40 8 #60000000"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Padding="32">
+			<Grid RowDefinitions="Auto,Auto,*,Auto">
+				<!-- 아이콘 -->
+				<Viewbox x:Name="IconBox"
+                        Grid.Row="0"
+                        Width="64"
+                        Height="64"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,20">
+					<Canvas Width="24" Height="24">
+						<Path x:Name="IconPath"
+                              Fill="{DynamicResource Text.Primary}"
+                              Stretch="Uniform"/>
+					</Canvas>
+				</Viewbox>
+
+				<!-- 타이틀 -->
+				<TextBlock x:Name="TitleText"
+                          Grid.Row="1"
+                          Text="메시지"
+                          FontSize="24"
+                          FontWeight="Bold"
+                          Foreground="{DynamicResource Text.Primary}"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,20"/>
+
+				<!-- 메시지 내용 -->
+				<ScrollViewer Grid.Row="2"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Disabled"
+                             Margin="0,0,0,24">
+					<TextBlock x:Name="MessageText"
+                              Text="메시지 내용"
+                              FontSize="16"
+                              Foreground="{DynamicResource Text.Secondary}"
+                              TextWrapping="Wrap"
+                              TextAlignment="Center"
+                              LineHeight="24"/>
+				</ScrollViewer>
+
+				<!-- 버튼 영역 -->
+				<Grid Grid.Row="3">
+					<!-- 단일 확인 버튼 (일반 메시지용) -->
+					<Border x:Name="OkButton"
+					        Height="52"
+					        CornerRadius="10"
+					        Background="{DynamicResource Background.Secondary}"
+					        PointerPressed="OnOkClick"
+					        Cursor="Hand"
+					        IsVisible="True">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="Background" Duration="0:0:0.15"/>
+							</Transitions>
+						</Border.Transitions>
+						<TextBlock Text="확인"
+						          FontSize="17"
+						          FontWeight="SemiBold"
+						          Foreground="{DynamicResource Text.Primary}"
+						          HorizontalAlignment="Center"
+						          VerticalAlignment="Center"/>
+					</Border>
+
+					<!-- 확인/취소 버튼 (Confirm용) -->
+					<Grid x:Name="ConfirmButtons" ColumnDefinitions="*,12,*">
+						<Border x:Name="CancelButton"
+						        Grid.Column="0"
+						        Height="52"
+						        CornerRadius="10"
+						        Background="{DynamicResource Background.Secondary}"
+						        PointerPressed="OnCancelClick"
+						        Cursor="Hand"
+						        IsVisible="False">
+							<Border.Transitions>
+								<Transitions>
+									<BrushTransition Property="Background" Duration="0:0:0.15"/>
+								</Transitions>
+							</Border.Transitions>
+							<TextBlock Text="취소"
+									   FontSize="17"
+									   FontWeight="SemiBold"
+									   Foreground="{DynamicResource Text.Primary}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+						</Border>
+
+						<Border x:Name="ConfirmButton"
+						        Grid.Column="2"
+						        Height="52"
+						        CornerRadius="10"
+						        Background="{DynamicResource Accent.Blue}"
+						        PointerPressed="OnConfirmClick"
+						        Cursor="Hand"
+						        IsVisible="False">
+							<Border.Transitions>
+								<Transitions>
+									<BrushTransition Property="Background" Duration="0:0:0.15"/>
+								</Transitions>
+							</Border.Transitions>
+							<TextBlock Text="확인"
+							          FontSize="17"
+							          FontWeight="SemiBold"
+									   Foreground="{DynamicResource Button.Foreground}"
+							          HorizontalAlignment="Center"
+							          VerticalAlignment="Center"/>
+						</Border>
+					</Grid>
+
+					<!-- 3버튼 (경로설정/자동설치/취소) -->
+					<Grid x:Name="ThreeButtonPanel"
+					      ColumnDefinitions="*,8,*,8,*"
+					      IsVisible="False">
+						<Border x:Name="Button1"
+						        Grid.Column="0"
+						        Height="52"
+						        CornerRadius="10"
+						        Background="{DynamicResource Background.Secondary}"
+						        PointerPressed="OnButton1Click"
+						        Cursor="Hand">
+							<Border.Transitions>
+								<Transitions>
+									<BrushTransition Property="Background" Duration="0:0:0.15"/>
+								</Transitions>
+							</Border.Transitions>
+							<TextBlock x:Name="Button1Text"
+									   Text="버튼1"
+									   FontSize="15"
+									   FontWeight="SemiBold"
+									   Foreground="{DynamicResource Text.Primary}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+						</Border>
+
+						<Border x:Name="Button2"
+						        Grid.Column="2"
+						        Height="52"
+						        CornerRadius="10"
+						        Background="{DynamicResource Accent.Blue}"
+						        PointerPressed="OnButton2Click"
+						        Cursor="Hand">
+							<Border.Transitions>
+								<Transitions>
+									<BrushTransition Property="Background" Duration="0:0:0.15"/>
+								</Transitions>
+							</Border.Transitions>
+							<TextBlock x:Name="Button2Text"
+							          Text="버튼2"
+							          FontSize="15"
+							          FontWeight="SemiBold"
+									   Foreground="{DynamicResource Button.Foreground}"
+							          HorizontalAlignment="Center"
+							          VerticalAlignment="Center"/>
+						</Border>
+
+						<Border x:Name="Button3"
+						        Grid.Column="4"
+						        Height="52"
+						        CornerRadius="10"
+						        Background="{DynamicResource Background.Secondary}"
+						        PointerPressed="OnButton3Click"
+						        Cursor="Hand">
+							<Border.Transitions>
+								<Transitions>
+									<BrushTransition Property="Background" Duration="0:0:0.15"/>
+								</Transitions>
+							</Border.Transitions>
+							<TextBlock x:Name="Button3Text"
+									   Text="버튼3"
+									   FontSize="15"
+									   FontWeight="SemiBold"
+									   Foreground="{DynamicResource Text.Primary}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+						</Border>
+					</Grid>
+				</Grid>
+			</Grid>
+		</Border>
+	</Grid>
+</overlays:BaseOverlay>

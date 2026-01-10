@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Views.Overlays.DescriptionEditOverlay">
+	<Border 
+		Name="MainBorder"
+		Background="#DD000000"
+		IsVisible="{Binding $parent[UserControl].IsVisible}"
+		ZIndex="1000">
+		<Border Background="{DynamicResource Background.Card}"
+				CornerRadius="10"
+				Padding="20"
+				Margin="20,5,20,20"
+				MaxWidth="600"
+				VerticalAlignment="Top">
+			<StackPanel Spacing="15">
+				<TextBlock Text="설명 편집"
+						   FontSize="20"
+						   FontWeight="Bold"
+						   Foreground="{DynamicResource Text.Primary}"/>
+				<TextBox x:Name="OverlayDescriptionTextBox"
+						 AcceptsReturn="True"
+						 TextWrapping="Wrap"
+						 MinHeight="150"
+						 MaxHeight="250"
+						 Background="{DynamicResource TextBox.Background}"
+						 Foreground="{DynamicResource TextBox.Foreground}"
+						 BorderBrush="{DynamicResource TextBox.BorderBrush}"
+						 CaretBrush="{DynamicResource TextBox.CaretBrush}"
+						 SelectionBrush="{DynamicResource TextBox.SelectionBrush}"
+						 SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}"
+						 Padding="10">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxColorFixBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+				<StackPanel Orientation="Horizontal"
+							HorizontalAlignment="Center"
+							Spacing="10">
+					<Button Content="저장"
+							behaviors:SoundBehavior.ClickSound="OK"
+							Padding="30,10"
+							Background="{DynamicResource Accent.Blue}"
+							Foreground="{DynamicResource Button.Foreground}"
+							Click="OnSave"/>
+					<Button Content="취소"
+							behaviors:SoundBehavior.ClickSound="Cancel"
+							Padding="30,10"
+							Background="{DynamicResource Background.Hover}"
+							Foreground="{DynamicResource Text.Primary}"
+							Click="OnCancel"/>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</Border>
+</UserControl>

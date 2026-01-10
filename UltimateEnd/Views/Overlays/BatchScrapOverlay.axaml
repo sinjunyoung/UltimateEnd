@@ -1,0 +1,241 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:overlays="using:UltimateEnd.Views.Overlays"
+			 xmlns:models="using:UltimateEnd.Models"
+             x:Class="UltimateEnd.Views.Overlays.BatchScrapOverlay"
+             x:DataType="overlays:BatchScrapOverlay"
+             IsVisible="{Binding Visible}">
+
+	<Border Background="#80000000">
+		<!-- 기존 UI (위에 표시) -->
+		<Viewbox Stretch="Uniform"
+					MaxWidth="1920"
+					MaxHeight="1080"
+					Margin="20">
+			<Border Background="{DynamicResource Background.Primary}"
+					CornerRadius="8"
+					Padding="40"
+					BoxShadow="0 4 16 2 #40000000"
+					Width="600">
+				<StackPanel Spacing="20">
+					<!-- 헤더 -->
+					<TextBlock Text="스크랩 진행 중"
+								FontSize="20"
+								FontWeight="Bold"
+								Foreground="{DynamicResource Text.Primary}"
+								HorizontalAlignment="Center"/>
+
+					<!-- ⭐ 현재 게임 정보 (커버 + 제목 + 설명) -->
+					<Border Background="{DynamicResource Background.Secondary}"
+							CornerRadius="6"
+							Padding="15"
+							Height="200"
+							IsVisible="{Binding CurrentCoverImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+						<Grid ColumnDefinitions="150,*" ColumnSpacing="20">
+							<!-- 좌측: 커버 이미지 -->
+							<Border Grid.Column="0"
+									Width="130"
+									Height="170"
+									CornerRadius="4"
+									ClipToBounds="True"
+									VerticalAlignment="Center"
+									HorizontalAlignment="Center">
+								<Image Source="{Binding CurrentCoverImage}"
+										Stretch="Uniform"/>
+							</Border>
+
+							<!-- 우측: 게임 정보 -->
+							<StackPanel Grid.Column="1"
+										VerticalAlignment="Top"
+										Spacing="8"
+										Margin="0,10,0,0">
+								<!-- 게임 제목 -->
+								<TextBlock Text="{Binding CurrentGameTitle}"
+											FontSize="16"
+											FontWeight="Bold"
+											Foreground="{DynamicResource Text.Primary}"
+											TextWrapping="Wrap"
+											TextAlignment="Center"
+											MaxLines="1"/>
+
+								<!-- 구분선 -->
+								<Border Height="1"
+										Background="{DynamicResource Text.Secondary}"
+										Opacity="0.3"
+										Margin="0,3"/>
+
+								<!-- 게임 설명 -->
+								<ScrollViewer Height="120"
+												VerticalScrollBarVisibility="Auto">
+									<TextBlock Text="{Binding CurrentGameDescription}"
+												FontSize="12"
+												Foreground="{DynamicResource Text.Secondary}"
+												TextWrapping="Wrap"
+												LineHeight="16"/>
+								</ScrollViewer>
+							</StackPanel>
+						</Grid>
+					</Border>
+
+					<!-- 진행 상황 (기존 코드 그대로) -->
+					<Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,*,*,*" ColumnSpacing="15" RowSpacing="10">
+						<!-- ... 기존 Grid 내용 그대로 ... -->
+
+						<!-- 전체 진행 -->
+						<StackPanel Grid.Row="0" Grid.Column="0">
+							<TextBlock Text="전체"
+										FontSize="12"
+										Foreground="{DynamicResource Text.Secondary}"
+										HorizontalAlignment="Center"/>
+							<TextBlock FontSize="24"
+										FontWeight="Bold"
+										Foreground="{DynamicResource Text.Primary}"
+										HorizontalAlignment="Center">
+								<Run Text="{Binding CurrentCount}"/>
+								<Run Text="/"/>
+								<Run Text="{Binding TotalCount}"/>
+							</TextBlock>
+						</StackPanel>
+
+						<StackPanel Grid.Row="0" Grid.Column="1">
+							<TextBlock Text="성공"
+										FontSize="12"
+										Foreground="{DynamicResource Text.Secondary}"
+										HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding SuccessCount}"
+										FontSize="24"
+										FontWeight="Bold"
+										Foreground="#4CAF50"
+										HorizontalAlignment="Center"/>
+						</StackPanel>
+
+						<StackPanel Grid.Row="0" Grid.Column="2">
+							<TextBlock Text="캐시"
+										FontSize="12"
+										Foreground="{DynamicResource Text.Secondary}"
+										HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding CachedCount}"
+										FontSize="24"
+										FontWeight="Bold"
+										Foreground="#2196F3"
+										HorizontalAlignment="Center"/>
+						</StackPanel>
+
+						<StackPanel Grid.Row="0" Grid.Column="3">
+							<TextBlock Text="건너뜀"
+										FontSize="12"
+										Foreground="{DynamicResource Text.Secondary}"
+										HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding SkippedCount}"
+										FontSize="24"
+										FontWeight="Bold"
+										Foreground="#FF9800"
+										HorizontalAlignment="Center"/>
+						</StackPanel>
+
+						<StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4">
+							<TextBlock Text="실패"
+										FontSize="12"
+										Foreground="{DynamicResource Text.Secondary}"
+										HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding FailedCount}"
+										FontSize="24"
+										FontWeight="Bold"
+										Foreground="#F44336"
+										HorizontalAlignment="Center"/>
+						</StackPanel>
+
+						<ProgressBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4"
+										Value="{Binding ProgressPercentage}"
+										Height="8"
+										Minimum="0"
+										Maximum="100"
+										Foreground="#2196F3"/>
+
+						<TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4"
+									FontSize="14"
+									Foreground="{DynamicResource Text.Secondary}"
+									HorizontalAlignment="Center">
+							<Run Text="{Binding ProgressPercentage, StringFormat={}{0:F1}}"/>
+							<Run Text="%"/>
+						</TextBlock>
+					</Grid>
+
+					<!-- 현재 처리 중인 파일 -->
+					<Border Background="{DynamicResource Background.Secondary}"
+							CornerRadius="4"
+							Padding="15,10">
+						<StackPanel Spacing="5">
+							<TextBlock Text="현재 파일"
+										FontSize="12"
+										Foreground="{DynamicResource Text.Secondary}"/>
+							<TextBlock Text="{Binding CurrentStatus}"
+										FontSize="14"
+										Foreground="{DynamicResource Text.Primary}"
+										TextTrimming="CharacterEllipsis"/>
+						</StackPanel>
+					</Border>
+
+					<!-- 실패 목록 -->
+					<Border IsVisible="{Binding HasFailedItems}"
+							Background="{DynamicResource Background.Secondary}"
+							CornerRadius="4"
+							Padding="15"
+							Height="200">
+						<StackPanel Spacing="10">
+							<TextBlock Text="실패한 파일"
+										FontSize="14"
+										FontWeight="Bold"
+										Foreground="#F44336"/>
+							<ScrollViewer Height="150">
+								<ItemsControl ItemsSource="{Binding FailedItems}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="models:FailedScrapItem">
+											<StackPanel Spacing="3" Margin="0,5">
+												<TextBlock Text="{Binding FileName}"
+															FontSize="12"
+															Foreground="{DynamicResource Text.Primary}"/>
+												<TextBlock Text="{Binding ErrorMessage}"
+															FontSize="11"
+															Foreground="{DynamicResource Text.Secondary}"
+															TextWrapping="Wrap"/>
+											</StackPanel>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</ScrollViewer>
+						</StackPanel>
+					</Border>
+
+					<!-- 버튼 -->
+					<StackPanel Orientation="Horizontal"
+								HorizontalAlignment="Center"
+								Spacing="10">
+						<Button Content="취소"
+								Click="OnCancelClick"
+								IsVisible="{Binding IsScrapInProgress}"
+								Padding="30,10"
+								Background="#F44336"
+								Foreground="White"/>
+
+						<Button Content="닫기"
+								Click="OnCloseClick"
+								IsVisible="{Binding !IsScrapInProgress}"
+								Padding="30,10"
+								Background="{DynamicResource Button.Primary}"
+								Foreground="White"/>
+					</StackPanel>
+
+					<!-- 경과 시간 -->
+					<TextBlock IsVisible="{Binding !IsScrapInProgress}"
+								FontSize="12"
+								Foreground="{DynamicResource Text.Secondary}"
+								HorizontalAlignment="Center">
+						<Run Text="완료 시간: "/>
+						<Run Text="{Binding ElapsedTime}"/>
+					</TextBlock>
+				</StackPanel>
+			</Border>
+		</Viewbox>
+	</Border>
+</UserControl>

@@ -1,0 +1,167 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+			 xmlns:baseviews="using:UltimateEnd.Views.Overlays"
+             xmlns:views="using:UltimateEnd.Android.Views.Overlays"
+             x:Class="UltimateEnd.Android.Views.EmulatorSettingView"
+             Focusable="True">
+
+	<UserControl.Styles>
+		<Style Selector="Button">
+			<Setter Property="Padding" Value="15,10"/>
+			<Setter Property="Margin" Value="5"/>
+		</Style>
+	</UserControl.Styles>
+
+	<Grid x:Name="RootGrid">
+		<!-- 메인 화면 -->
+		<Grid RowDefinitions="Auto,Auto,*,Auto">
+			<!-- 검색 -->
+			<Border Grid.Row="0" Padding="15,10" Background="{DynamicResource Background.Card}">
+				<TextBox x:Name="SearchTextBox"
+						 Text="{Binding SearchText}"
+						 Foreground="{DynamicResource Text.Primary}"
+						 CaretBrush="{DynamicResource Text.Primary}"
+						 Watermark="커맨드 검색...">
+					<TextBox.KeyBindings>
+						<KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}"/>
+					</TextBox.KeyBindings>
+					<Interaction.Behaviors>
+						<behaviors:TextBoxColorFixBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</Border>
+
+			<!-- 버튼들 -->
+			<Border Grid.Row="1" Padding="15,5" Background="{DynamicResource Background.Card}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+
+					<Button Grid.Column="0" Content="추가"
+							behaviors:SoundBehavior.ClickSound="OK"
+							Focusable="False"
+							Command="{Binding AddCommandCommand}"
+							Click="OnButtonClicked"
+							Background="{DynamicResource Accent.Blue}"
+							Foreground="{DynamicResource Button.Foreground}"
+							Margin="0,0,5,0"/>
+					<Button Grid.Column="1" Content="복제"
+							 behaviors:SoundBehavior.ClickSound="OK"
+							 Focusable="False"
+							 Command="{Binding DuplicateCommandCommand}"
+							 Click="OnButtonClicked"							
+							 Background="{DynamicResource Background.Hover}"
+							 Foreground="{DynamicResource Text.Primary}"
+							 Margin="0,0,5,0"/>
+					<Button Grid.Column="2" Content="삭제"
+							 behaviors:SoundBehavior.ClickSound="Cancel"
+							 Focusable="False"
+							 Command="{Binding DeleteCommandCommand}"
+							 Click="OnButtonClicked"							
+							 Background="{DynamicResource Accent.Red}"
+							 Foreground="{DynamicResource Button.Foreground}"
+							 Margin="0,0,5,0"/>
+					<Border Grid.Column="4"
+							 ClipToBounds="False"
+							 Cursor="Hand"
+							 PointerPressed="OnShowFilterPlatformClicked">
+						<PathIcon Classes="AnimatedIcon"
+								  Data="{StaticResource Icon.Filter}"
+								  Width="{StaticResource IconSize.MenuIcon}"
+								  Height="{StaticResource IconSize.MenuIcon}"
+								  Margin="10,0,10,0"
+								  VerticalAlignment="Center"/>
+					</Border>
+
+				</Grid>
+			</Border>
+
+			<!-- 커맨드 목록 -->
+			<ListBox Grid.Row="2"
+					 x:Name="CommandList"
+					 behaviors:InputMappingBehavior.Enable="True"
+					 Focusable="True"
+					 IsTabStop="True"
+					 ItemsSource="{Binding FilteredCommands}"
+					 SelectedItem="{Binding SelectedCommand}"
+					 Background="{DynamicResource Background.Primary}"
+					 SelectionChanged="OnCommandSelectionChanged"					 
+					 Tapped="OnCommandTapped">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<Border Padding="15,12" Background="Transparent">
+							<Grid ColumnDefinitions="Auto,*,Auto">
+								<Image Grid.Column="0"
+									   Source="{Binding Icon}"
+									   Width="40"
+									   Height="40"
+									   Margin="0,0,12,0"
+									   IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								<StackPanel Grid.Column="1" VerticalAlignment="Center">
+									<TextBlock Text="{Binding Name}"
+											   FontWeight="SemiBold"
+											   FontSize="16"
+											   Foreground="{DynamicResource Text.Primary}"/>
+									<TextBlock Text="{Binding Package}"
+											   Foreground="{DynamicResource Text.Muted}"
+											   FontSize="12"
+											   TextTrimming="CharacterEllipsis"/>
+								</StackPanel>
+								<TextBlock Grid.Column="2"
+										   Text="[RA]"
+										   Foreground="{DynamicResource Accent.Yellow}"
+										   FontSize="12"
+										   VerticalAlignment="Center"
+										   IsVisible="{Binding IsRetroArch}"/>
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+
+			<!-- 하단 버튼 -->
+			<Border Grid.Row="3"
+					Padding="15,10"
+					Background="{DynamicResource Background.Card}"
+					BorderBrush="{DynamicResource Background.Border}"
+					BorderThickness="0,1,0,0">
+				<Grid ColumnDefinitions="*,*">
+					<Button Grid.Column="0"
+							Content="취소"
+							behaviors:SoundBehavior.ClickSound="Cancel"
+							Focusable="False"
+							Command="{Binding GoBackCommand}"
+							Background="{DynamicResource Background.Hover}"
+							Foreground="{DynamicResource Text.Primary}"
+							HorizontalAlignment="Stretch"
+							Margin="0,0,5,0"/>
+					<Button Grid.Column="1"
+							Content="저장"
+							behaviors:SoundBehavior.ClickSound="OK"
+							Focusable="False"
+							Command="{Binding SaveCommandCommand}"
+							Background="{DynamicResource Accent.Blue}"
+							Foreground="{DynamicResource Button.Foreground}"
+							HorizontalAlignment="Stretch"
+							Margin="5,0,0,0"/>
+				</Grid>
+			</Border>
+		</Grid>
+
+		<views:CommandDetailOverlay x:Name="CommandDetailOverlay" DataContext="{Binding}" ZIndex="2000"/>
+		<views:PlatformPickerOverlay x:Name="PlatformPickerOverlay" ZIndex="2000"/>
+		<views:AppPickerOverlay x:Name="AppPickerOverlay" ZIndex="2000"/>
+		<views:SimpleListPickerOverlay x:Name="ActionPickerOverlay" ZIndex="2000"/>
+		<views:SimpleListPickerOverlay x:Name="ExtraTypePickerOverlay" ZIndex="2000"/>
+		<views:FilterPlatformOverlay x:Name="FilterPlatformPickerOverlay" ZIndex="2000"/>
+		<baseviews:TemplateVariablePickerOverlay x:Name="TemplateVariablePickerOverlay" ZIndex="2002"/>
+		<views:SimpleListPickerOverlay x:Name="CategoryPickerOverlay" ZIndex="2000"/>
+	</Grid>
+
+</UserControl>

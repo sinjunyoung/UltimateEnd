@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Views.Overlays.GameRenameOverlay">
+	<Grid 
+		Name="MainGrid"
+		IsVisible="False"
+		Background="#DD000000"
+		ZIndex="2300">
+		<Grid.Transitions>
+			<Transitions>
+				<DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+			</Transitions>
+		</Grid.Transitions>
+		<Border Background="{DynamicResource Background.Card}"
+				CornerRadius="10"
+				Padding="20"
+				Margin="20,5,20,20"
+				MaxWidth="600"
+				VerticalAlignment="Top">
+			<StackPanel Spacing="15">
+				<TextBlock Text="게임 이름 변경"
+						   FontSize="20"
+						   FontWeight="Bold"
+						   Foreground="{DynamicResource Text.Primary}"/>
+				<TextBox x:Name="RenameOverlayTextBox"
+						 AcceptsReturn="False"
+						 TextWrapping="Wrap"
+						 MinHeight="50"
+						 Background="{DynamicResource TextBox.Background}"
+						 Foreground="{DynamicResource TextBox.Foreground}"
+						 BorderBrush="{DynamicResource TextBox.BorderBrush}"
+						 CaretBrush="{DynamicResource TextBox.CaretBrush}"
+						 SelectionBrush="{DynamicResource TextBox.SelectionBrush}"
+						 SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}"
+						 FontSize="16"
+						 Padding="10"
+						 KeyDown="OnRenameOverlayTextBoxKeyDown">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxColorFixBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+				<StackPanel Orientation="Horizontal"
+							HorizontalAlignment="Center"
+							Spacing="10">
+					<Button Content="저장"
+							Padding="30,10"
+							Background="{DynamicResource Accent.Blue}"
+							Foreground="{DynamicResource Button.Foreground}"
+							Click="OnSave"/>
+					<Button Content="취소"
+							Padding="30,10"
+							Background="{DynamicResource Background.Hover}"
+							Foreground="{DynamicResource Text.Primary}"
+							Click="OnCancel"/>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</Grid>
+</UserControl>

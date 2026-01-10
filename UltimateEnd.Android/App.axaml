@@ -1,0 +1,142 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:vm="using:UltimateEnd.Android.ViewModels"
+             xmlns:views="using:UltimateEnd.Android.Views"
+             x:Class="UltimateEnd.Android.App">
+
+	<Application.DataTemplates>
+		<DataTemplate DataType="vm:EmulatorSettingViewModel">
+			<views:EmulatorSettingView/>
+		</DataTemplate>
+		<DataTemplate DataType="vm:KeyBindingSettingsViewModel">
+			<views:KeyBindingSettingsView/>
+		</DataTemplate>
+	</Application.DataTemplates>
+
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceInclude Source="avares://LoadingIndicators.Avalonia/LoadingIndicators.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Application.Resources>
+
+	<Application.Resources>
+		<!-- 테마는 ThemeService에서 동적 로드 -->
+
+		<!-- ============================================ -->
+		<!-- 안드로이드 전용 크기 정의 -->
+		<!-- ============================================ -->
+
+		<!-- 폰트 크기 -->
+		<x:Double x:Key="FontSize.BackButton">15</x:Double>
+		<x:Double x:Key="FontSize.PlatformTitle">18</x:Double>
+		<x:Double x:Key="FontSize.PlatformName">32</x:Double>
+		<x:Double x:Key="FontSize.SettingsButton">10</x:Double>
+		<x:Double x:Key="FontSize.GameDetailTitle">14</x:Double>
+		<x:Double x:Key="FontSize.Tag">9</x:Double>
+		<x:Double x:Key="FontSize.Description">10</x:Double>
+		<x:Double x:Key="FontSize.SearchIcon">12</x:Double>
+		<x:Double x:Key="FontSize.SearchText">12</x:Double>
+		<x:Double x:Key="FontSize.ListGameTitle">11</x:Double>
+		<x:Double x:Key="FontSize.ListTag">8</x:Double>
+		<x:Double x:Key="FontSize.ListLogoFallback">8</x:Double>
+		<x:Double x:Key="FontSize.FooterButton">11</x:Double>
+		<x:Double x:Key="FontSize.ScreenSaverGameName">40</x:Double>
+		<x:Double x:Key="FontSize.ScreenSaverPlatformName">18</x:Double>
+
+		<!-- 크기 -->
+		<x:Double x:Key="Size.BackButton">30</x:Double>
+		<CornerRadius x:Key="CornerRadius.BackButton">15</CornerRadius>
+		<x:Double x:Key="Size.SearchHeight">38</x:Double>
+		<x:Double x:Key="Size.HeaderHeight">50</x:Double>
+		<x:Double x:Key="Size.LogoWidth">70</x:Double>
+		<x:Double x:Key="Size.LogoHeight">35</x:Double>
+		<x:Double x:Key="Size.ScreenSaverPlatforLogoHeight">30</x:Double>
+
+		<x:Double x:Key="Size.CoverWidth">100</x:Double>
+		<x:Double x:Key="Size.OverlayWidth">400</x:Double>
+		<x:Double x:Key="Size.IconPlayTime">12</x:Double>
+		<x:Double x:Key="Size.IconLastPlayedDate">12</x:Double>
+		<CornerRadius x:Key="CornerRadius.Standard">10</CornerRadius>
+		<CornerRadius x:Key="CornerRadius.Small">5</CornerRadius>
+		<CornerRadius x:Key="CornerRadius.Tiny">3</CornerRadius>
+
+		<!-- 간격 -->
+		<x:Double x:Key="Spacing.Header">8</x:Double>
+		<x:Double x:Key="Spacing.Standard">5</x:Double>
+		<x:Double x:Key="Spacing.Small">4</x:Double>
+		<x:Double x:Key="Spacing.Tiny">3</x:Double>
+		<x:Double x:Key="Spacing.Mini">2</x:Double>
+
+		<!-- Margin -->
+		<Thickness x:Key="Margin.PlatformCard">0,0,20,0</Thickness>
+		<Thickness x:Key="Margin.ContainerLeft">8,8,6,8</Thickness>
+		<Thickness x:Key="Margin.ContainerTop">8,5,8,8</Thickness>
+		<Thickness x:Key="Margin.HeaderBottom">0,0,0,8</Thickness>
+		<Thickness x:Key="Margin.VideoBottom">0,0,0,8</Thickness>
+		<Thickness x:Key="Margin.SearchBottom">0,0,0,8</Thickness>
+		<Thickness x:Key="Margin.TagVertical">0,2,0,0</Thickness>
+		<Thickness x:Key="Margin.DescriptionTop">0,2,0,0</Thickness>
+		<Thickness x:Key="Margin.LogoRight">0,0,8,0</Thickness>
+		<Thickness x:Key="Margin.ListItem">0,0,0,1</Thickness>
+		<Thickness x:Key="Margin.ListContent">0,0,2,0</Thickness>
+
+		<!-- Padding -->
+		<Thickness x:Key="Padding.Description">10</Thickness>
+		<Thickness x:Key="Padding.SettingsButton">6,3</Thickness>
+		<Thickness x:Key="Padding.Search">6,5</Thickness>
+		<Thickness x:Key="Padding.Border">5</Thickness>
+		<Thickness x:Key="Padding.Tag">5,2</Thickness>
+		<Thickness x:Key="Padding.TagSmall">4,1</Thickness>
+		<Thickness x:Key="Padding.ListItem">2</Thickness>
+		<Thickness x:Key="Padding.LogoImage">4</Thickness>
+		<Thickness x:Key="Padding.LogoText">2</Thickness>
+		<Thickness x:Key="Padding.SearchIcon">0,0,5,0</Thickness>
+
+		<!-- MaxWidth -->
+		<x:Double x:Key="MaxWidth.TagDeveloper">60</x:Double>
+		<x:Double x:Key="MaxWidth.TagGenre">50</x:Double>
+
+		<!-- LineHeight -->
+		<x:Double x:Key="LineHeight.Description">15</x:Double>
+
+		<!-- PlatformListView 전용 -->
+		<x:Double x:Key="FontSize.PlatformListTitle">20</x:Double>
+		<x:Double x:Key="FontSize.PlatformListCount">10</x:Double>
+		<x:Double x:Key="FontSize.PlatformCardName">14</x:Double>
+		<x:Double x:Key="FontSize.PlatformTime">18</x:Double>
+		<x:Double x:Key="FontSize.PlatformDate">10</x:Double>
+
+		<x:Double x:Key="IconSize.MenuIcon">32</x:Double>
+
+		<Thickness x:Key="Margin.PlatformListContainer">20,30,20,20</Thickness>
+		<Thickness x:Key="Margin.PlatformListHeader">0,0,0,10</Thickness>
+		<Thickness x:Key="Margin.PlatformCarousel">0,20,0,20</Thickness>
+		<Thickness x:Key="Margin.PlatformIndicator">0,20,0,15</Thickness>
+		<Thickness x:Key="Margin.PlatformDateTop">0,3,0,0</Thickness>
+
+		<Thickness x:Key="Padding.PlatformCardImage">20</Thickness>
+		<Thickness x:Key="Padding.PlatformCardName">12,10</Thickness>
+
+		<x:Double x:Key="Size.PlatformCardNormalWidth">110</x:Double>
+		<x:Double x:Key="Size.PlatformCardNormalHeight">136</x:Double>
+		<x:Double x:Key="Size.PlatformCardSelectedWidth">220</x:Double>		
+		<x:Double x:Key="Size.PlatformCardSelectedHeight">260</x:Double>
+		<x:Double x:Key="Size.PlatformCardSpacing">30</x:Double>
+
+		<CornerRadius x:Key="CornerRadius.PlatformCard">12</CornerRadius>
+		<x:Double x:Key="Size.PlatformShadowBlur">30</x:Double>
+
+		<x:Double x:Key="Size.IndicatorNormal">8</x:Double>
+		<x:Double x:Key="Size.IndicatorSelected">24</x:Double>
+		<x:Double x:Key="Size.IndicatorSpacing">8</x:Double>
+
+		<x:Double x:Key="Size.SelectionBorderThickness">3</x:Double>
+		
+	</Application.Resources>	
+	<Application.Styles>
+		<FluentTheme />
+		<StyleInclude Source="avares://UltimateEnd/Styles/Common.axaml"/>		
+	</Application.Styles>
+</Application>

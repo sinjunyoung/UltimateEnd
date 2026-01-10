@@ -1,0 +1,349 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.ViewModels"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Views.RomSettingView"
+             x:DataType="vm:RomSettingViewModel"
+             Focusable="True">
+
+	<Grid>
+		<Panel>
+			<Panel.Background>
+				<DynamicResource ResourceKey="Gradient.Background"/>
+			</Panel.Background>
+
+			<Grid RowDefinitions="*,Auto">
+				<!-- ScrollViewer가 첫 번째 행 -->
+				<ScrollViewer Grid.Row="0" Padding="20">
+					<StackPanel Spacing="10" MaxWidth="800">
+
+						<!-- Header -->
+						<TextBlock Text="롬 경로 설정"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Text.Primary}"/>
+
+						<!-- Base Paths Section (다중) -->
+						<Border Background="{DynamicResource Background.Card}"
+                                CornerRadius="12"
+                                Padding="20"
+                                BorderThickness="0">
+							<StackPanel Spacing="15">
+								<Grid ColumnDefinitions="*,Auto">
+									<StackPanel Grid.Column="0" Spacing="5">
+										<TextBlock Text="롬 기본 폴더"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextBox.Foreground}"/>
+
+										<TextBlock Text="여러 롬 폴더를 추가할 수 있습니다"
+                                                   FontSize="14"
+                                                   Foreground="{DynamicResource Text.Muted}"/>
+									</StackPanel>
+
+									<Button Grid.Column="1"
+                                            Focusable="False"
+                                            behaviors:SoundBehavior.ClickSound="Click"
+                                            Click="OnAddBasePathClick"
+                                            Padding="15,8"
+                                            Background="{DynamicResource Accent.Green}"
+                                            Foreground="{DynamicResource Button.Foreground}"
+                                            BorderThickness="0"
+                                            CornerRadius="6"
+                                            Cursor="Hand"
+                                            VerticalAlignment="Center">
+										<StackPanel Orientation="Horizontal" Spacing="5">
+											<PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+													  Width="14" Height="14"
+													  Foreground="{DynamicResource Button.Foreground}"/>
+											<TextBlock Text="폴더 추가" VerticalAlignment="Center"/>
+										</StackPanel>
+									</Button>
+								</Grid>
+
+								<!-- Base Paths List -->
+								<ItemsControl ItemsSource="{Binding RomsBasePaths}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate>
+											<Border Background="{DynamicResource Background.Secondary}"
+                                                    CornerRadius="8"
+                                                    Padding="12"
+                                                    Margin="0,0,0,8"
+                                                    BorderThickness="1"
+                                                    BorderBrush="{DynamicResource ComboBox.Border}">
+												<Grid ColumnDefinitions="*,Auto,Auto">
+													<TextBlock Grid.Column="0"
+                                                             Text="{Binding Path}"
+                                                             Padding="8"
+                                                             FontSize="14"
+                                                             VerticalAlignment="Center"
+                                                             Foreground="{DynamicResource TextBox.Foreground}"/>
+
+													<Button Grid.Column="1"
+                                                            Focusable="False"
+                                                            behaviors:SoundBehavior.ClickSound="Click"
+                                                            Click="OnBrowseBasePathClick"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="12,6"
+                                                            Margin="8,0,0,0"
+                                                            Background="{DynamicResource Accent.Blue}"
+                                                            Foreground="{DynamicResource Button.Foreground}"
+                                                            BorderThickness="0"
+                                                            CornerRadius="6"
+                                                            Cursor="Hand">
+														<StackPanel Orientation="Horizontal" Spacing="5">
+															<PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+																	  Width="14" Height="14"
+																	  Foreground="{DynamicResource Button.Foreground}"/>
+															<TextBlock Text="선택" VerticalAlignment="Center"/>
+														</StackPanel>
+													</Button>
+
+													<Button Grid.Column="2"
+                                                            Focusable="False"
+                                                            behaviors:SoundBehavior.ClickSound="Cancel"
+                                                            Click="OnRemoveBasePathClick"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="12,6"
+                                                            Margin="8,0,0,0"
+                                                            Background="{DynamicResource Accent.Red}"
+                                                            Foreground="{DynamicResource Button.Foreground}"
+                                                            BorderThickness="0"
+                                                            CornerRadius="6"
+                                                            Cursor="Hand"
+                                                            ToolTip.Tip="폴더 제거">
+														<PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+																  Width="14" Height="14"
+																  Foreground="{DynamicResource Button.Foreground}"/>
+													</Button>
+												</Grid>
+											</Border>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</StackPanel>
+						</Border>
+
+						<!-- Platform Paths Section -->
+						<Border Background="{DynamicResource Background.Card}"
+                                CornerRadius="12"
+                                Padding="20"
+                                BorderThickness="0"
+                                Margin="0,10,0,0">
+							<StackPanel Spacing="10">
+								<StackPanel Spacing="5">
+									<TextBlock Text="플랫폼 매핑"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextBox.Foreground}"/>
+
+									<TextBlock Text="스캔된 플랫폼 폴더를 매핑하세요"
+                                               FontSize="14"
+                                               Foreground="{DynamicResource Text.Muted}"/>
+								</StackPanel>
+
+								<ItemsControl ItemsSource="{Binding PlatformNames}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate>
+											<Border Background="{DynamicResource Background.Secondary}"
+													CornerRadius="8"
+													Padding="15"
+													Margin="0,0,0,8"
+													BorderThickness="1"
+													BorderBrush="{DynamicResource ComboBox.Border}">
+												<Grid ColumnDefinitions="Auto,1*,2*,Auto" RowDefinitions="Auto,Auto">
+
+													<!-- 상태 표시 -->
+													<StackPanel Grid.Column="0" Grid.Row="0"
+																Orientation="Horizontal"
+																Spacing="5"
+																VerticalAlignment="Center"
+																Margin="0,0,10,0"
+																ToolTip.Tip="{Binding ActualPath}">
+
+														<!-- Warning Icon (폴더 없음) -->
+														<PathIcon Data="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"
+																  Width="14" Height="14"
+																  Foreground="#FF9800"
+																  IsVisible="{Binding IsFolderMissing}"/>
+
+														<!-- New Icon (새 폴더) -->
+														<PathIcon Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
+																  Width="14" Height="14"
+																  Foreground="#4CAF50"
+																  IsVisible="{Binding IsNew}"/>
+
+														<!-- Check Icon (일반) -->
+														<PathIcon Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+																  Width="14" Height="14"
+																  Foreground="#4CAF50"
+																  IsVisible="{Binding !IsNew}"/>
+
+														<TextBlock Text="{Binding StatusText}"
+																   FontSize="14"
+																   VerticalAlignment="Center"
+																   Foreground="{DynamicResource Text.Primary}"/>
+													</StackPanel>
+
+													<!-- 폴더명 -->
+													<StackPanel Grid.Column="1" Grid.Row="0"
+																Orientation="Horizontal"
+																Spacing="10"
+																VerticalAlignment="Center">
+														<TextBlock Text="{Binding FolderName}"
+																   FontSize="16"
+																   FontWeight="SemiBold"
+																   Foreground="{DynamicResource Text.Primary}"
+																   VerticalAlignment="Center"/>
+														<Border Background="{DynamicResource Accent.Blue}"
+																CornerRadius="4"
+																Padding="6,2"
+																IsVisible="{Binding IsNew}"
+																VerticalAlignment="Center">
+															<TextBlock Text="신규"
+																	   FontSize="11"
+																	   Foreground="{DynamicResource Button.Foreground}"
+																	   FontWeight="SemiBold"/>
+														</Border>
+													</StackPanel>
+
+													<!-- 플랫폼 선택 -->
+													<StackPanel Grid.Column="2" Grid.Row="0"
+																Orientation="Horizontal"
+																Spacing="10"
+																VerticalAlignment="Center"
+																HorizontalAlignment="Stretch"
+																Margin="15,0,0,0">
+														<ComboBox behaviors:InputMappingBehavior.Enable="True"
+																  SelectedItem="{Binding SelectedPlatformOption, Mode=TwoWay}"
+																  ItemsSource="{Binding AvailablePlatforms}"
+																  HorizontalAlignment="Stretch"
+																  MinWidth="200"
+																  Background="{DynamicResource ComboBox.Background}"
+																  Foreground="{DynamicResource ComboBox.Foreground}"
+																  BorderThickness="1"
+																  BorderBrush="{DynamicResource ComboBox.Border}"
+																  Padding="10,8"
+																  FontSize="13">
+															<ComboBox.ItemTemplate>
+																<DataTemplate>
+																	<StackPanel Orientation="Horizontal" Spacing="8">
+																		<Image Source="{Binding Image}"
+																			   Width="24" Height="24"
+																			   RenderOptions.BitmapInterpolationMode="HighQuality"/>
+																		<TextBlock Text="{Binding DisplayName}"
+																				   VerticalAlignment="Center"
+																				   Foreground="{DynamicResource Text.Primary}"/>
+																	</StackPanel>
+																</DataTemplate>
+															</ComboBox.ItemTemplate>
+														</ComboBox>
+
+														<PathIcon Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+																  Width="16" Height="16"
+																  Foreground="{DynamicResource Text.Secondary}"
+																  VerticalAlignment="Center"
+																  ToolTip.Tip="{Binding PlatformInfo}"/>
+													</StackPanel>
+
+													<!-- 제거 버튼 -->
+													<Button Grid.Column="3" Grid.Row="0"
+															Content="제거"
+															Focusable="False"
+															behaviors:SoundBehavior.ClickSound="Cancel"
+															Click="OnDeletePlatformClick"
+															Padding="20,8"
+															Margin="15,0,0,0"
+															Background="{DynamicResource Accent.Red}"
+															Foreground="{DynamicResource Button.Foreground}"
+															BorderThickness="0"
+															CornerRadius="6"
+															Cursor="Hand"/>
+
+													<!-- BasePath 표시 (두 번째 행) -->
+													<TextBlock Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3"
+															   Text="{Binding DisplayPath}"
+															   FontSize="12"
+															   Foreground="{DynamicResource Text.Muted}"
+															   Margin="0,5,0,0"
+															   TextWrapping="NoWrap"
+															   TextTrimming="CharacterEllipsis"/>
+												</Grid>
+											</Border>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</StackPanel>
+						</Border>
+
+						<!-- 하단 여백 증가 -->
+						<Border Height="100"/>
+					</StackPanel>
+				</ScrollViewer>
+
+				<!-- Action Buttons가 두 번째 행 -->
+				<Border Grid.Row="1"
+						Background="{DynamicResource Background.Secondary}"
+						Padding="20,15"
+						BorderThickness="0">
+					<StackPanel Orientation="Horizontal"
+								Spacing="15"
+								HorizontalAlignment="Right">
+						<Button Content="취소"
+								Focusable="False"
+								behaviors:SoundBehavior.ClickSound="Cancel"
+								Click="OnCancelClick"
+								Padding="30,12"
+								Background="{DynamicResource Background.Hover}"
+								Foreground="{DynamicResource Text.Primary}"
+								BorderThickness="0"
+								CornerRadius="6"
+								Cursor="Hand"/>
+
+						<Button Content="설정 저장"
+								Focusable="False"
+								behaviors:SoundBehavior.ClickSound="OK"
+								Click="OnSaveClick"
+								IsEnabled="{Binding CanSave}"
+								Padding="30,12"
+								Background="{DynamicResource Accent.Blue}"
+								Foreground="{DynamicResource Button.Foreground}"
+								BorderThickness="0"
+								CornerRadius="6"
+								Cursor="Hand"/>
+					</StackPanel>
+				</Border>
+			</Grid>
+		</Panel>
+
+		<!-- 로딩 오버레이 - 최상위 -->
+		<Border IsVisible="{Binding IsLoading}"
+				Background="#EE000000">
+			<StackPanel HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Spacing="20">
+				<TextBlock Text="{Binding LoadingMessage}"
+						   FontSize="32"
+						   Foreground="White"
+						   HorizontalAlignment="Center"/>
+
+				<!-- 진행률 표시 (대량 플랫폼일 때) -->
+				<StackPanel IsVisible="{Binding !!TotalPlatforms}"
+							Spacing="10">
+					<ProgressBar Value="{Binding LoadingProgress}"
+								 Maximum="100"
+								 Width="400"
+								 Height="8"
+								 Foreground="{DynamicResource Accent.Blue}"
+								 Background="{DynamicResource Background.Secondary}"/>
+
+					<TextBlock Text="{Binding LoadingProgress, StringFormat={}{0}%}"
+							   FontSize="18"
+							   Foreground="White"
+							   HorizontalAlignment="Center"/>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+
+	</Grid>
+</UserControl>

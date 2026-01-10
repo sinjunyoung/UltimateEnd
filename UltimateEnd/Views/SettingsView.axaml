@@ -1,0 +1,151 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.ViewModels"
+			 xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             Focusable="True"
+             KeyDown="OnKeyDown">
+
+	<Panel>
+		<Panel.Background>
+			<DynamicResource ResourceKey="Gradient.Background"/>
+		</Panel.Background>
+
+		<ScrollViewer Padding="20" HorizontalAlignment="Center">
+			<StackPanel Spacing="30" MaxWidth="800" HorizontalAlignment="Stretch">
+
+				<!-- Header with Back Button -->
+				<Grid ColumnDefinitions="Auto,*">
+					<!-- Back Button -->
+					<Border Grid.Column="0"        
+							ClipToBounds="False"
+							Margin="0,0,15,0"
+							PointerPressed="OnBackClick"
+							Cursor="Hand">
+						<PathIcon Classes="AnimatedIcon"
+								  Data="{StaticResource Icon.Back}"
+								  Width="{StaticResource IconSize.MenuIcon}"
+								  Height="{StaticResource IconSize.MenuIcon}"
+								  VerticalAlignment="Center"/>
+					</Border>
+
+					<!-- Title -->
+					<TextBlock Grid.Column="1"
+                               Text="설정"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource Text.Primary}"
+                               VerticalAlignment="Center"/>
+				</Grid>
+
+				<!-- 테마 설정 섹션 -->
+				<Border Background="{DynamicResource Background.Card}"
+                        CornerRadius="12"
+                        Padding="20"
+                        BorderThickness="0">
+					<StackPanel Spacing="15">
+						<TextBlock Text="테마 설정"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Text.Primary}"/>
+
+						<TextBlock Text="앱의 전체 테마를 선택하세요."
+                                   FontSize="14"
+                                   Foreground="{DynamicResource Text.Muted}"/>
+
+						<!-- 테마 선택 리스트 -->
+						<ItemsControl ItemsSource="{Binding AvailableThemes}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate>
+									<Button Click="OnThemeItemClick"
+											behaviors:SoundBehavior.ClickSound="OK"
+                                            Background="{DynamicResource Background.Secondary}"
+                                            CornerRadius="8"
+                                            Margin="15,0,15,10"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalContentAlignment="Stretch"
+                                            Name="ThemeItemBorder">
+
+										<Grid ColumnDefinitions="Auto,*">
+											<!-- 테마 아이콘/미리보기 -->
+											<StackPanel Grid.Column="0"
+                                                        Orientation="Horizontal"
+                                                        Spacing="8"
+                                                        VerticalAlignment="Center">
+												<Border Background="{Binding PreviewColor1}"
+                                                        Width="30"
+                                                        Height="30"
+                                                        CornerRadius="4"/>
+												<Border Background="{Binding PreviewColor2}"
+                                                        Width="30"
+                                                        Height="30"
+                                                        CornerRadius="4"/>
+												<Border Background="{Binding PreviewColor3}"
+                                                        Width="30"
+                                                        Height="30"
+                                                        CornerRadius="4"/>
+											</StackPanel>
+
+											<!-- 테마 정보 -->
+											<StackPanel Grid.Column="1"
+                                                        Spacing="5"
+                                                        Margin="15,0,0,0"
+                                                        VerticalAlignment="Center">
+												<TextBlock Text="{Binding Name}"
+                                                           FontSize="16"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource Text.Primary}"/>
+											</StackPanel>
+											
+										</Grid>
+									</Button>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</StackPanel>
+				</Border>
+
+				<!-- 앱 정보 섹션 -->
+				<Border Background="{DynamicResource Background.Card}"
+                        CornerRadius="12"
+                        Padding="20"
+                        BorderThickness="0">
+					<StackPanel Spacing="15">
+						<TextBlock Text="앱 정보"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Text.Primary}"/>
+
+						<StackPanel Spacing="8">
+							<Grid ColumnDefinitions="120,*">
+								<TextBlock Grid.Column="0"
+                                           Text="앱 이름:"
+                                           Foreground="{DynamicResource Text.Muted}"/>
+								<TextBlock Grid.Column="1"
+                                           Text="Ultimate End"
+                                           Foreground="{DynamicResource Text.Primary}"
+                                           FontWeight="SemiBold"/>
+							</Grid>
+
+							<Grid ColumnDefinitions="120,*">
+								<TextBlock Grid.Column="0"
+                                           Text="버전:"
+                                           Foreground="{DynamicResource Text.Muted}"/>
+								<TextBlock Grid.Column="1"
+                                           Text="0.1"
+                                           Foreground="{DynamicResource Text.Primary}"
+                                           FontWeight="SemiBold"/>
+							</Grid>
+						</StackPanel>
+					</StackPanel>
+				</Border>
+
+				<!-- 하단 여백 -->
+				<Border Height="20"/>
+			</StackPanel>
+		</ScrollViewer>
+	</Panel>
+</UserControl>

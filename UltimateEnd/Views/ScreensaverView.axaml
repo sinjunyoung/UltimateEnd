@@ -1,0 +1,104 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.ViewModels"
+             x:Class="UltimateEnd.Views.ScreensaverView"
+             x:DataType="vm:ScreensaverViewModel"
+             Focusable="True"
+             x:Name="ScreensaverRoot"
+             Margin="0"
+             Padding="0"
+             Background="Black">
+	<UserControl.Styles>
+		<Style Selector="TextBlock.GameTitle">
+			<Setter Property="Effect">
+				<DropShadowEffect Color="#4A90E2"
+				                  BlurRadius="{Binding #ScreensaverRoot.TitleGlowBlur}"
+				                  Opacity="0.9"
+				                  OffsetX="0"
+				                  OffsetY="0"/>
+			</Setter>
+		</Style>
+		<Style Selector="TextBlock.Time">
+			<Setter Property="Effect">
+				<DropShadowEffect Color="#FFD700"
+				                  BlurRadius="{Binding #ScreensaverRoot.TimeGlowBlur}"
+				                  Opacity="0.7"
+				                  OffsetX="0"
+				                  OffsetY="0"/>
+			</Setter>
+		</Style>
+		<Style Selector="TextBlock.Instruction">
+			<Setter Property="Effect">
+				<DropShadowEffect Color="#00FF88"
+				                  BlurRadius="12"
+				                  Opacity="0.5"
+				                  OffsetX="0"
+				                  OffsetY="0"/>
+			</Setter>
+		</Style>
+		<Style Selector="Image.PlatformLogo">
+			<Setter Property="Effect">
+				<DropShadowEffect Color="White"
+				                  BlurRadius="{Binding #ScreensaverRoot.LogoGlowBlur}"
+				                  OffsetX="1"
+				                  OffsetY="1"
+				                  Opacity="1"/>
+			</Setter>
+		</Style>
+	</UserControl.Styles>
+
+	<Grid>
+		<Panel Name="VideoContainer"
+		       Background="Black"
+		       HorizontalAlignment="Center"
+		       VerticalAlignment="Center"/>
+
+		<Grid>
+			<!-- 상단: 게임 정보 -->
+			<StackPanel Margin="{Binding #ScreensaverRoot.TopMargin}"
+			            HorizontalAlignment="Center"
+			            VerticalAlignment="Top"
+			            IsVisible="{Binding CurrentGame, Converter={x:Static ObjectConverters.IsNotNull}}">
+				<Viewbox Height="{Binding #ScreensaverRoot.TopViewboxHeight}"
+				         HorizontalAlignment="Center"
+				         Margin="{Binding #ScreensaverRoot.ViewboxMargin}"
+				         Stretch="Uniform">
+					<StackPanel Orientation="Vertical"
+					            Spacing="{Binding #ScreensaverRoot.TopStackSpacing}">
+						<Border Padding="5" HorizontalAlignment="Center">
+							<Image Source="{Binding PlatformLogoImage}"
+							       Height="{Binding #ScreensaverRoot.PlatformLogoHeight}"
+							       Classes="PlatformLogo"/>
+						</Border>
+						<TextBlock Text="{Binding GameTitle}"
+						          FontSize="{Binding #ScreensaverRoot.GameTitleFontSize}"
+						          FontWeight="Bold"
+						          Foreground="White"
+						          TextAlignment="Center"
+						          Classes="GameTitle"
+						          LetterSpacing="1"/>
+					</StackPanel>
+				</Viewbox>
+			</StackPanel>
+
+			<!-- 하단: 시간 -->
+			<StackPanel VerticalAlignment="Bottom"
+			            Spacing="{Binding #ScreensaverRoot.BottomStackSpacing}"
+			            HorizontalAlignment="Center"
+			            Margin="{Binding #ScreensaverRoot.BottomMargin}">
+				<TextBlock Text="{Binding CurrentTime}"
+				          FontSize="{Binding #ScreensaverRoot.TimeFontSize}"
+				          FontWeight="SemiBold"
+				          Foreground="White"
+				          HorizontalAlignment="Center"
+				          Classes="Time"
+				          LetterSpacing="3"/>
+				<TextBlock Text="A 버튼 게임 실행"
+				          FontSize="{Binding #ScreensaverRoot.InstructionFontSize}"
+				          Foreground="#DDDDDD"
+				          HorizontalAlignment="Center"
+				          Classes="Instruction"/>
+			</StackPanel>
+		</Grid>
+	</Grid>
+</UserControl>

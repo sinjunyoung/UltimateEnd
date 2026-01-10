@@ -1,0 +1,209 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.Android.ViewModels"
+             xmlns:models="using:UltimateEnd.Android.Models"
+             x:Class="UltimateEnd.Views.CustomFilePickerControl"
+             x:DataType="vm:CustomFilePickerViewModel"
+             Background="Transparent">
+
+	<Grid x:Name="MainGrid" RowDefinitions="Auto,Auto,*,Auto">
+
+		<!-- 상단 경로 표시 (Breadcrumb) -->
+		<Border Grid.Row="0" Background="{DynamicResource Background.Secondary}" Padding="10,8">
+			<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+				<ItemsControl ItemsSource="{Binding BreadcrumbPaths}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Horizontal" Spacing="5"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal">
+								<Button Content="{Binding Name}"
+										CommandParameter="{Binding}"
+										Click="OnBreadcrumbClick"
+										Padding="8,4"
+										Background="Transparent"
+										BorderThickness="0"
+										Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="/"
+										  Margin="3,0"
+										  VerticalAlignment="Center"
+										  Foreground="{DynamicResource Text.Secondary}"/>
+							</StackPanel>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+		</Border>
+
+		<!-- 필터 정보 -->
+		<Border Grid.Row="1" Background="{DynamicResource Background.Primary}" Padding="10,6">
+			<TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource Text.Primary}"/>
+		</Border>
+
+		<!-- 파일/폴더 리스트 -->
+		<Border Grid.Row="2" BorderBrush="{DynamicResource Background.Border}" BorderThickness="1">
+			<Panel>
+				<!-- 로딩 -->
+				<Border IsVisible="{Binding IsLoading}"
+						Background="{DynamicResource Background.Card}">
+					<StackPanel HorizontalAlignment="Center"
+							   VerticalAlignment="Center"
+							   Spacing="10">
+						<PathIcon Data="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"
+								  Width="32"
+								  Height="32"
+								  Foreground="{DynamicResource Text.Primary}"/>
+						<TextBlock Text="Loading..." FontSize="14" Foreground="{DynamicResource Text.Primary}"/>
+					</StackPanel>
+				</Border>
+
+				<!-- 파일/폴더 목록 -->
+				<ScrollViewer Name="FileScrollViewer"
+							  IsVisible="{Binding !IsLoading}">
+					<ItemsControl Name="FileItemsControl"
+								  ItemsSource="{Binding Files}"
+								  Background="{DynamicResource Background.Primary}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="models:FileItem">
+								<Border Name="FileItemBorder"
+										Padding="12,10"
+										Background="Transparent"
+										Loaded="OnItemLoaded"
+										Tapped="OnFileTapped"
+										Cursor="Hand">
+									<Grid ColumnDefinitions="Auto,*,Auto,Auto">
+
+										<!-- 아이콘/썸네일 -->
+										<Panel Grid.Column="0" Width="40" Height="40" Margin="0,0,12,0">
+											<!-- 썸네일 (이미지/동영상) -->
+											<Border IsVisible="{Binding Thumbnail, Converter={x:Static ObjectConverters.IsNotNull}}"
+													Width="40"
+													Height="40"
+													CornerRadius="4"
+													ClipToBounds="True"
+													BorderBrush="{DynamicResource Background.Border}"
+													BorderThickness="1">
+												<Image Source="{Binding Thumbnail}"
+													   Stretch="UniformToFill"/>
+											</Border>
+
+											<!-- PathIcon -->
+											<Panel IsVisible="{Binding Thumbnail, Converter={x:Static ObjectConverters.IsNull}}">
+												<!-- 부모 디렉토리 -->
+												<PathIcon Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+														  Width="24" Height="24"
+														  Foreground="{DynamicResource Text.Secondary}"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.Parent}}"/>
+
+												<!-- 폴더 -->
+												<PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+														  Width="24" Height="24"
+														  Foreground="#FFD700"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.Folder}}"/>
+
+												<!-- 내부 저장소 -->
+												<PathIcon Data="M17,19H7V5H17M17,1H7C5.89,1 5,1.89 5,3V21A2,2 0 0,0 7,23H17A2,2 0 0,0 19,21V3C19,1.89 18.1,1 17,1Z"
+														  Width="24" Height="24"
+														  Foreground="#4CAF50"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.InternalStorage}}"/>
+
+												<!-- SD 카드 -->
+												<PathIcon Data="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M8,19A2,2 0 0,1 6,17C6,15.89 6.9,15 8,15A2,2 0 0,1 10,17A2,2 0 0,1 8,19Z"
+														  Width="24" Height="24"
+														  Foreground="#2196F3"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.SdCard}}"/>
+
+												<!-- 이미지 -->
+												<PathIcon Data="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"
+														  Width="24" Height="24"
+														  Foreground="#4CAF50"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.Image}}"/>
+
+												<!-- 비디오 -->
+												<PathIcon Data="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"
+														  Width="24" Height="24"
+														  Foreground="#F44336"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.Video}}"/>
+
+												<!-- 오디오 -->
+												<PathIcon Data="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"
+														  Width="24" Height="24"
+														  Foreground="#9C27B0"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.Audio}}"/>
+
+												<!-- 게임 -->
+												<PathIcon Data="M6,9H8V11H10V13H8V15H6V13H4V11H6V9M18.5,9A1.5,1.5 0 0,1 20,10.5A1.5,1.5 0 0,1 18.5,12A1.5,1.5 0 0,1 17,10.5A1.5,1.5 0 0,1 18.5,9M15.5,12A1.5,1.5 0 0,1 17,13.5A1.5,1.5 0 0,1 15.5,15A1.5,1.5 0 0,1 14,13.5A1.5,1.5 0 0,1 15.5,12M17,6A5,5 0 0,1 22,11A5,5 0 0,1 17,16H7A5,5 0 0,1 2,11A5,5 0 0,1 7,6H17Z"
+														  Width="24" Height="24"
+														  Foreground="#FF9800"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.Game}}"/>
+
+												<!-- 기본 파일 -->
+												<PathIcon Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
+														  Width="24" Height="24"
+														  Foreground="{DynamicResource Text.Secondary}"
+														  IsVisible="{Binding IconType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:FileIconType.File}}"/>
+											</Panel>
+										</Panel>
+
+										<TextBlock Grid.Column="1"
+												   Text="{Binding Name}"
+												   FontSize="14"
+												   VerticalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"
+												   TextWrapping="NoWrap"
+												   TextTrimming="CharacterEllipsis"/>
+
+										<TextBlock Grid.Column="2"
+												   Text="{Binding DisplaySize}"
+												   Foreground="{DynamicResource Text.Secondary}"
+												   FontSize="12"
+												   Margin="15,0"
+												   VerticalAlignment="Center"
+												   MinWidth="70"
+												   TextAlignment="Right"/>
+
+										<TextBlock Grid.Column="3"
+												   Text="{Binding ModifiedDate, StringFormat='{}{0:MM/dd HH:mm}'}"
+												   Foreground="{DynamicResource Text.Secondary}"
+												   FontSize="11"
+												   VerticalAlignment="Center"
+												   IsVisible="{Binding !IsDirectory}"
+												   MinWidth="90"/>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</Panel>
+		</Border>
+
+		<!-- 하단 버튼 -->
+		<Border Grid.Row="3"
+				Background="{DynamicResource Background.Secondary}"
+				Padding="15,10"
+				BorderBrush="{DynamicResource Background.Border}"
+				BorderThickness="0,1,0,0">
+			<Grid ColumnDefinitions="*,Auto">
+
+				<TextBlock Grid.Column="0"
+						   Text="{Binding SelectedFile.Name, FallbackValue='파일을 선택하세요'}"
+						   VerticalAlignment="Center"
+						   FontSize="13"
+						   Foreground="{DynamicResource Text.Secondary}"
+						   TextTrimming="CharacterEllipsis"/>
+
+				<Button Grid.Column="1"
+						Content="취소"
+						Foreground="{DynamicResource Text.Primary}"
+						Width="100"
+						Height="36"
+						Click="OnCancelClick"/>
+			</Grid>
+		</Border>
+
+	</Grid>
+</UserControl>

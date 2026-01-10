@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:UltimateEnd.Models"
+             x:Class="UltimateEnd.Views.Overlays.GameEmulatorSelectionOverlay">
+	<Grid 
+		Name="MainGrid"
+		IsVisible="False"
+		Background="#80000000"
+		ZIndex="2400"
+		PointerPressed="OnBackgroundClick">
+		<Border Name="GameEmulatorPanel"
+				Background="{DynamicResource Background.Card}"
+				CornerRadius="12,0,0,12"
+				Padding="10"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Stretch"
+				Width="{StaticResource Size.OverlayWidth}">
+			<Grid RowDefinitions="Auto,*" VerticalAlignment="Stretch">
+				<Border Grid.Row="0"
+						Background="{DynamicResource Background.Secondary}"
+						Padding="10"
+						BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource Background.Border}">
+					<Grid ColumnDefinitions="Auto,*">
+						<Border Grid.Column="0"
+								ClipToBounds="False"
+								PointerPressed="OnClose"
+								Cursor="Hand"
+								Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+									  Data="{StaticResource Icon.Back}"
+									  Width="{StaticResource IconSize.MenuIcon}"
+									  Height="{StaticResource IconSize.MenuIcon}"
+									  VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+								   Text="에뮬레이터 선택"
+								   FontSize="20"
+								   FontWeight="Bold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   VerticalAlignment="Center"/>
+					</Grid>
+				</Border>
+				<ScrollViewer Grid.Row="1">
+					<StackPanel Spacing="5" Margin="0,10,0,0">
+						<Border Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="0,12"
+								Margin="0,0,0,5"
+								Cursor="Hand"
+								Tapped="OnGameEmulatorDefaultTapped">
+							<Grid ColumnDefinitions="32,*,Auto">
+								<Image Grid.Column="0"
+												   Source="avares://UltimateEnd/Assets/Icons/default.png"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+								<TextBlock Grid.Column="1"
+										   Text="플랫폼 기본값 사용"
+										   FontSize="16"
+										   FontWeight="SemiBold"
+										   Foreground="{DynamicResource Text.Primary}"
+										   VerticalAlignment="Center"/>
+								<TextBlock Grid.Column="2"
+										   x:Name="DefaultEmulatorCheck"
+										   Text="✅"
+										   FontSize="20"
+										   VerticalAlignment="Center"/>
+							</Grid>
+						</Border>
+						<Border Height="1" Background="{DynamicResource Background.Border}" Margin="0,5"/>
+						<ItemsControl Name="GameEmulatorItemsControl">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="models:EmulatorInfo">
+									<Border Background="{DynamicResource Background.Secondary}"
+											CornerRadius="8"
+											Padding="0,12"
+											Margin="0,0,0,5"
+											Cursor="Hand"
+											Tapped="OnGameEmulatorItemTapped">
+										<Grid ColumnDefinitions="32,*,Auto">
+											<Image Grid.Column="0"
+												   Source="{Binding Icon}"
+												   Margin="0,0,5,0"
+												   Width="32"
+												   Height="32"
+												   Stretch="Uniform"/>
+											<TextBlock Grid.Column="1"
+													   Text="{Binding Name}"
+													   FontSize="16"
+													   FontWeight="SemiBold"
+													   Foreground="{DynamicResource Text.Primary}"
+													   VerticalAlignment="Center"/>
+											<TextBlock Grid.Column="2"
+													   x:Name="EmulatorCheckMark"
+													   Text="✓"
+													   FontSize="20"
+													   VerticalAlignment="Center"
+													   IsVisible="{Binding IsSelected}"/>
+										</Grid>
+									</Border>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</StackPanel>
+				</ScrollViewer>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

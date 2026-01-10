@@ -1,0 +1,92 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:UltimateEnd.Models"
+             x:Class="UltimateEnd.Views.Overlays.PlaylistSelectionOverlay"
+             Focusable="True">
+
+	<Grid Name="OverlayMainGrid"
+          IsVisible="False"
+          Background="#CC000000"
+          PointerPressed="OnBackgroundClick">
+		<Border Background="{DynamicResource Background.Card}"
+                CornerRadius="10"
+                Padding="20"
+                Margin="20,5,20,20"
+                MaxWidth="400"
+                MaxHeight="500"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+			<Grid RowDefinitions="Auto,*,Auto">
+				<!-- 헤더 -->
+				<Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,15">
+					<TextBlock Grid.Column="0"
+                               Text="플레이리스트 선택"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource Text.Primary}"/>
+					<Border Grid.Column="1"
+                            PointerPressed="OnClose"
+                            Cursor="Hand">
+						<TextBlock Text="✕"
+                                   FontSize="20"
+                                   Foreground="{DynamicResource Text.Muted}"/>
+					</Border>
+				</Grid>
+
+				<!-- 플레이리스트 목록 -->
+				<ScrollViewer Grid.Row="1" MaxHeight="300">
+					<ItemsRepeater Name="PlaylistItemsRepeater">
+						<ItemsRepeater.ItemTemplate>
+							<DataTemplate DataType="models:PlaylistSelectionItem">
+								<Border Background="{DynamicResource Background.Secondary}"
+                                        CornerRadius="8"
+                                        Padding="12"
+                                        Margin="0,0,0,8"
+                                        Cursor="Hand"
+                                        Tapped="OnPlaylistItemTapped">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+                                                   Text="{Binding Name}"
+                                                   FontSize="15"
+                                                   Foreground="{DynamicResource Text.Primary}"
+                                                   VerticalAlignment="Center"/>
+										<TextBlock Grid.Column="1"
+                                                   Text="✓"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource Accent.Blue}"
+                                                   IsVisible="{Binding IsAdded}"
+                                                   VerticalAlignment="Center"/>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ItemsRepeater.ItemTemplate>
+					</ItemsRepeater>
+				</ScrollViewer>
+
+				<!-- 안내 문구 -->
+				<TextBlock Grid.Row="1"
+                           Name="EmptyPlaylistText"
+                           Text="생성된 플레이리스트가 없습니다.&#x0a;설정에서 플레이리스트를 만들어주세요."
+                           FontSize="14"
+                           Foreground="{DynamicResource Text.Muted}"
+                           TextAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="False"/>
+
+				<!-- 닫기 버튼 -->
+				<Button Grid.Row="2"
+                        Content="닫기"
+                        Click="OnCloseButton"
+                        Padding="20,10"
+                        Margin="0,15,0,0"
+                        Background="{DynamicResource Background.Hover}"
+                        Foreground="{DynamicResource Text.Primary}"
+                        BorderThickness="0"
+                        CornerRadius="6"
+                        Cursor="Hand"
+                        HorizontalAlignment="Stretch"/>
+			</Grid>
+		</Border>
+	</Grid>
+
+</UserControl>

@@ -1,0 +1,23 @@
+<linker>
+    <assembly fullname="UltimateEnd" preserve="all" /> 
+    <assembly fullname="Avalonia.Android" preserve="all" />
+
+    <assembly fullname="Java.Interop" preserve="all" />
+    <assembly fullname="Mono.Android" preserve="all" />
+
+    <assembly fullname="Avalonia.Controls" preserve="all"/>
+    <assembly fullname="Avalonia.Markup.Xaml" preserve="all"/>
+    <assembly fullname="Avalonia.Platform.Android" preserve="all"/>
+
+    <assembly fullname="SkiaSharp" preserve="all" />
+    <assembly fullname="SkiaSharp.Views.Avalonia" preserve="all" />
+    <assembly fullname="SkiaSharp.Views.Android" preserve="all" />
+
+    <assembly fullname="mscorlib" preserve="all"/>
+    <assembly fullname="System.Runtime" preserve="all"/>
+    <assembly fullname="System.Text.Json" preserve="all"/> 
+    <assembly fullname="System.Reflection" preserve="all"/>
+    
+    <assembly fullname="Xamarin.AndroidX.Core.SplashScreen" preserve="all" />
+    <assembly fullname="Xamarin.AndroidX.Media3.Common" preserve="all" />
+</linker>

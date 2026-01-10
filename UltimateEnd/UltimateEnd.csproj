@@ -1,0 +1,84 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>UltimateEnd</AssemblyName>
+    <Version></Version>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8767;NETSDK1206;CA1816;CA1869;SYSLIB1045</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8767;NETSDK1206;CA1816;CA1869;SYSLIB1045</NoWarn>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
+  <AvaloniaXaml Include="Styles\Common.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="Avalonia.Diagnostics">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="LoadingIndicators.Avalonia" />
+    <PackageReference Include="ReactiveUI.Avalonia" />
+    <PackageReference Include="sqlite-net-pcl" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" />
+    <PackageReference Include="System.IO.Hashing" />
+    <PackageReference Include="System.Reactive" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Xaml.Behaviors.Interactions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Update="Views\MainWindow.axaml">
+      <CopyToOutputDirectory></CopyToOutputDirectory>
+    </AvaloniaXaml>
+    <AvaloniaXaml Update="Views\PlatformListView.axaml">
+      <CopyToOutputDirectory></CopyToOutputDirectory>
+    </AvaloniaXaml>
+    <AvaloniaXaml Update="Views\RomSettingView.axaml">
+      <CopyToOutputDirectory></CopyToOutputDirectory>
+    </AvaloniaXaml>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\RomSettingView.axaml.cs">
+      <DependentUpon>RomSettingView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+ <ItemGroup>
+   <!-- Android: Assets 폴더 -->
+   <AndroidAsset Include="Assets\Sounds\**" />
+   <AndroidAsset Include="Assets\DBs\**" />
+   <AndroidAsset Include="Themes\*.axaml" />
+  
+   <!-- Windows: 출력 디렉토리로 복사 -->
+   <None Include="Assets\Sounds\**" CopyToOutputDirectory="PreserveNewest" />
+   <None Include="Assets\DBs\**" CopyToOutputDirectory="PreserveNewest" />
+   <None Include="themes\*.axaml" CopyToOutputDirectory="PreserveNewest" />
+ </ItemGroup>
+
+ <ItemGroup>
+   <!-- Themes는 AvaloniaXaml 처리 안 함 -->
+   <AvaloniaXaml Remove="Themes\**" />
+   
+   <!-- 대신 일반 파일로 복사 -->
+   <Content Include="Themes\*.axaml">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </Content>
+ </ItemGroup>
+</Project>

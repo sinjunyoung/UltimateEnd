@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:UltimateEnd.Converters"
+			 xmlns:models="using:UltimateEnd.Models"
+             x:Class="UltimateEnd.Views.Overlays.GameGenreOverlay">
+	<Grid 
+		Name="MainGrid"
+		IsVisible="False"
+		Background="#80000000"
+		ZIndex="2100"
+		PointerPressed="OnBackgroundClick">
+		<Border Name="GameGenrePanel"
+				Background="{DynamicResource Background.Card}"
+				CornerRadius="12,0,0,12"
+				Padding="10"
+				HorizontalAlignment="Right"
+				VerticalAlignment="Stretch"
+				Width="{StaticResource Size.OverlayWidth}">
+			<Grid RowDefinitions="Auto,*" VerticalAlignment="Stretch">
+				<Border Grid.Row="0"
+						Background="{DynamicResource Background.Secondary}"
+						Padding="10"
+						BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource Background.Border}">
+					<Grid ColumnDefinitions="Auto,*">
+						<Border Grid.Column="0"
+								ClipToBounds="False"
+								PointerPressed="OnClose"
+								Cursor="Hand"
+								Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+									  Data="{StaticResource Icon.Back}"
+									  Width="{StaticResource IconSize.MenuIcon}"
+									  Height="{StaticResource IconSize.MenuIcon}"
+									  VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+								   Text="게임 장르 변경"
+								   FontSize="20"
+								   FontWeight="Bold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   VerticalAlignment="Center"/>
+					</Grid>
+				</Border>
+				<ScrollViewer Grid.Row="1">
+					<ItemsControl Name="GameGenreItemsControl">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type models:GameGenreItem}">
+								<Border Background="{DynamicResource Background.Secondary}"
+										CornerRadius="8"
+										Padding="10"
+										Margin="0,5,0,5"
+										Cursor="Hand"
+										Tapped="OnGenreItemTapped">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+												   x:Name="GenreText"
+												   Text="{Binding DisplayText}" FontSize="16"
+												   FontWeight="SemiBold"
+												   Foreground="{DynamicResource Text.Primary}"
+												   VerticalAlignment="Center"/>
+										<TextBlock Grid.Column="1"
+												   x:Name="CheckMark"
+												   Text="✓"
+												   FontSize="20"
+												   VerticalAlignment="Center"
+												   IsVisible="{Binding IsSelected}"/>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

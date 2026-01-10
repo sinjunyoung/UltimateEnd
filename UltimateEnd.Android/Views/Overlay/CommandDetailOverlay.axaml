@@ -1,0 +1,410 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Android.Views.Overlays.CommandDetailOverlay">
+
+	<!-- 배경 (클릭하면 닫기) -->
+	<Grid x:Name="MainGrid"
+		  IsVisible="False"
+		  Background="#80000000"
+		  PointerPressed="OnBackgroundClick">
+
+		<!-- 오버레이 패널 (전체화면) -->
+		<Grid x:Name="DetailPanel"
+			  Background="{DynamicResource Background.Primary}"
+			  PointerPressed="OnPanelClick">
+
+			<Grid RowDefinitions="Auto,*">
+				<!-- 헤더 -->
+				<Border Grid.Row="0"
+						Background="{DynamicResource Background.Card}"
+						Padding="15,10"
+						BorderBrush="{DynamicResource Background.Border}"
+						BorderThickness="0,0,0,1">
+					<Grid ColumnDefinitions="Auto,*">
+						<Border Grid.Column="0"
+								ClipToBounds="False"
+								PointerPressed="OnClose"
+								Cursor="Hand"
+								Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+									  Data="{StaticResource Icon.Back}"
+									  Width="{StaticResource IconSize.MenuIcon}"
+									  Height="{StaticResource IconSize.MenuIcon}"
+									  VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+								   Text="커맨드 편집"
+								   FontSize="20"
+								   FontWeight="Bold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   VerticalAlignment="Center"/>
+					</Grid>
+				</Border>
+
+				<!-- 상세 내용 -->
+				<ScrollViewer Grid.Row="1">
+					<StackPanel Margin="15">
+
+						<!-- 이름 -->
+						<TextBlock Text="커맨드 이름" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<TextBox Text="{Binding SelectedCommand.Name}"
+								 Foreground="{DynamicResource Text.Primary}"
+								 CaretBrush="{DynamicResource Text.Primary}"
+								 Watermark="예: RetroArch - mGBA"
+								 Margin="0,0,0,12">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+
+						<!-- RetroArch -->
+						<CheckBox Content="RetroArch 커맨드"
+								  Foreground="{DynamicResource Text.Primary}"
+								  IsChecked="{Binding SelectedCommand.IsRetroArch}"
+								  Margin="0,0,0,10">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</CheckBox>
+
+						<!-- Core Name -->
+						<TextBlock Text="Core 이름"
+								   FontWeight="SemiBold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   Margin="0,0,0,5"
+								   IsVisible="{Binding SelectedCommand.IsRetroArch}"/>
+						<TextBox Text="{Binding SelectedCommand.CoreName}"
+								 Foreground="{DynamicResource Text.Primary}"
+								 CaretBrush="{DynamicResource Text.Primary}"
+								 Watermark="mgba_libretro"
+								 IsVisible="{Binding SelectedCommand.IsRetroArch}"
+								 Margin="0,0,0,12">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+
+						<!-- Package Name -->
+						<TextBlock Text="Package Name" FontWeight="SemiBold"
+								   Foreground="{DynamicResource Text.Primary}"
+								   Margin="0,10,0,5"/>
+						<Grid ColumnDefinitions="Auto,*" Margin="0,0,0,12">
+							<!-- 앱 아이콘 -->
+							<Border Grid.Column="0"
+									Width="48"
+									Height="48"
+									CornerRadius="8"
+									ClipToBounds="True"
+									Background="{DynamicResource Background.Secondary}"
+									Margin="0,0,10,0">
+								<Image Source="{Binding SelectedAppIcon}"
+									   Width="48"
+									   Height="48"
+									   Stretch="UniformToFill"/>
+							</Border>
+
+							<!-- 패키지 선택 버튼 -->
+							<Button Grid.Column="1"
+									Click="OnShowAppPickerClicked"
+									behaviors:SoundBehavior.ClickSound="OK"
+									Focusable="False"
+									HorizontalAlignment="Stretch"
+									HorizontalContentAlignment="Left"
+									VerticalContentAlignment="Center"
+									Padding="12,8">
+								<Button.Styles>
+									<Style Selector="Button">
+										<Setter Property="Background" Value="{DynamicResource Accent.Blue}"/>
+										<Setter Property="Foreground" Value="{DynamicResource Button.Foreground}"/>
+									</Style>
+								</Button.Styles>
+								<StackPanel Spacing="2">
+									<TextBlock Text="{Binding SelectedAppName}"
+											   FontWeight="SemiBold"
+											   FontSize="14"
+											   Foreground="{DynamicResource Button.Foreground}"
+											   TextTrimming="CharacterEllipsis">
+										<TextBlock.Styles>
+											<Style Selector="TextBlock">
+												<Style Selector="^[Text='']">
+													<Setter Property="Text" Value="앱 선택..."/>
+													<Setter Property="Opacity" Value="0.7"/>
+												</Style>
+											</Style>
+										</TextBlock.Styles>
+									</TextBlock>
+									<TextBlock Text="{Binding PackageName}"
+											   FontSize="11"
+											   Opacity="0.8"
+											   Foreground="{DynamicResource Button.Foreground}"
+											   TextTrimming="CharacterEllipsis"
+											   IsVisible="{Binding PackageName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+								</StackPanel>
+							</Button>
+						</Grid>
+
+						<!-- Activity Name -->
+						<TextBlock Text="Activity Name" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<ComboBox ItemsSource="{Binding AvailableActivities}"
+								  behaviors:InputMappingBehavior.Enable="True"
+								  SelectedItem="{Binding SelectedActivity}"
+								  Foreground="{DynamicResource Text.Primary}"
+								  HorizontalAlignment="Stretch"
+								  IsEnabled="{Binding AvailableActivities.Count}"
+								  Margin="0,0,0,12">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding DisplayText}"
+											   ToolTip.Tip="{Binding Name}"
+											   TextTrimming="CharacterEllipsis"
+											   MaxWidth="350"/>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+
+						<!-- Action -->
+						<TextBlock Text="Action" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<Button Click="OnShowActionPickerClicked"
+								behaviors:SoundBehavior.ClickSound="OK"
+								Focusable="False"
+								HorizontalAlignment="Stretch"
+								HorizontalContentAlignment="Left"
+								Content="{Binding SelectedAction}"
+								Background="{DynamicResource Accent.Blue}"
+								Foreground="{DynamicResource Button.Foreground}"
+								Margin="0,0,0,12"/>
+
+						<!-- Category -->
+						<TextBlock Text="Category" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<Button Click="OnShowCategoryPickerClicked"
+								behaviors:SoundBehavior.ClickSound="OK"
+								Focusable="False"
+								HorizontalAlignment="Stretch"
+								HorizontalContentAlignment="Left"
+								Background="{DynamicResource Accent.Blue}"
+								Foreground="{DynamicResource Button.Foreground}"
+								Margin="0,0,0,12">
+							<TextBlock Text="{Binding SelectedCategory}">
+								<TextBlock.Styles>
+									<Style Selector="TextBlock">
+										<Style Selector="^[Text='']">
+											<Setter Property="Text" Value="(없음)"/>
+											<Setter Property="Opacity" Value="0.7"/>
+										</Style>
+									</Style>
+								</TextBlock.Styles>
+							</TextBlock>
+						</Button>
+
+						<!-- Data URI -->
+						<Grid RowDefinitions="Auto,Auto">
+							<Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
+								<TextBlock Grid.Column="0"
+										   Text="Data URI"
+										   FontWeight="SemiBold"
+										   Foreground="{DynamicResource Text.Primary}"/>
+								<Button Grid.Column="1"
+										Click="OnInsertVariableToDataUri"
+										Focusable="False"
+										Padding="8,4"
+										Background="{DynamicResource Accent.Blue}"
+										Foreground="{DynamicResource Button.Foreground}">
+									<StackPanel Orientation="Horizontal" Spacing="4">
+										<Image Source="avares://UltimateEnd/Assets/Icons/variable.png"
+											   Width="32"
+											   Height="32"/>
+										<TextBlock Text="변수"
+												   FontSize="11"
+												   VerticalAlignment="Center"/>
+									</StackPanel>
+								</Button>
+							</Grid>
+							<ScrollViewer Grid.Row="1" MaxHeight="100">
+								<TextBox Name="DataUriTextBox"
+										 Text="{Binding DataUri}"
+										 Foreground="{DynamicResource Text.Primary}"
+										 CaretBrush="{DynamicResource Text.Primary}"
+										 Watermark="{}{filePath}"
+										 AcceptsReturn="True"
+										 TextWrapping="Wrap"
+										 BorderThickness="0">
+									<Interaction.Behaviors>
+										<behaviors:TextBoxColorFixBehavior/>
+									</Interaction.Behaviors>
+								</TextBox>
+							</ScrollViewer>
+						</Grid>
+
+
+						<!-- Flags -->
+						<TextBlock Text="Flags" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
+						<CheckBox Content="FLAG_ACTIVITY_NEW_TASK" Foreground="{DynamicResource Text.Primary}" IsChecked="{Binding FlagNewTask}" Margin="0,5" behaviors:SoundBehavior.ClickSound="OK">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</CheckBox>
+						<CheckBox Content="FLAG_ACTIVITY_CLEAR_TOP" Foreground="{DynamicResource Text.Primary}" IsChecked="{Binding FlagClearTop}" Margin="0,5" behaviors:SoundBehavior.ClickSound="OK">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</CheckBox>
+						<CheckBox Content="FLAG_ACTIVITY_SINGLE_TOP" Foreground="{DynamicResource Text.Primary}" IsChecked="{Binding FlagSingleTop}" Margin="0,5" behaviors:SoundBehavior.ClickSound="OK">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</CheckBox>
+						<CheckBox Content="FLAG_ACTIVITY_CLEAR_TASK" Foreground="{DynamicResource Text.Primary}" IsChecked="{Binding FlagClearTask}" Margin="0,5" behaviors:SoundBehavior.ClickSound="OK">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</CheckBox>
+						<CheckBox Content="FLAG_ACTIVITY_NO_HISTORY" Foreground="{DynamicResource Text.Primary}" IsChecked="{Binding FlagNoHistory}" Margin="0,5" behaviors:SoundBehavior.ClickSound="OK">
+							<Interaction.Behaviors>
+								<behaviors:CheckBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</CheckBox>
+
+						<!-- Extras -->
+						<TextBlock Text="Extras" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,15,0,10"/>
+						<ItemsControl ItemsSource="{Binding Extras}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate>
+									<Border BorderBrush="{DynamicResource Background.Border}"
+											BorderThickness="1"
+											CornerRadius="5"
+											Padding="10"
+											Margin="0,0,0,8"
+											Background="{DynamicResource Background.Card}">
+										<Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+											<Button Grid.Row="0"
+													Click="OnShowExtraTypePickerClicked"
+													Tag="{Binding}"
+													Foreground="{DynamicResource Text.Primary}"
+													Content="{Binding Type}"
+													Focusable="False"
+													HorizontalAlignment="Stretch"
+													Margin="0,0,0,5"/>
+											<TextBox Grid.Row="1"
+													 Text="{Binding Key}"
+													 Foreground="{DynamicResource Text.Primary}"
+													 CaretBrush="{DynamicResource Text.Primary}"
+													 Watermark="Key"
+													 Margin="0,3">
+												<Interaction.Behaviors>
+													<behaviors:TextBoxColorFixBehavior/>
+												</Interaction.Behaviors>
+											</TextBox>
+											<Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,3">
+												<TextBox Grid.Column="0"
+														 Name="ExtraValueTextBox"
+														 Text="{Binding Value}"
+														 Foreground="{DynamicResource Text.Primary}"
+														 CaretBrush="{DynamicResource Text.Primary}"
+														 Watermark="Value">
+													<Interaction.Behaviors>
+														<behaviors:TextBoxColorFixBehavior/>
+													</Interaction.Behaviors>
+												</TextBox>
+												<Button Grid.Column="1"
+														Click="OnInsertVariableToExtra"
+														Tag="{Binding}"
+														Focusable="False"
+														Padding="6,4"
+														Margin="5,0,0,0"
+														Background="{DynamicResource Accent.Blue}"
+														Foreground="{DynamicResource Button.Foreground}">
+													<Image Source="avares://UltimateEnd/Assets/Icons/variable.png"
+														   Width="32"
+														   Height="32"/>
+												</Button>
+											</Grid>
+											<Button Grid.Row="3"
+													Content="삭제"
+													Focusable="False"
+													Click="OnRemoveExtraClicked"
+													Tag="{Binding}"
+													Background="{DynamicResource Accent.Red}"
+													Foreground="{DynamicResource Button.Foreground}"
+													HorizontalAlignment="Right"
+													Padding="10,5"
+													Margin="0,5,0,0"/>
+										</Grid>
+									</Border>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+
+						<Button Content="Extra 추가"
+								behaviors:SoundBehavior.ClickSound="OK"
+								Focusable="False"
+								Click="OnAddExtraClicked"
+								HorizontalAlignment="Left"
+								Background="{DynamicResource Accent.Blue}"
+								Foreground="{DynamicResource Button.Foreground}"
+								Margin="0,5,0,15"/>
+
+						<!-- 지원 플랫폼 -->
+						<TextBlock Text="지원 플랫폼" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
+						<Button Click="OnShowPlatformPickerClicked"
+								Content="플랫폼 선택"
+								behaviors:SoundBehavior.ClickSound="OK"
+								Focusable="False"
+								HorizontalAlignment="Stretch"
+								Background="{DynamicResource Accent.Blue}"
+								Foreground="{DynamicResource Button.Foreground}"
+								Margin="0,0,0,10"/>
+
+						<ScrollViewer MaxHeight="150" Margin="0,0,0,15">
+							<ItemsControl ItemsSource="{Binding SelectedPlatforms}">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<WrapPanel/>
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<Border Background="{DynamicResource Accent.Blue}"
+												CornerRadius="4"
+												Padding="8,4"
+												Margin="4">
+											<StackPanel Orientation="Horizontal" Spacing="8">
+												<Image Source="{Binding Image}" Width="24" Height="24"/>
+												<TextBlock Text="{Binding Id}" Foreground="{DynamicResource Button.Foreground}" FontWeight="SemiBold"/>
+												<Button Content="×"
+														Focusable="False"
+														Click="OnRemovePlatformClicked"
+														Tag="{Binding}"
+														Background="Transparent"
+														Foreground="{DynamicResource Button.Foreground}"
+														BorderThickness="0"
+														Padding="4,0"
+														FontSize="16"/>
+											</StackPanel>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+
+						<!-- 미리보기 -->
+						<TextBlock Text="LaunchCommand 미리보기" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
+						<ScrollViewer MaxHeight="100">
+							<TextBox Text="{Binding PreviewLaunchCommand}"
+									 Foreground="{DynamicResource Text.Primary}"
+									 CaretBrush="{DynamicResource Text.Primary}"
+									 IsReadOnly="True"
+									 AcceptsReturn="True"
+									 TextWrapping="Wrap"
+									 BorderThickness="0">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxColorFixBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+						</ScrollViewer>
+					</StackPanel>
+				</ScrollViewer>
+			</Grid>
+		</Grid>
+	</Grid>
+</UserControl>

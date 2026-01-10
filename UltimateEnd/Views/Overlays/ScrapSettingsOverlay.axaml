@@ -1,0 +1,956 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="UltimateEnd.Views.Overlays.ScrapSettingsOverlay"
+             x:Name="ScrapSettingsOverlayRoot"
+             Focusable="True">
+
+	<Grid Name="MainGrid"
+	      IsVisible="False"
+	      Background="#80000000"
+	      ZIndex="3000"
+	      PointerPressed="OnBackgroundClick">
+
+		<Border Name="MainBorder"
+		        Background="{DynamicResource Background.Card}"
+		        CornerRadius="12,0,0,12"
+		        Padding="10"
+		        HorizontalAlignment="Right"
+		        VerticalAlignment="Stretch"
+		        Width="{StaticResource Size.OverlayWidth}">
+
+			<Grid RowDefinitions="Auto,*,Auto">
+				<!-- 헤더 -->
+				<Border Grid.Row="0"
+				        Background="{DynamicResource Background.Secondary}"
+				        Padding="10"
+				        BorderThickness="0,0,0,1"
+				        BorderBrush="{DynamicResource Background.Border}">
+					<Grid ColumnDefinitions="Auto,*">
+						<Border Grid.Column="0"
+						        ClipToBounds="False"
+						        PointerPressed="OnBackClick"
+						        Cursor="Hand"
+						        Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+							          Data="{StaticResource Icon.Back}"
+							          Width="{StaticResource IconSize.MenuIcon}"
+							          Height="{StaticResource IconSize.MenuIcon}"
+							          VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+						           Text="스크랩 설정"
+						           FontSize="20"
+						           FontWeight="Bold"
+						           Foreground="{DynamicResource Text.Primary}"
+						           VerticalAlignment="Center"/>
+					</Grid>
+				</Border>
+
+				<!-- 설정 목록 -->
+				<ScrollViewer Grid.Row="1" Margin="0,10,0,10">
+					<StackPanel Spacing="5" Margin="10">
+
+						<!-- 게임명 스타일 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleLanguage">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="게임명 스타일 ( 일본 vs 서양 )"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="LanguageExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<Grid Name="LanguageContent" ColumnDefinitions="*,6,*" Margin="0,8,0,0">
+									<Border Name="LanguageJpOption"
+											Grid.Column="0"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnLanguageJpTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Source="avares://UltimateEnd/Assets/Icons/gamenamejapan.png"
+												   Width="80"
+												   Height="60"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="LanguageJpCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="LanguageEnOption"
+											Grid.Column="2"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnLanguageEnTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Source="avares://UltimateEnd/Assets/Icons/gamenamewest.png"
+												   Width="80"
+												   Height="60"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="LanguageEnCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+								</Grid>
+							</StackPanel>
+						</Border>
+
+						<!-- 지역 스타일 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleRegion">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="지역 스타일 ( 일본 vs 서양 )"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="RegionExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<Grid Name="RegionContent" ColumnDefinitions="*,6,*" Margin="0,8,0,0">
+									<Border Name="RegionJapaneseOption"
+											Grid.Column="0"
+											Background="{DynamicResource Background.Card}"
+											CornerRadius="6"
+											Padding="12,10"
+											Cursor="Hand"
+											Tapped="OnRegionJapaneseTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Source="avares://UltimateEnd/Assets/Icons/mediaregionjapan.png"
+												   Width="60"
+												   Height="60"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="RegionJapaneseCheck"
+													  Grid.Column="1"
+													  Data="M 2 8 L 8 14 L 18 2"
+													  Width="18" Height="18"
+													  Foreground="{DynamicResource Accent.Blue}"
+													  IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="RegionAmericanOption"
+											Grid.Column="2"
+											Background="{DynamicResource Background.Card}"
+											CornerRadius="6"
+											Padding="12,10"
+											Cursor="Hand"
+											Tapped="OnRegionAmericanTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Source="avares://UltimateEnd/Assets/Icons/mediaregionwest.png"
+												   Width="60"
+												   Height="60"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="RegionAmericanCheck"
+													  Grid.Column="1"
+													  Data="M 2 8 L 8 14 L 18 2"
+													  Width="18" Height="18"
+													  Foreground="{DynamicResource Accent.Blue}"
+													  IsVisible="False"/>
+										</Grid>
+									</Border>
+								</Grid>
+							</StackPanel>
+						</Border>
+
+						<!-- 로고 스타일 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleLogoType">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="로고 스타일 ( 일반 vs 스틸 )"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="LogoTypeExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<Grid Name="LogoTypeContent" ColumnDefinitions="*,6,*" Margin="0,8,0,0">
+									<Border Name="LogoNormalOption"
+									        Grid.Column="0"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnLogoNormalTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Width="80"
+												   Height="60"
+												   Source="avares://UltimateEnd/Assets/Icons/normallogo.png"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="LogoNormalCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="18" Height="18"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="LogoSteelOption"
+									        Grid.Column="2"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnLogoSteelTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Width="80"
+												   Height="60"
+												   Source="avares://UltimateEnd/Assets/Icons/steellogo.png"		           
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="LogoSteelCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="18" Height="18"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+								</Grid>
+							</StackPanel>
+						</Border>
+
+						<!-- 커버 스타일 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleCoverType">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="커버 스타일 ( 2D vs 3D )"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="CoverTypeExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<Grid Name="CoverTypeContent" ColumnDefinitions="*,6,*" Margin="0,8,0,0">
+									<Border Name="Cover2DOption"
+									        Grid.Column="0"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnCover2DTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Width="60"
+												   Height="60"
+												   Source="avares://UltimateEnd/Assets/Icons/2D.png"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="Cover2DCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="18" Height="18"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="Cover3DOption"
+									        Grid.Column="2"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnCover3DTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<Image Grid.Column="0"
+												   Width="72"
+												   Height="72"
+												   Source="avares://UltimateEnd/Assets/Icons/3D.png"		           
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"/>
+											<PathIcon Name="Cover3DCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="18" Height="18"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+								</Grid>
+							</StackPanel>
+						</Border>
+
+						<!-- 검색 방식 -->
+						<Border x:Name="SearchMethodSection"
+								Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+										Cursor="Hand"
+										Tapped="OnToggleSearchMethod">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+												   Text="검색 방식 ( 파일명 vs CRC )"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   Foreground="{DynamicResource Text.Primary}"
+												   VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+												  Name="SearchMethodExpandIcon"
+												  Data="M 7 10 L 12 15 L 17 10"
+												  Width="20" Height="20"
+												  Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<Grid Name="SearchMethodContent" ColumnDefinitions="*,6,*" Margin="0,8,0,0">
+									<Border Name="SearchByNameOption"
+											Grid.Column="0"
+											Background="{DynamicResource Background.Card}"
+											CornerRadius="6"
+											Padding="12,10"
+											Cursor="Hand"
+											Tapped="OnSearchByNameTapped">
+										<Grid RowDefinitions="Auto,Auto,Auto">
+											<TextBlock Grid.Row="0"
+													   Text="파일명"
+													   FontSize="14"
+													   FontWeight="SemiBold"
+													   HorizontalAlignment="Center"
+													   Foreground="{DynamicResource Text.Primary}"/>
+											<TextBlock Grid.Row="1"
+													   Text="⚡ 빠름"
+													   FontSize="11"
+													   HorizontalAlignment="Center"
+													   Foreground="{DynamicResource Accent.Green}"
+													   Margin="0,2,0,0"/>
+											<PathIcon Name="SearchByNameCheck"
+													  Grid.Row="2"
+													  Data="M 2 8 L 8 14 L 18 2"
+													  Width="20" Height="20"
+													  HorizontalAlignment="Center"
+													  Foreground="{DynamicResource Accent.Blue}"
+													  Margin="0,4,0,0"
+													  IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="SearchByCrcOption"
+											Grid.Column="2"
+											Background="{DynamicResource Background.Card}"
+											CornerRadius="6"
+											Padding="12,10"
+											Cursor="Hand"
+											Tapped="OnSearchByCrcTapped">
+										<Grid RowDefinitions="Auto,Auto,Auto">
+											<TextBlock Grid.Row="0"
+													   Text="CRC"
+													   FontSize="14"
+													   FontWeight="SemiBold"
+													   HorizontalAlignment="Center"
+													   Foreground="{DynamicResource Text.Primary}"/>
+											<TextBlock Grid.Row="1"
+													   Text="🎯 정확"
+													   FontSize="11"
+													   HorizontalAlignment="Center"
+													   Foreground="{DynamicResource Accent.Blue}"
+													   Margin="0,2,0,0"/>
+											<PathIcon Name="SearchByCrcCheck"
+													  Grid.Row="2"
+													  Data="M 2 8 L 8 14 L 18 2"
+													  Width="20" Height="20"
+													  HorizontalAlignment="Center"
+													  Foreground="{DynamicResource Accent.Blue}"
+													  Margin="0,4,0,0"
+													  IsVisible="False"/>
+										</Grid>
+									</Border>
+								</Grid>
+							</StackPanel>
+						</Border> 
+
+						<!-- 압축 파일 검색 방식 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+								CornerRadius="8"
+								Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+										Cursor="Hand"
+										Tapped="OnToggleZipSearch">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+												   Text="압축 파일 검색 방식"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   Foreground="{DynamicResource Text.Primary}"
+												   VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+												  Name="ZipSearchExpandIcon"
+												  Data="M 7 10 L 12 15 L 17 10"
+												  Width="20" Height="20"
+												  Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<StackPanel Name="ZipSearchContent" Spacing="6" Margin="0,8,0,0">
+
+									<TextBlock Text="롬파일이 zip인 경우 압축파일을 사용할지 내부파일을 사용할지 정하는 옵션입니다."
+											   FontSize="12"
+											   Foreground="{DynamicResource Text.Muted}"
+											   TextWrapping="Wrap"
+											   Margin="0,0,0,4"/>
+
+									<Border Name="ZipInternalOption"
+											Background="{DynamicResource Background.Card}"
+											CornerRadius="6"
+											Padding="12,10"
+											Cursor="Hand"
+											Tapped="OnZipInternalTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+													   Text="내부 파일 (game.nes)"
+													   FontSize="14"
+													   FontWeight="Medium"
+													   Foreground="{DynamicResource Text.Primary}"
+													   VerticalAlignment="Center"/>
+											<PathIcon Name="ZipInternalCheck"
+													  Grid.Column="1"
+													  Data="M 2 8 L 8 14 L 18 2"
+													  Width="20" Height="20"
+													  Foreground="{DynamicResource Accent.Blue}"
+													  IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="ZipExternalOption"
+											Background="{DynamicResource Background.Card}"
+											CornerRadius="6"
+											Padding="12,10"
+											Cursor="Hand"
+											Tapped="OnZipExternalTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+													   Text="압축 파일 (game.zip)"
+													   FontSize="14"
+													   FontWeight="Medium"
+													   Foreground="{DynamicResource Text.Primary}"
+													   VerticalAlignment="Center"/>
+											<PathIcon Name="ZipExternalCheck"
+													  Grid.Column="1"
+													  Data="M 2 8 L 8 14 L 18 2"
+													  Width="20" Height="20"
+													  Foreground="{DynamicResource Accent.Blue}"
+													  IsVisible="False"/>
+										</Grid>
+									</Border>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+
+						<!-- 스크랩 대상 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleScrapTargets">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="스크랩 대상"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="ScrapTargetsExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<StackPanel Name="ScrapTargetsContent" Spacing="6" Margin="0,8,0,0">
+									<Border Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnToggleScrapTitle">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="게임명"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<Border Grid.Column="1" Name="ScrapTitleToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
+												<Border Width="24" Height="24" CornerRadius="12" Background="White" Name="ScrapTitleToggle"/>
+											</Border>
+										</Grid>
+									</Border>
+
+									<Border Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnToggleScrapDescription">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="게임 설명"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<Border Grid.Column="1" Name="ScrapDescriptionToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
+												<Border Width="24" Height="24" CornerRadius="12" Background="White" Name="ScrapDescriptionToggle"/>
+											</Border>
+										</Grid>
+									</Border>
+
+									<Border Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnToggleScrapLogo">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="로고"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<Border Grid.Column="1" Name="ScrapLogoToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
+												<Border Width="24" Height="24" CornerRadius="12" Background="White" Name="ScrapLogoToggle"/>
+											</Border>
+										</Grid>
+									</Border>
+
+									<Border Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnToggleScrapCover">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="커버"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<Border Grid.Column="1" Name="ScrapCoverToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
+												<Border Width="24" Height="24" CornerRadius="12" Background="White" Name="ScrapCoverToggle"/>
+											</Border>
+										</Grid>
+									</Border>
+
+									<Border Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnToggleScrapVideo">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="비디오"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<Border Grid.Column="1" Name="ScrapVideoToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
+												<Border Width="24" Height="24" CornerRadius="12" Background="White" Name="ScrapVideoToggle"/>
+											</Border>
+										</Grid>
+									</Border>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+
+						<!-- 스크랩 조회 조건 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleScrapCondition">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="스크랩 조회 조건"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="ScrapConditionExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<StackPanel Name="ScrapConditionContent" Spacing="6" Margin="0,8,0,0">
+									
+									<Border Name="ConditionNoneOption"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnConditionNoneTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="무조건"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<PathIcon Name="ConditionNoneCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+									
+									<Border Name="ConditionAllMissingOption"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnConditionAllMissingTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="미디어가 전부 없는 경우"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<PathIcon Name="ConditionAllMissingCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="ConditionLogoMissingOption"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnConditionLogoMissingTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="로고만 없는 경우"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<PathIcon Name="ConditionLogoMissingCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="ConditionCoverMissingOption"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnConditionCoverMissingTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="커버만 없는 경우"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<PathIcon Name="ConditionCoverMissingCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+
+									<Border Name="ConditionVideoMissingOption"
+									        Background="{DynamicResource Background.Card}"
+									        CornerRadius="6"
+									        Padding="12,10"
+									        Cursor="Hand"
+									        Tapped="OnConditionVideoMissingTapped">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="비디오만 없는 경우"
+											           FontSize="14"
+											           FontWeight="Medium"
+											           Foreground="{DynamicResource Text.Primary}"
+											           VerticalAlignment="Center"/>
+											<PathIcon Name="ConditionVideoMissingCheck"
+											          Grid.Column="1"
+											          Data="M 2 8 L 8 14 L 18 2"
+											          Width="20" Height="20"
+											          Foreground="{DynamicResource Accent.Blue}"
+											          IsVisible="False"/>
+										</Grid>
+									</Border>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+
+						<!-- 계정 및 고급 설정 -->
+						<Border Background="{DynamicResource Background.Secondary}"
+						        CornerRadius="8"
+						        Padding="15,10">
+							<StackPanel>
+								<Border Background="Transparent"
+								        Cursor="Hand"
+								        Tapped="OnToggleAdvanced">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+										           Text="계정 및 고급 설정"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+										<PathIcon Grid.Column="1"
+										          Name="AdvancedExpandIcon"
+										          Data="M 7 10 L 12 15 L 17 10"
+										          Width="20" Height="20"
+										          Foreground="{DynamicResource Text.Muted}"/>
+									</Grid>
+								</Border>
+
+								<StackPanel Name="AdvancedContent" Spacing="15" Margin="0,8,0,0">
+									<!-- 캐시 초기화 -->
+									<StackPanel Spacing="8">
+										<TextBlock Text="설정 변경 시 기존 캐시를 초기화하면 새 설정으로 다시 검색합니다"
+										           FontSize="12"
+										           Foreground="{DynamicResource Text.Muted}"
+										           TextWrapping="Wrap"/>
+
+										<Button Content="캐시 초기화"
+										        Focusable="False"
+										        Tapped="OnClearCacheTapped"
+										        Padding="15,10"
+										        Background="{DynamicResource Accent.Red}"
+										        Foreground="{DynamicResource Button.Foreground}"
+										        BorderThickness="0"
+										        CornerRadius="6"
+										        HorizontalAlignment="Stretch"
+										        Cursor="Hand"/>
+									</StackPanel>
+
+									<!-- 계정 -->
+									<StackPanel Spacing="8">
+										<TextBlock Text="ScreenScraper 계정"
+										           FontSize="15"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"/>
+										<TextBlock Text="계정 등록 시 API 제한 상한 증가"
+										           FontSize="12"
+										           Foreground="{DynamicResource Text.Muted}"/>
+
+										<StackPanel Spacing="8">
+											<TextBox Name="UsernameTextBox"
+											         Watermark="사용자명"
+											         Padding="12,10"/>
+											<TextBox Name="PasswordTextBox"
+											         Watermark="비밀번호"
+											         PasswordChar="●"
+											         Padding="12,10"/>
+										</StackPanel>
+									</StackPanel>
+
+									<!-- 딜레이 -->
+									<StackPanel Spacing="8">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+											           Text="요청 딜레이"
+											           FontSize="15"
+											           FontWeight="SemiBold"
+											           Foreground="{DynamicResource Text.Primary}"/>
+											<TextBlock Grid.Column="1"
+											           Name="DelayValueText"
+											           Text="500ms"
+											           FontSize="14"
+											           Foreground="{DynamicResource Accent.Blue}"/>
+										</Grid>
+
+										<Slider Name="DelaySlider"
+										        Minimum="100"
+										        Maximum="2000"
+										        Value="500"
+										        TickFrequency="100"
+										        IsSnapToTickEnabled="True"/>
+									</StackPanel>		
+									
+									<!--  타임아웃 -->
+									<StackPanel Spacing="8">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0"
+													   Text="타임아웃"
+													   FontSize="15"
+													   FontWeight="SemiBold"
+													   Foreground="{DynamicResource Text.Primary}"/>
+											<TextBlock Grid.Column="1"
+													   Name="HttpTimeoutValueText"
+													   Text="30초"
+													   FontSize="14"
+													   Foreground="{DynamicResource Accent.Blue}"/>
+										</Grid>
+
+										<Slider Name="HttpTimeoutSlider"
+												Minimum="5"
+												Maximum="120"
+												Value="30"
+												TickFrequency="5"
+												IsSnapToTickEnabled="True"/>
+									</StackPanel>
+
+									<!-- 자동 스크래핑 -->
+									<StackPanel Spacing="8">
+										<TextBlock Text="자동 스크래핑"
+												   FontSize="15"
+												   FontWeight="SemiBold"
+												   Foreground="{DynamicResource Text.Primary}"/>
+										<TextBlock Text="뷰 진입 시 미디어 없는 게임을 백그라운드로 자동 스크래핑"
+												   FontSize="12"
+												   Foreground="{DynamicResource Text.Muted}"
+												   TextWrapping="Wrap"/>
+
+										<Border Background="{DynamicResource Background.Card}"
+												CornerRadius="6"
+												Padding="12,10"
+												Cursor="Hand"
+												Tapped="OnToggleAutoScrap">
+											<Grid ColumnDefinitions="*,Auto">
+												<TextBlock Grid.Column="0"
+														   Text="자동 스크래핑 활성화"
+														   FontSize="14"
+														   FontWeight="Medium"
+														   Foreground="{DynamicResource Text.Primary}"
+														   VerticalAlignment="Center"/>
+												<Border Grid.Column="1"
+														Name="AutoScrapToggleBack"
+														Width="50"
+														Height="28"
+														CornerRadius="14"
+														Padding="2">
+													<Border Width="24"
+															Height="24"
+															CornerRadius="12"
+															Background="White"
+															Name="AutoScrapToggle"/>
+												</Border>
+											</Grid>
+										</Border>
+									</StackPanel>
+									
+								</StackPanel>
+							</StackPanel>
+						</Border>
+
+					</StackPanel>
+				</ScrollViewer>
+
+				<!-- 버튼 -->
+				<Border Grid.Row="2"
+				        Background="{DynamicResource Background.Secondary}"
+				        Padding="15,10"
+				        BorderThickness="0,1,0,0"
+				        BorderBrush="{DynamicResource Background.Border}">
+					<StackPanel Orientation="Horizontal"
+					            HorizontalAlignment="Right"
+					            Spacing="10">
+						<Button Content="초기화"
+						        Focusable="False"
+						        Click="OnResetClick"
+						        Padding="25,10"
+						        Background="{DynamicResource Background.Hover}"
+						        Foreground="{DynamicResource Text.Primary}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"/>
+						<Button Content="저장"
+						        Focusable="False"
+						        Click="OnSaveClick"
+						        Padding="25,10"
+						        Background="{DynamicResource Accent.Blue}"
+						        Foreground="{DynamicResource Button.Foreground}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"/>
+					</StackPanel>
+				</Border>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

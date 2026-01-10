@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:overlays="using:UltimateEnd.Views.Overlays"
+             x:Class="UltimateEnd.Views.Overlays.LoadingOverlay"
+             x:DataType="overlays:LoadingOverlay"
+             IsVisible="{Binding IsLoading}"
+             Focusable="True">
+	<!-- 반투명 배경 -->
+	<Border Background="#80000000">
+		<Border Background="{DynamicResource Background.Primary}"
+				CornerRadius="8"
+				Padding="50,30"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				BoxShadow="0 4 16 2 #40000000">
+			<!-- 메시지 텍스트만 표시 -->
+			<TextBlock Text="{Binding Message}"
+					   FontSize="16"
+					   Foreground="{DynamicResource Text.Primary}"
+					   HorizontalAlignment="Center"
+					   VerticalAlignment="Center"
+					   TextAlignment="Center"/>
+		</Border>
+	</Border>
+</UserControl>

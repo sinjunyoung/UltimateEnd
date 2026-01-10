@@ -1,0 +1,379 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.ViewModels"
+             x:Class="UltimateEnd.Views.Overlays.PlatformSettingsOverlay"
+             x:DataType="vm:PlatformListViewModel"
+             x:Name="PlatformSettingsOverlayRoot">
+
+	<Grid Name="MainGrid"
+		  ZIndex="2000"
+	      Background="#80000000"
+	      PointerPressed="OnOverlayBackgroundClick">
+
+		<Border Name="SettingsPanel"
+		        Background="{DynamicResource Background.Card}"
+		        CornerRadius="12,0,0,12"
+		        Padding="0"
+		        HorizontalAlignment="Right"
+		        VerticalAlignment="Stretch"
+		        Width="{StaticResource Size.OverlayWidth}">
+
+			<Grid RowDefinitions="Auto,*">
+				<Border Grid.Row="0"
+				        Background="{DynamicResource Background.Secondary}"
+				        Padding="20"
+				        BorderThickness="0,0,0,1"
+				        BorderBrush="{DynamicResource Background.Border}">
+					<Grid ColumnDefinitions="Auto,*,Auto">
+						<Border Grid.Column="0"
+						        ClipToBounds="False"
+						        PointerPressed="OnCloseClick"
+						        Cursor="Hand"
+						        Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+							          Data="{StaticResource Icon.Back}"
+							          Width="{StaticResource IconSize.MenuIcon}"
+							          Height="{StaticResource IconSize.MenuIcon}"
+							          VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+						           Text="설정"
+						           FontSize="20"
+						           FontWeight="Bold"
+								   Margin="15,0,0,0"
+						           Foreground="{DynamicResource Text.Primary}"
+						           VerticalAlignment="Center"/>
+					</Grid>
+				</Border>
+
+				<ScrollViewer Grid.Row="1"
+							  Padding="20,20,20,80"
+							  HorizontalScrollBarVisibility="Disabled"
+							  VerticalScrollBarVisibility="Visible">
+					<Border Padding="0,0,0,100">
+					<StackPanel Spacing="15" MinHeight="600">						
+							<!-- 테마 설정 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnThemeClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/theme.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="테마 설정"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+										<TextBlock Text="{Binding CurrentThemeName}"
+												   FontSize="13"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Muted}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 배경 이미지 설정 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnBackgroundImageClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/image.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="배경 이미지 설정"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 에뮬레이터 설정 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnEmulatorClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/emulator.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="에뮬레이터 설정"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 플레이리스트 관리 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnPlaylistClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/playlist.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="플레이리스트 관리"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 세이브 백업 모드 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnSaveBackupModeClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/save.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="세이브 백업 모드"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+										<TextBlock Name="SaveBackupModeText"
+												   Text="일반 세이브"
+												   FontSize="13"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Muted}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>							
+							</Border>
+						
+							<!-- 앱 플랫폼 표시 -->
+							<Border Name="ToggleNativeAppPlatformItem"
+									Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnToggleNativeAppPlatform">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="{OnPlatform Android='avares://UltimateEnd/Assets/Icons/android.png', Default='avares://UltimateEnd/Assets/Icons/desktop.png'}"
+										   Margin="0,0,10,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<TextBlock Grid.Column="1"
+											   Text="{OnPlatform Android='앱 플랫폼 표시', Default='Desktop 플랫폼 표시'}"
+											   FontSize="16"
+											   FontWeight="SemiBold"
+											   Foreground="{DynamicResource Text.Primary}"
+											   VerticalAlignment="Center"
+											   HorizontalAlignment="Center"/>
+									<Border Grid.Column="2"
+											Name="NativeAppPlatformToggle"
+											Width="50"
+											Height="28"
+											CornerRadius="14"
+											Padding="2">
+										<Border Width="24" Height="24" CornerRadius="12" Background="White" Name="NativeAppPlatformToggleThumb"/>
+									</Border>
+								</Grid>
+							</Border>
+
+							<!-- 화면보호기 대기시간 -->
+							<Border Name="ScreensaverTimeoutBorder"
+									Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10">
+								<StackPanel Spacing="8">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Grid.Column="0"
+												   Text="화면보호기 대기시간"
+												   FontSize="15"
+												   FontWeight="SemiBold"
+												   Foreground="{DynamicResource Text.Primary}"/>
+										<TextBlock Grid.Column="1"
+												   Name="ScreensaverTimeoutValueText"
+												   Text="5분"
+												   FontSize="14"
+												   Foreground="{DynamicResource Accent.Blue}"/>
+									</Grid>
+									<Slider Name="ScreensaverTimeoutSlider"
+											Minimum="0"
+											Maximum="60"
+											Value="5"
+											TickFrequency="1"
+											IsSnapToTickEnabled="True"
+											ValueChanged="OnScreensaverTimeoutChanged"/>
+								</StackPanel>
+							</Border>
+
+							<!-- 스크랩 설정 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnScrapClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/scrap.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="스크랩 설정"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 키 설정 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnKeyBindingClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/gamepad.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="키 설정"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 장르 설정 -->
+							<Border Background="{DynamicResource Background.Secondary}"
+									CornerRadius="8"
+									Padding="10"
+									Cursor="Hand"
+									Tapped="OnGenreClick">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Grid.Column="0"
+										   Source="avares://UltimateEnd/Assets/Icons/genre.png"
+										   Margin="0,0,5,0"
+										   Width="32"
+										   Height="32"
+										   Stretch="Uniform"/>
+									<StackPanel Grid.Column="1"
+												Spacing="5"
+												VerticalAlignment="Center">
+										<TextBlock Text="장르 관리"
+												   FontSize="16"
+												   FontWeight="SemiBold"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Foreground="{DynamicResource Text.Primary}"/>
+									</StackPanel>
+									<PathIcon Grid.Column="2"
+											  Data="M 8 0 L 16 8 L 8 16"
+											  Width="16" Height="16"
+											  VerticalAlignment="Center"/>
+								</Grid>
+							</Border>
+
+							<!-- 버전 정보 -->
+							<TextBlock x:Name="VersionText"
+									   FontSize="12"
+									   HorizontalAlignment="Center"
+									   Margin="0,40,0,40"
+									   Foreground="{DynamicResource Text.Muted}"/>
+
+						</StackPanel>
+				</Border>
+				</ScrollViewer>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

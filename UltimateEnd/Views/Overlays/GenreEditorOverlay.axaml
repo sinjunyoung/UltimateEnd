@@ -1,0 +1,323 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:UltimateEnd.Models"
+			 xmlns:converters="using:UltimateEnd.Converters"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Views.Overlays.GenreEditorOverlay"
+             x:Name="RootControl">
+
+	<UserControl.Resources>
+		<converters:BoolToHighlightBrushConverter x:Key="BoolToHighlightBrush"/>
+	</UserControl.Resources>
+
+	<Grid Name="MainGrid"
+	      IsVisible="False"
+	      Background="#80000000"
+	      ZIndex="3000"
+	      PointerPressed="OnBackgroundClick">
+
+		<Border Name="MainBorder"
+		        Background="{DynamicResource Background.Card}"
+		        CornerRadius="12,0,0,12"
+		        Padding="10"
+		        HorizontalAlignment="Right"
+		        VerticalAlignment="Stretch"
+		        Width="{StaticResource Size.OverlayWidth}">
+
+			<Grid RowDefinitions="Auto,*,Auto" VerticalAlignment="Stretch">
+
+				<!-- Header -->
+				<Border Grid.Row="0"
+				        Background="{DynamicResource Background.Secondary}"
+				        Padding="10"
+				        BorderThickness="0,0,0,1"
+				        BorderBrush="{DynamicResource Background.Border}">
+					<Grid ColumnDefinitions="Auto,*,Auto">
+						<Border Grid.Column="0"
+						        ClipToBounds="False"
+						        PointerPressed="OnClose"
+						        Cursor="Hand"
+						        Margin="0,0,15,0">
+							<PathIcon Classes="AnimatedIcon"
+							          Data="{StaticResource Icon.Back}"
+							          Width="{StaticResource IconSize.MenuIcon}"
+							          Height="{StaticResource IconSize.MenuIcon}"
+							          VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1"
+						           Text="장르 설정 편집"
+						           FontSize="20"
+						           FontWeight="Bold"
+						           Foreground="{DynamicResource Text.Primary}"
+						           VerticalAlignment="Center"/>
+						<Border Grid.Column="2"
+						        ClipToBounds="False"
+						        PointerPressed="OnSearchClick"
+						        Cursor="Hand">
+							<PathIcon Classes="AnimatedIcon"
+							          Data="{StaticResource Icon.Search}"
+							          Width="{StaticResource IconSize.MenuIcon}"
+							          Height="{StaticResource IconSize.MenuIcon}"
+							          Margin="10,0,10,0"
+							          VerticalAlignment="Center"/>
+						</Border>
+					</Grid>
+				</Border>
+
+				<!-- Content Area -->
+				<ScrollViewer Grid.Row="1" Margin="0,2,0,2">
+					<ItemsRepeater Name="GenreItemsControl">
+						<ItemsRepeater.Layout>
+							<StackLayout Spacing="0" />
+						</ItemsRepeater.Layout>
+						<ItemsRepeater.ItemTemplate>
+							<DataTemplate DataType="{x:Type models:GameGenreItem}">
+								<Border Padding="12,8"
+								        Margin="2"
+								        CornerRadius="8"
+								        Cursor="Hand"
+										Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrush}}"
+								        Tapped="OnGenreItemTapped">
+									<Grid ColumnDefinitions="70,*,Auto,Auto">
+										<!-- ID 표시 -->
+										<TextBlock Grid.Column="0"
+										           Text="{Binding Id, StringFormat='[{0}]'}"
+										           FontSize="14"
+										           Foreground="{DynamicResource Foreground.Tertiary}"
+										           Margin="0,0,8,0"
+										           VerticalAlignment="Center"/>
+
+										<!-- 장르 이름 -->
+										<TextBlock Grid.Column="1"
+										           Text="{Binding Genre}"
+										           FontSize="16"
+										           FontWeight="SemiBold"
+										           Foreground="{DynamicResource Text.Primary}"
+										           VerticalAlignment="Center"/>
+
+										<!-- 편집 버튼 (선택된 항목만 표시) -->
+										<Button Grid.Column="2"
+										        Content="수정"
+										        Click="OnEditButtonClick"
+												 Background="{DynamicResource Accent.Blue}"
+												Foreground="{DynamicResource Button.Foreground}"
+										        Margin="2,2,2,2"
+										        IsVisible="{Binding IsSelected}"/>
+
+										<!-- 삭제 버튼 (선택된 항목만 표시) -->
+										<Button Grid.Column="3"
+										        Content="삭제"
+										        Click="OnDeleteButtonClick"
+												Background="{DynamicResource Background.Hover}"
+												Foreground="{DynamicResource Text.Primary}"
+										        Margin="2,2,2,2"
+										        IsVisible="{Binding IsSelected}"/>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ItemsRepeater.ItemTemplate>
+					</ItemsRepeater>
+				</ScrollViewer>
+
+				<!-- Action Buttons -->
+				<Border Grid.Row="2"
+				        Background="{DynamicResource Background.Secondary}"
+				        Padding="15,10"
+				        BorderThickness="0,1,0,0"
+				        BorderBrush="{DynamicResource Background.Border}">
+					<StackPanel Orientation="Horizontal"
+					            HorizontalAlignment="Right"
+					            Spacing="10">
+						<Button Content="취소"
+						        Focusable="False"
+						        behaviors:SoundBehavior.ClickSound="Cancel"
+						        Click="OnCancelClicked"
+						        Padding="25,10"
+						        Background="{DynamicResource Background.Hover}"
+						        Foreground="{DynamicResource Text.Primary}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"/>
+						<Button Content="저장"
+						        Focusable="False"
+						        behaviors:SoundBehavior.ClickSound="OK"
+						        Click="OnSaveClicked"
+						        Padding="25,10"
+						        Background="{DynamicResource Accent.Blue}"
+						        Foreground="{DynamicResource Button.Foreground}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"/>
+					</StackPanel>
+				</Border>
+			</Grid>
+		</Border>
+
+		<!-- Search/Add Overlay -->
+		<Grid Name="SearchOverlay"
+		      IsVisible="False"
+		      Background="#CC000000"
+		      ZIndex="3100"
+		      PointerPressed="OnSearchOverlayBackgroundClick">
+			<Border Background="{DynamicResource Background.Card}"
+			        CornerRadius="10"
+			        Padding="20"
+			        Margin="20,5,20,20"
+			        MaxWidth="400"
+			        VerticalAlignment="Top">
+				<StackPanel Spacing="15">
+					<Grid ColumnDefinitions="*,Auto">
+						<TextBlock Grid.Column="0"
+						           Text="장르 검색/추가"
+						           FontSize="18"
+						           FontWeight="Bold"
+						           Foreground="{DynamicResource Text.Primary}"/>
+						<Border Grid.Column="1"
+						        PointerPressed="OnSearchOverlayClose"
+						        Cursor="Hand">
+							<TextBlock Text="✕"
+							           FontSize="20"
+							           Foreground="{DynamicResource Text.Muted}"/>
+						</Border>
+					</Grid>
+
+					<TextBox Name="SearchTextBox"
+					         Watermark="장르 이름 입력"
+					         MaxLength="50"
+					         Padding="12"
+					         FontSize="15"
+					         Background="{DynamicResource TextBox.Background}"
+					         Foreground="{DynamicResource TextBox.Foreground}"
+					         BorderBrush="{DynamicResource TextBox.BorderBrush}"
+					         CaretBrush="{DynamicResource TextBox.CaretBrush}"
+					         SelectionBrush="{DynamicResource TextBox.SelectionBrush}"
+					         SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}">
+						<Interaction.Behaviors>
+							<behaviors:TextBoxColorFixBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+
+					<TextBlock Name="SearchStatusText"
+					           Text="장르 이름을 입력하세요"
+					           FontSize="13"
+					           Foreground="{DynamicResource Text.Muted}"
+					           TextWrapping="Wrap"/>
+
+					<Grid ColumnDefinitions="*,10,*">
+						<Button Grid.Column="0"
+						        Content="검색"
+						        Focusable="False"
+						        behaviors:SoundBehavior.ClickSound="OK"
+						        Click="OnSearchConfirm"
+						        Padding="15,10"
+						        Background="{DynamicResource Background.Hover}"
+						        Foreground="{DynamicResource Text.Primary}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"
+						        HorizontalAlignment="Stretch"
+						        HorizontalContentAlignment="Center"/>
+
+						<Button Grid.Column="2"
+						        Content="추가"
+						        Focusable="False"
+						        behaviors:SoundBehavior.ClickSound="OK"
+						        Click="OnAddConfirm"
+						        Padding="15,10"
+						        Background="{DynamicResource Accent.Blue}"
+						        Foreground="{DynamicResource Button.Foreground}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"
+						        HorizontalAlignment="Stretch"
+						        HorizontalContentAlignment="Center"/>
+					</Grid>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<!-- Genre Rename Overlay -->
+		<Grid Name="RenameOverlay"
+		      IsVisible="False"
+		      Background="#CC000000"
+		      ZIndex="3100"
+		      PointerPressed="OnRenameOverlayBackgroundClick">
+			<Border Background="{DynamicResource Background.Card}"
+			        CornerRadius="10"
+			        Padding="20"
+			        Margin="20,5,20,20"
+			        MaxWidth="400"
+			        VerticalAlignment="Top">
+				<StackPanel Spacing="15">
+					<Grid ColumnDefinitions="*,Auto">
+						<TextBlock Grid.Column="0"
+						           Text="장르 이름 변경"
+						           FontSize="18"
+						           FontWeight="Bold"
+						           Foreground="{DynamicResource Text.Primary}"/>
+						<Border Grid.Column="1"
+						        PointerPressed="OnRenameOverlayClose"
+						        Cursor="Hand">
+							<TextBlock Text="✕"
+							           FontSize="20"
+							           Foreground="{DynamicResource Text.Muted}"/>
+						</Border>
+					</Grid>
+
+					<TextBox Name="RenameTextBox"
+					         Watermark="새 장르 이름 입력"
+					         MaxLength="50"
+					         Padding="12"
+					         FontSize="15"
+					         Background="{DynamicResource TextBox.Background}"
+					         Foreground="{DynamicResource TextBox.Foreground}"
+					         BorderBrush="{DynamicResource TextBox.BorderBrush}"
+					         CaretBrush="{DynamicResource TextBox.CaretBrush}"
+					         SelectionBrush="{DynamicResource TextBox.SelectionBrush}"
+					         SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}">
+						<Interaction.Behaviors>
+							<behaviors:TextBoxColorFixBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+
+					<TextBlock Name="RenameStatusText"
+					           Text="새 이름을 입력하세요"
+					           FontSize="13"
+					           Foreground="{DynamicResource Text.Muted}"
+					           TextWrapping="Wrap"/>
+
+					<Grid ColumnDefinitions="*,10,*">
+						<Button Grid.Column="0"
+						        Content="취소"
+						        Focusable="False"
+						        behaviors:SoundBehavior.ClickSound="Cancel"
+						        Click="OnRenameCancel"
+						        Padding="15,10"
+						        Background="{DynamicResource Background.Hover}"
+						        Foreground="{DynamicResource Text.Primary}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"
+						        HorizontalAlignment="Stretch"
+						        HorizontalContentAlignment="Center"/>
+
+						<Button Grid.Column="2"
+						        Content="변경"
+						        Focusable="False"
+						        behaviors:SoundBehavior.ClickSound="OK"
+						        Click="OnRenameConfirm"
+						        Padding="15,10"
+						        Background="{DynamicResource Accent.Blue}"
+						        Foreground="{DynamicResource Button.Foreground}"
+						        BorderThickness="0"
+						        CornerRadius="6"
+						        Cursor="Hand"
+						        HorizontalAlignment="Stretch"
+						        HorizontalContentAlignment="Center"/>
+					</Grid>
+				</StackPanel>
+			</Border>
+		</Grid>
+	</Grid>
+
+</UserControl>

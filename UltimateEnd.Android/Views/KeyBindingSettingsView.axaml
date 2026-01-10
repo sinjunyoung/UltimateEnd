@@ -1,0 +1,199 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.Android.ViewModels"
+             x:Class="UltimateEnd.Android.Views.KeyBindingSettingsView"
+             x:DataType="vm:KeyBindingSettingsViewModel"
+             x:Name="KeyBindingSettingsRoot"
+             Focusable="True"
+             Background="{DynamicResource Background.Primary}">
+
+	<Grid RowDefinitions="Auto,*,Auto">
+
+		<!-- 헤더 -->
+		<Border Grid.Row="0"
+                Background="{DynamicResource Background.Secondary}"
+                Padding="15"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource Background.Border}">
+			<Grid ColumnDefinitions="Auto,*">
+				<Border Grid.Column="0"
+                        ClipToBounds="False"
+                        Tapped="OnBackClick"
+                        Margin="0,0,15,0">
+					<PathIcon Classes="AnimatedIcon"
+                              Data="{StaticResource Icon.Back}"
+                              Width="{StaticResource IconSize.MenuIcon}"
+                              Height="{StaticResource IconSize.MenuIcon}"
+                              VerticalAlignment="Center"/>
+				</Border>
+				<StackPanel Grid.Column="1" Margin="15,0,0,0">
+					<TextBlock Text="키 설정"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource Text.Primary}"/>
+					<TextBlock Text="버튼을 탭하여 키를 할당하세요"
+                               FontSize="14"
+                               Foreground="{DynamicResource Text.Muted}"
+                               Margin="0,5,0,0"/>
+				</StackPanel>
+			</Grid>
+		</Border>
+
+		<!-- 버튼 리스트 -->
+		<ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+			<ListBox ItemsSource="{Binding ButtonItems}"
+					 x:Name="ButtonList"
+                     Margin="10"
+					 Background="Transparent"
+					 SelectionMode="Single">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<Border x:Name="ItemBorder"
+								Background="{DynamicResource Background.Secondary}"
+                                CornerRadius="8"
+                                Margin="0,0,0,10"
+                                Padding="15"
+                                Tapped="OnButtonItemTapped">
+							<Border.Tag>
+								<Binding Path="ButtonName"/>
+							</Border.Tag>
+
+							<Grid ColumnDefinitions="Auto,*,Auto">
+								<!-- 아이콘 -->
+								<Border Grid.Column="0"
+                                        Width="50"
+                                        Height="50"
+                                        CornerRadius="25"
+                                        Background="{DynamicResource Accent.Primary}"
+                                        VerticalAlignment="Center">
+									<TextBlock Text="{Binding Icon}"
+                                               FontSize="22"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource Text.Primary}"/>
+								</Border>
+
+								<!-- 설명 -->
+								<StackPanel Grid.Column="1"
+                                            Margin="15,0,0,0"
+                                            VerticalAlignment="Center">
+									<TextBlock Text="{Binding Description}"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource Text.Primary}"/>
+									<TextBlock Text="{Binding CurrentValue}"
+                                               FontSize="14"
+                                               Foreground="{DynamicResource Accent.Primary}"
+                                               Margin="0,3,0,0"/>
+								</StackPanel>
+
+								<!-- 화살표 -->
+								<PathIcon Grid.Column="2"
+                                          Data="M 0,0 L 8,6 L 0,12"
+                                          Width="8"
+                                          Height="12"
+                                          VerticalAlignment="Center"
+                                          Foreground="{DynamicResource Text.Muted}"/>
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+				<ListBox.Styles>
+					<Style Selector="ListBoxItem">
+						<Setter Property="Padding" Value="0"/>
+						<Setter Property="Margin" Value="0"/>
+						<Setter Property="Background" Value="Transparent"/>
+					</Style>
+					<Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+						<Setter Property="Background" Value="Transparent"/>
+					</Style>
+					<Style Selector="ListBoxItem:selected Border#ItemBorder">
+						<Setter Property="Background" Value="{DynamicResource Accent.Primary}"/>
+						<Setter Property="BorderBrush" Value="{DynamicResource Accent.Primary}"/>
+						<Setter Property="BorderThickness" Value="2"/>
+					</Style>
+					<Style Selector="ListBoxItem:pointerover Border#ItemBorder">
+						<Setter Property="Background" Value="{DynamicResource Background.Hover}"/>
+					</Style>
+				</ListBox.Styles>
+			</ListBox>
+		</ScrollViewer>
+
+		<!-- 바인딩 중 오버레이 -->
+		<Border Grid.Row="0"
+                Grid.RowSpan="3"
+                Background="#CC000000"
+                IsVisible="{Binding IsBinding}"
+                Tapped="OnOverlayTapped">
+			<Border Background="{DynamicResource Background.Secondary}"
+                    CornerRadius="15"
+                    Padding="30"
+                    MaxWidth="400"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+				<StackPanel Spacing="20">
+					<!-- 버튼 이름 -->
+					<TextBlock Text="{Binding BindingButtonName}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource Text.Primary}"/>
+
+					<!-- 안내 메시지 -->
+					<TextBlock Text="할당할 키를 눌러주세요"
+                               FontSize="18"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource Text.Muted}"/>
+
+					<!-- 애니메이션 표시 -->
+					<Border Width="60"
+                            Height="60"
+                            CornerRadius="30"
+                            Background="{DynamicResource Accent.Primary}"
+                            HorizontalAlignment="Center">
+						<TextBlock Text="⌨"
+                                   FontSize="30"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Text.Primary}"/>
+					</Border>
+
+					<!-- 취소 버튼 -->
+					<Button Content="취소"
+                            Click="OnCancelBindingClick"
+                            HorizontalAlignment="Center"
+                            Padding="40,12"
+                            Background="{DynamicResource Accent.Danger}"/>
+				</StackPanel>
+			</Border>
+		</Border>
+
+		<!-- 하단 버튼들 -->
+		<Border Grid.Row="2"
+                Background="{DynamicResource Background.Secondary}"
+                Padding="15"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource Background.Border}">
+			<StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="10">
+				<Button Content="기본값으로 리셋"
+                        Name="ResetButton"
+                        Command="{Binding ResetToDefaultCommand}"
+                        Padding="20,12"
+                        FontSize="16"
+                        Background="{DynamicResource Accent.Danger}"
+                        Foreground="{DynamicResource Text.Primary}"/>
+				<Button Content="저장"
+                        Command="{Binding SaveCommand}"
+                        Padding="20,12"
+                        FontSize="16"
+                        Background="{DynamicResource Accent.Success}"
+                        Foreground="{DynamicResource Text.Primary}"/>
+			</StackPanel>
+		</Border>
+	</Grid>
+
+</UserControl>

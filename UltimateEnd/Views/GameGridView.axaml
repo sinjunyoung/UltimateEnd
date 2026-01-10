@@ -1,0 +1,265 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UltimateEnd.ViewModels"
+             xmlns:models="using:UltimateEnd.Models"
+             xmlns:converters="using:UltimateEnd.Converters"
+             xmlns:overlays="using:UltimateEnd.Views.Overlays"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+			 xmlns:local="using:UltimateEnd.Controls"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="UltimateEnd.Views.GameGridView"
+             x:DataType="vm:GameListViewModel"
+             Focusable="True"
+             x:Name="RootControl">
+
+	<UserControl.Resources>
+		<converters:BoolToHighlightBrushConverter x:Key="BoolToHighlightBrushConverter"/>
+	</UserControl.Resources>
+
+	<Grid Name="MainGrid" RowDefinitions="{OnPlatform Android='50,*', Default='70,*'}">
+		<!-- 상단 헤더 -->
+		<Grid Grid.Row="0"
+			  ColumnDefinitions="Auto,*,1.2*,Auto,Auto,Auto,Auto"
+			  Margin="20,10,20,10"
+			  VerticalAlignment="Top">
+
+			<!-- Back Button -->
+			<Border Grid.Column="0"
+					ClipToBounds="False"
+					Margin="0,0,15,0"
+					PointerPressed="OnBackClick"
+					Cursor="Hand">
+				<PathIcon Classes="AnimatedIcon"
+						  Data="{StaticResource Icon.Back}"
+						  Width="{StaticResource IconSize.MenuIcon}"
+						  Height="{StaticResource IconSize.MenuIcon}"
+						  VerticalAlignment="Center"/>
+			</Border>
+
+			<!-- Platform Logo -->
+			<Viewbox Grid.Column="1"
+					 Height="{OnPlatform Android='38', Default='50'}"
+					 HorizontalAlignment="Left"
+					 Margin="10,0"
+					 Stretch="Uniform">
+				<Border Padding="5">
+					<Image Source="{Binding Platform.LogoImage}">
+						<Image.Effect>
+							<DropShadowEffect Color="{DynamicResource Logo.Shadow.Color}"
+											  BlurRadius="10"
+											  OffsetX="1"
+											  OffsetY="1"
+											  Opacity="1"/>
+						</Image.Effect>
+					</Image>
+				</Border>
+			</Viewbox>
+
+			<!-- 검색창 (동적 너비) -->
+			<Border Grid.Column="2"
+					Background="{DynamicResource Background.Card}"
+					CornerRadius="{StaticResource CornerRadius.Small}"
+					BorderThickness="0"
+					Padding="{StaticResource Padding.Search}"
+					Height="{StaticResource Size.SearchHeight}">
+				<Grid ColumnDefinitions="Auto,*">
+					<PathIcon Classes="AnimatedIcon"
+							  Data="{StaticResource Icon.Search}"
+							  Width="{StaticResource IconSize.MenuIcon}"
+							  Height="{StaticResource IconSize.MenuIcon}"
+							  Margin="10,0,10,0"
+							  VerticalAlignment="Center"/>
+					<TextBox Grid.Column="1"
+							 x:Name="SearchBox"
+							 Text="{Binding SearchText, Mode=TwoWay}"
+							 Watermark="게임 검색..."
+							 Background="{DynamicResource TextBox.Background}"
+							 BorderThickness="0"
+							 Foreground="{DynamicResource TextBox.Foreground}"
+							 FontSize="{StaticResource FontSize.SearchText}"
+							 VerticalAlignment="Center"
+							 CaretBrush="{DynamicResource TextBox.CaretBrush}"
+							 SelectionBrush="{DynamicResource TextBox.SelectionBrush}"
+							 SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}"
+							 Padding="5">
+						<Interaction.Behaviors>
+							<behaviors:TextBoxColorFixBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</Grid>
+			</Border>
+
+			<!-- 장르 필터 버튼 -->
+			<Border Grid.Column="3"
+					ClipToBounds="False"
+					Cursor="Hand"
+					Margin="25,0,0,0"
+					PointerPressed="OnGenreFilterClick">
+				<PathIcon Classes="AnimatedIcon"
+						  Data="{StaticResource Icon.Filter}"
+						  Width="{StaticResource IconSize.MenuIcon}"
+						  Height="{StaticResource IconSize.MenuIcon}"
+						  VerticalAlignment="Center"/>
+			</Border>
+
+			<!-- 뷰모드 버튼 -->
+			<Border Grid.Column="4"
+					Name="ViewModeButton"
+					ClipToBounds="False"
+					Margin="25,0,0,0"
+					PointerPressed="OnViewModeClick"
+					Cursor="Hand">
+				<PathIcon Name="ViewModeIcon"
+						  Classes="AnimatedIcon"
+						  Width="{StaticResource IconSize.MenuIcon}"
+						  Height="{StaticResource IconSize.MenuIcon}"
+						  VerticalAlignment="Center"/>
+			</Border>
+
+			<!-- 앱 추가 버튼 -->
+			<Border Grid.Column="5"
+					Name="AddAppButton"
+					ClipToBounds="False"
+					Cursor="Hand"
+					Margin="25,0,0,0"
+					PointerPressed="OnAddAppClick"
+					IsVisible="{Binding IsNativeAppPlatform}">
+				<PathIcon Classes="AnimatedIcon"
+						  Data="{StaticResource Icon.Add}"
+						  Width="{StaticResource IconSize.MenuIcon}"
+						  Height="{StaticResource IconSize.MenuIcon}"
+						  VerticalAlignment="Center"/>
+			</Border>			
+
+			<!-- 설정 버튼 -->
+			<Border Grid.Column="6"
+					ClipToBounds="False"
+					Cursor="Hand"
+					Margin="25,0,10,0"
+					PointerPressed="OnSettingsClick">
+				<PathIcon Classes="AnimatedIcon"
+						  Data="{StaticResource Icon.Settings}"
+						  Width="{StaticResource IconSize.MenuIcon}"
+						  Height="{StaticResource IconSize.MenuIcon}"
+						  VerticalAlignment="Center"/>
+			</Border>
+		</Grid>
+
+		<!-- 게임 그리드 영역 -->
+		<ScrollViewer Name="GameScrollViewer"
+              Grid.Row="1"
+              HorizontalScrollBarVisibility="Disabled"
+              VerticalScrollBarVisibility="Auto"
+              AllowAutoHide="True"
+              Focusable="True">
+			<ItemsRepeater Name="GameItemsRepeater"
+						   ItemsSource="{Binding Games}">
+				<ItemsRepeater.Layout>
+					<UniformGridLayout MinColumnSpacing="5"
+									  MinRowSpacing="5"
+									  ItemsStretch="Fill"/>
+				</ItemsRepeater.Layout>
+				<ItemsRepeater.ItemTemplate>
+					<DataTemplate x:DataType="models:GameMetadata">
+						<!-- ⭐ 최상위 Border: ClipToBounds로 모든 자식 요소 자르기 -->
+						<Border CornerRadius="8"
+								ClipToBounds="True"
+								Background="Transparent"
+								Cursor="Hand"
+								Tapped="OnGameItemTapped"
+								DoubleTapped="OnGameItemDoubleTapped"
+								behaviors:LongPressBehavior.IsEnabled="True"
+								behaviors:LongPressBehavior.Target="{Binding #RootControl}"
+								behaviors:LongPressBehavior.MethodName="OnGameItemLongPress">
+							<Grid>
+								<!-- ⭐ Cover Image: UniformToFill로 변경해서 전체를 채움 -->
+								<Image Source="{Binding CoverImage}"
+									   Stretch="Uniform"
+									   RenderOptions.BitmapInterpolationMode="MediumQuality"
+									   IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+								<!-- Placeholder (커버 없을 때) -->
+								<Grid IsVisible="{Binding !HasCoverImage}">
+									<TextBlock Text="{Binding DisplayTitle}"
+											  FontSize="16"
+											  FontWeight="Bold"
+											  TextAlignment="Center"
+											  TextWrapping="Wrap"
+											  VerticalAlignment="Center"
+											  HorizontalAlignment="Center"
+											  Margin="15"
+											  Foreground="{DynamicResource Text.Primary}">
+										<TextBlock.Effect>
+											<DropShadowEffect Color="White" BlurRadius="10" Opacity="0.3"/>
+										</TextBlock.Effect>
+									</TextBlock>
+								</Grid>
+
+								<!-- Favorite Star (좌측 상단) -->
+								<Border Background="#80000000"
+										CornerRadius="0,0,8,0"
+										Padding="6,3"
+										HorizontalAlignment="Left"
+										VerticalAlignment="Top"
+										IsVisible="{Binding IsFavorite}">
+									<TextBlock Text="⭐" FontSize="18"/>
+								</Border>
+
+								<!-- 게임명 (선택된 항목만 표시) -->
+								<Border Background="#DD000000"
+										VerticalAlignment="Bottom"
+										HorizontalAlignment="Stretch"
+										Padding="8,5"
+										IsVisible="{Binding IsSelected}">
+									<local:ScrollingTextBlock 
+										Text="{Binding DisplayTitle}"
+										FontSize="{StaticResource FontSize.BackButton}"
+										FontWeight="SemiBold"
+										ScrollSpeed="40"										
+										Height="25"
+										Foreground="White"/>
+								</Border>
+
+								<!-- 선택 오버레이 (전체를 덮음, 맨 위에 배치) -->
+								<Border BorderBrush="#2196F3"
+										BorderThickness="4"
+										Background="#66007ACC"
+										IsVisible="{Binding IsSelected}"/>
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</ItemsRepeater.ItemTemplate>
+			</ItemsRepeater>
+		</ScrollViewer>
+
+		<!-- ⭐ 자동 스크래핑 상태 표시 (왼쪽 하단) -->
+		<Border Name="AutoScrapStatusPanel"
+				Grid.Row="1"
+				IsVisible="False"
+				Background="#80000000"
+				CornerRadius="6"
+				Padding="10,6"
+				HorizontalAlignment="Left"
+				VerticalAlignment="Bottom"
+				Margin="20,20">
+			<TextBlock Name="AutoScrapStatusText"
+					   Foreground="White"
+					   FontSize="12"
+					   Text="자동 스크래핑 중... (0/0)"/>
+		</Border>
+
+		<!-- Overlays -->
+		<overlays:SettingsMenuOverlay x:Name="SettingsMenuOverlay" Grid.RowSpan="2" Focusable="True"/>		
+		<overlays:GenreFilterOverlay x:Name="GenreFilterOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:GameContextMenuOverlay x:Name="GameContextMenuOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:GameEmulatorSelectionOverlay x:Name="GameEmulatorOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:GameRenameOverlay x:Name="GameRenameOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:GameGenreOverlay x:Name="GameGenreOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:EmulatorSelectionOverlay x:Name="EmulatorOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:PlatformTemplateOverlay x:Name="PlatformTemplateOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:BackupListOverlay x:Name="BackupListOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:PlaylistSelectionOverlay x:Name="PlaylistOverlay" Grid.RowSpan="2" Focusable="True"/>
+	</Grid>
+</UserControl>

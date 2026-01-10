@@ -1,0 +1,279 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UltimateEnd.ViewModels"
+             xmlns:models="using:UltimateEnd.Models"
+             xmlns:overlays="using:UltimateEnd.Views.Overlays"
+             x:Class="UltimateEnd.Views.PlatformListView"
+             x:DataType="vm:PlatformListViewModel"
+             Focusable="True"
+             x:Name="PlatformListViewRoot">
+
+	<Grid Name="RootGrid">
+
+		<!-- 배경 이미지 -->
+		<Border Name="BackgroundImageContainer" ClipToBounds="True" ZIndex="0">
+			<Image Name="BackgroundImage"
+				   Stretch="UniformToFill"
+				   Opacity="0.7"/>
+		</Border>
+
+		<!-- 메인 카드 영역 - 헤더 아래부터 시작 -->
+		<Border Name="CarouselContainer"
+				ZIndex="1"
+				ClipToBounds="False"
+				Margin="{Binding #PlatformListViewRoot.CarouselMargin}">
+			<ScrollViewer Name="CarouselScrollViewer"
+						  ClipToBounds="False"
+						  HorizontalScrollBarVisibility="Disabled"
+						  VerticalScrollBarVisibility="Auto"
+						  VerticalAlignment="Center">
+				<ItemsControl Name="PlatformItemsControl"
+							  ClipToBounds="False"
+							  ItemsSource="{Binding Platforms}"
+							  HorizontalAlignment="Center">
+
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel Orientation="Horizontal"
+									   ClipToBounds="False"
+									   HorizontalAlignment="Center"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="models:Platform">
+							<Border Name="PlatformCard"
+									Background="{DynamicResource Background.Card}"
+									CornerRadius="{Binding #PlatformListViewRoot.CardCornerRadius}"
+									Padding="0"
+									Width="0"
+								    Height="0"
+									Cursor="Hand"
+									ClipToBounds="True"
+									RenderTransformOrigin="0.5,0.5"
+									Tapped="OnCardTapped"
+									Margin="{Binding #PlatformListViewRoot.CardMargin}">
+
+								<Border.RenderTransform>
+									<ScaleTransform ScaleX="1.0" ScaleY="1.0"/>
+								</Border.RenderTransform>
+
+								<Border.Styles>
+									<Style Selector="Border:pointerover:not(.NoScale)">
+										<Setter Property="RenderTransform">
+											<Setter.Value>
+												<ScaleTransform ScaleX="1.05" ScaleY="1.05"/>
+											</Setter.Value>
+										</Setter>
+									</Style>
+								</Border.Styles>
+
+								<Border.Transitions>
+									<Transitions>
+										<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+									</Transitions>
+								</Border.Transitions>
+
+								<Border.Effect>
+									<DropShadowEffect Color="{DynamicResource Shadow.Color}"
+													  BlurRadius="{Binding #PlatformListViewRoot.ShadowBlur}"
+													  Opacity="0.35"
+													  OffsetY="{Binding #PlatformListViewRoot.ShadowOffset}"/>
+								</Border.Effect>
+
+								<Grid RowDefinitions="*,Auto">
+									<!-- 플랫폼 이미지 -->
+									<Border Grid.Row="0"
+											Padding="{Binding #PlatformListViewRoot.CardImagePadding}"
+											Background="Transparent">
+										<Viewbox Stretch="Uniform">
+											<Image Source="{Binding ImageBitmap}"
+												   Stretch="Uniform"/>
+										</Viewbox>
+									</Border>
+
+									<!-- 플랫폼 이름 -->
+									<Border Grid.Row="1"
+											Background="{DynamicResource Background.Secondary}"
+											Padding="{Binding #PlatformListViewRoot.CardTextPadding}"
+											BorderThickness="0,1,0,0"
+											BorderBrush="{DynamicResource Background.Border}">
+										<StackPanel Orientation="Horizontal"
+													HorizontalAlignment="Center"
+													Spacing="4">
+											
+											<!-- 플레이리스트인 경우만 표시 -->
+											<Image Name="PlaylistIcon"
+												   Source="avares://UltimateEnd/Assets/Icons/trophy.png"
+												   VerticalAlignment="Center"
+												   Stretch="Uniform"
+												   IsVisible="{Binding IsPlaylist}"/>
+
+											<!-- 플랫폼 이름 -->
+											<TextBlock Text="{Binding Name}"
+													   FontWeight="SemiBold"
+													   Foreground="{DynamicResource Text.Primary}"
+													   TextAlignment="Center"
+													   TextWrapping="Wrap"
+													   MaxLines="2"/>
+										</StackPanel>
+									</Border>
+
+									<!-- 선택 테두리 -->
+									<Border Name="SelectionBorder"
+											BorderThickness="{Binding #PlatformListViewRoot.SelectionBorderThickness}"
+											CornerRadius="{Binding #PlatformListViewRoot.CardCornerRadius}"
+											IsHitTestVisible="False">
+										<Border.BorderBrush>
+											<DynamicResource ResourceKey="Gradient.Primary"/>
+										</Border.BorderBrush>
+									</Border>
+								</Grid>
+							</Border>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+		</Border>
+
+		<!-- 헤더 - 오버레이 -->
+		<Grid ZIndex="100"
+			  VerticalAlignment="Top"
+			  HorizontalAlignment="Stretch"
+			  Margin="{Binding #PlatformListViewRoot.HeaderMargin}">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+
+			<!-- 타이틀 -->
+			<StackPanel Grid.Column="0" VerticalAlignment="Top">
+				<TextBlock Text="PLATFORMS"
+						   FontSize="{Binding #PlatformListViewRoot.TitleFontSize}"
+						   FontWeight="Bold"
+						   Foreground="{DynamicResource Text.Primary}"
+						   Opacity="0.9"
+						   LetterSpacing="2"/>
+				<TextBlock Text="{Binding Platforms.Count, StringFormat='{}{0} 플랫폼'}"
+						   FontSize="{Binding #PlatformListViewRoot.SubtitleFontSize}"
+						   Foreground="{DynamicResource Text.Muted}"
+						   Margin="{Binding #PlatformListViewRoot.SubtitleMargin}"/>
+			</StackPanel>
+
+			<!-- 메뉴 아이콘 -->
+			<StackPanel Grid.Column="2"
+						Orientation="Horizontal"
+						VerticalAlignment="Top"
+						Spacing="{Binding #PlatformListViewRoot.IconSpacing}">
+				<Border ClipToBounds="False"
+						PointerPressed="OnSettingsClick"
+						Cursor="Hand">
+					<PathIcon x:Name="SettingsIcon"
+							  Classes="AnimatedIcon"
+							  Data="{StaticResource Icon.Settings}"
+							  Width="{Binding #PlatformListViewRoot.IconSize}"
+							  Height="{Binding #PlatformListViewRoot.IconSize}"/>
+				</Border>
+				<Border ClipToBounds="False" Cursor="Hand">
+					<PathIcon x:Name="FolderIcon"
+							  Classes="AnimatedIcon"
+							  Data="{StaticResource Icon.Folder}"
+							  Width="{Binding #PlatformListViewRoot.IconSize}"
+							  Height="{Binding #PlatformListViewRoot.IconSize}"/>
+				</Border>
+				<Border ClipToBounds="False" Cursor="Hand">
+					<PathIcon x:Name="ShutdownIcon"
+							  Classes="AnimatedIcon"
+							  Data="{StaticResource Icon.Shutdown}"
+							  Width="{Binding #PlatformListViewRoot.IconSize}"
+							  Height="{Binding #PlatformListViewRoot.IconSize}"/>
+				</Border>
+			</StackPanel>
+		</Grid>
+
+		<!-- 시계 - 오버레이 -->
+		<StackPanel ZIndex="100"
+					HorizontalAlignment="Right"
+					VerticalAlignment="Bottom"
+					Opacity="0.8"
+					Margin="{Binding #PlatformListViewRoot.ClockMargin}">
+			<TextBlock Text="{Binding CurrentTime}"
+					   FontSize="{Binding #PlatformListViewRoot.ClockFontSize}"
+					   Foreground="{DynamicResource Text.Primary}"
+					   TextAlignment="Right"
+					   FontWeight="SemiBold"/>
+			<TextBlock Text="{Binding CurrentDate}"
+					   FontSize="{Binding #PlatformListViewRoot.DateFontSize}"
+					   Foreground="{DynamicResource Text.Muted}"
+					   TextAlignment="Right"
+					   Margin="{Binding #PlatformListViewRoot.DateMargin}"/>
+		</StackPanel>
+
+		<!-- 오버레이들 -->
+		<Grid ZIndex="1000">
+			<overlays:PlatformSettingsOverlay Name="SettingsOverlay" IsVisible="False" DataContext="{Binding}"/>
+			<overlays:PlaylistManagementOverlay x:Name="PlaylistManagementOverlay" IsVisible="False"/>
+			<overlays:ScrapSettingsOverlay Name="ScrapOverlay" IsVisible="False"/>
+			<overlays:PlatformThemeOverlay Name="ThemeOverlay" IsVisible="False" DataContext="{Binding}"/>
+			<overlays:GenreEditorOverlay Name="GenreEditorOverlay" IsVisible="False" DataContext="{Binding}"/>
+		</Grid>
+
+		<!-- 로딩 오버레이 -->
+		<Border Name="LoadingOverlay"
+				IsVisible="{Binding IsLoadingPlatforms}"
+				Background="{DynamicResource Background.Card}"
+				ZIndex="999">
+			<StackPanel HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Spacing="20"
+						MaxWidth="600"
+						Margin="20">
+				<TextBlock Text="플랫폼 불러오는 중..."
+						   FontSize="{Binding #PlatformListViewRoot.LoadingFontSize}"
+						   FontWeight="SemiBold"
+						   Foreground="White"
+						   HorizontalAlignment="Center"/>
+
+				<Border Background="#222222"
+						CornerRadius="8"
+						Padding="4">
+					<ProgressBar Value="{Binding LoadingProgress}"
+								 Maximum="100"
+								 Height="12"
+								 Background="Transparent"
+								 Foreground="#0078D4"
+								 CornerRadius="6">
+						<ProgressBar.Transitions>
+							<Transitions>
+								<DoubleTransition Property="Value" Duration="0:0:0.3" Easing="CubicEaseOut"/>
+							</Transitions>
+						</ProgressBar.Transitions>
+					</ProgressBar>
+				</Border>
+
+				<TextBlock Text="{Binding LoadingStatus}"
+						   FontSize="{Binding #PlatformListViewRoot.LoadingSubFontSize}"
+						   Foreground="#AAAAAA"
+						   TextTrimming="CharacterEllipsis"
+						   HorizontalAlignment="Center"/>
+			</StackPanel>
+		</Border>
+
+		<!-- 테마 로딩 오버레이 -->
+		<Border Name="ThemeLoadingOverlay"
+				IsVisible="False"
+				Background="#EE000000"
+				ZIndex="2000">
+			<StackPanel HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Spacing="20">
+				<TextBlock Text="테마 적용중..."
+						   FontSize="{Binding #PlatformListViewRoot.LoadingFontSize}"
+						   Foreground="White"
+						   HorizontalAlignment="Center"/>
+			</StackPanel>
+		</Border>
+
+	</Grid>
+</UserControl>
