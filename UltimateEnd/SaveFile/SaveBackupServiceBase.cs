@@ -10,15 +10,10 @@ using UltimateEnd.Services;
 
 namespace UltimateEnd.SaveFile
 {
-    public abstract class SaveBackupServiceBase : ISaveBackupService
+    public abstract class SaveBackupServiceBase(GoogleDriveService driveService) : ISaveBackupService
     {
-        protected readonly GoogleDriveService _driveService;
+        protected readonly GoogleDriveService _driveService = driveService;
         private static readonly Dictionary<string, string> _folderCache = [];
-
-        protected SaveBackupServiceBase(GoogleDriveService driveService)
-        {
-            _driveService = driveService;
-        }
 
         #region Abstract Methods - 하위 클래스에서 구현 필요
 

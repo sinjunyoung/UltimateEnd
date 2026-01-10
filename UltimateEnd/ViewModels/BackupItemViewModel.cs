@@ -20,5 +20,7 @@ namespace UltimateEnd.ViewModels
             get => _isSelected;
             set => this.RaiseAndSetIfChanged(ref _isSelected, value);
         }
+
+        public string IconKey { get; set; }
     }
 }

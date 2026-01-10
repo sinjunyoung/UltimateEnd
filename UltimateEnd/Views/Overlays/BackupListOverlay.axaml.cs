@@ -45,6 +45,7 @@ namespace UltimateEnd.Views.Overlays
                     FileName = backup.FileName,
                     DisplayName = i == 0 ? $"{backup.DisplayText} (√÷Ω≈)" : backup.DisplayText,
                     ModifiedTime = backup.ModifiedTime,
+                    IconKey = backup.IconKey,
                     IsSelected = i == 0
                 });
             }

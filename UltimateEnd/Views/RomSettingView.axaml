@@ -53,7 +53,7 @@
                                             Cursor="Hand"
                                             VerticalAlignment="Center">
 										<StackPanel Orientation="Horizontal" Spacing="5">
-											<PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+											<PathIcon Data="{StaticResource Icon.Add}"
 													  Width="14" Height="14"
 													  Foreground="{DynamicResource Button.Foreground}"/>
 											<TextBlock Text="폴더 추가" VerticalAlignment="Center"/>
@@ -92,7 +92,7 @@
                                                             CornerRadius="6"
                                                             Cursor="Hand">
 														<StackPanel Orientation="Horizontal" Spacing="5">
-															<PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+															<PathIcon Data="{StaticResource Icon.Folder}"
 																	  Width="14" Height="14"
 																	  Foreground="{DynamicResource Button.Foreground}"/>
 															<TextBlock Text="선택" VerticalAlignment="Center"/>
@@ -112,7 +112,7 @@
                                                             CornerRadius="6"
                                                             Cursor="Hand"
                                                             ToolTip.Tip="폴더 제거">
-														<PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+														<PathIcon Data="{StaticResource Icon.Delete}"
 																  Width="14" Height="14"
 																  Foreground="{DynamicResource Button.Foreground}"/>
 													</Button>
@@ -162,19 +162,19 @@
 																ToolTip.Tip="{Binding ActualPath}">
 
 														<!-- Warning Icon (폴더 없음) -->
-														<PathIcon Data="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"
+														<PathIcon Data="{StaticResource Icon.Warning}"
 																  Width="14" Height="14"
 																  Foreground="#FF9800"
 																  IsVisible="{Binding IsFolderMissing}"/>
 
 														<!-- New Icon (새 폴더) -->
-														<PathIcon Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
+														<PathIcon Data="{StaticResource Icon.File}"
 																  Width="14" Height="14"
 																  Foreground="#4CAF50"
 																  IsVisible="{Binding IsNew}"/>
 
 														<!-- Check Icon (일반) -->
-														<PathIcon Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+														<PathIcon Data="{StaticResource Icon.Check}"
 																  Width="14" Height="14"
 																  Foreground="#4CAF50"
 																  IsVisible="{Binding !IsNew}"/>
@@ -239,7 +239,7 @@
 															</ComboBox.ItemTemplate>
 														</ComboBox>
 
-														<PathIcon Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+														<PathIcon Data="{StaticResource Icon.Info}"
 																  Width="16" Height="16"
 																  Foreground="{DynamicResource Text.Secondary}"
 																  VerticalAlignment="Center"

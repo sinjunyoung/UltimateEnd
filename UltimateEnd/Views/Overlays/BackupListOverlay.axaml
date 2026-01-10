@@ -6,8 +6,9 @@
 
 	<UserControl.Resources>
 		<converters:BoolToHighlightBrushConverter x:Key="BoolToHighlightBrush"/>
+		<converters:IconKeyToGeometryConverter x:Key="IconKeyToGeometry"/>
 	</UserControl.Resources>
-	
+
 	<Grid
         Name="MainGrid"
         IsVisible="False"
@@ -69,15 +70,25 @@
 						</ItemsRepeater.Layout>
 						<ItemsRepeater.ItemTemplate>
 							<DataTemplate DataType="{x:Type models:BackupItemViewModel}">
-								<Border Background="{DynamicResource Background.Secondary}"
+								<Border Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrush}}"
                                         CornerRadius="8"
                                         Margin="5"
+                                        Padding="12,10"
                                         Cursor="Hand"
                                         PointerPressed="OnBackupItemClick">
-									<Grid ColumnDefinitions="*,Auto"
-										  Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrush}}">
+									<Grid ColumnDefinitions="Auto,*,Auto">
+
+										<!-- 아이콘 -->
+										<PathIcon Grid.Column="0"
+												  Data="{Binding IconKey, Converter={StaticResource IconKeyToGeometry}}"
+												  Width="20"
+												  Height="20"
+												  Foreground="{DynamicResource Accent.Blue}"
+												  VerticalAlignment="Center"
+												  Margin="0,0,12,0"/>
+
 										<!-- 백업 정보 -->
-										<StackPanel Grid.Column="0" Spacing="4">
+										<StackPanel Grid.Column="1" Spacing="4">
 											<TextBlock Text="{Binding DisplayName}"
 													   FontSize="14"
 													   FontWeight="SemiBold"

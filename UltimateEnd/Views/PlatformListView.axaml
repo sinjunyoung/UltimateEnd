@@ -178,7 +178,7 @@
 				<Border ClipToBounds="False" Cursor="Hand">
 					<PathIcon x:Name="FolderIcon"
 							  Classes="AnimatedIcon"
-							  Data="{StaticResource Icon.Folder}"
+							  Data="{StaticResource Icon.FolderSetting}"
 							  Width="{Binding #PlatformListViewRoot.IconSize}"
 							  Height="{Binding #PlatformListViewRoot.IconSize}"/>
 				</Border>

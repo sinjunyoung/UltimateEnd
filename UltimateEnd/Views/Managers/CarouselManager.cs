@@ -161,6 +161,7 @@ namespace UltimateEnd.Views.Managers
                 double fontRatio = isSelected ? 0.12 : 0.08;
                 double baseFontSize = cardWidth * fontRatio;
                 textBlock.FontSize = Math.Max(10, baseFontSize);
+                textBlock.MaxWidth = cardWidth * 0.9;
             }
 
             var playlistIcon = border.FindDescendantByCondition<Image>(img => img.Name == "PlaylistIcon");
