@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 
-namespace UltimateEnd.SaveFile
+namespace UltimateEnd.SaveFile.PPSSPP
 {
-    public abstract class PPSSPPSaveBackupServiceBase(GoogleDriveService driveService, IEmulatorCommand command) : SaveBackupServiceBase(driveService)
+    public abstract class SaveBackupServiceBase(GoogleDriveService driveService, IEmulatorCommand command) : SaveFile.SaveBackupServiceBase(driveService)
     {
         protected readonly IEmulatorCommand _command = command;
 
@@ -18,9 +18,9 @@ namespace UltimateEnd.SaveFile
 
         protected override string? GetGameIdentifier(GameMetadata game)
         {
-            var gameId = PspSaveFolderExtractor.GetSaveFolderId(game);
+            var gameId = SaveFolderExtractor.GetSaveFolderId(game);
 
-            if (string.IsNullOrEmpty(gameId)) gameId = PspGameIdExtractor.GetGameId(game);
+            if (string.IsNullOrEmpty(gameId)) gameId = GameIdExtractor.GetGameId(game);
 
             return gameId;
         }
@@ -33,15 +33,15 @@ namespace UltimateEnd.SaveFile
 
             if (mode == SaveBackupMode.NormalSave)
             {
-                var folderGameId = PspSaveFolderExtractor.GetSaveFolderId(game);
+                var folderGameId = SaveFolderExtractor.GetSaveFolderId(game);
 
-                if (string.IsNullOrEmpty(folderGameId)) folderGameId = PspGameIdExtractor.GetGameId(game);
+                if (string.IsNullOrEmpty(folderGameId)) folderGameId = GameIdExtractor.GetGameId(game);
 
                 return FindNormalSaveFiles(basePath, folderGameId);
             }
             else if (mode == SaveBackupMode.SaveState)
             {
-                var fileGameId = PspGameIdExtractor.GetGameId(game);
+                var fileGameId = GameIdExtractor.GetGameId(game);
 
                 return FindSaveStateFiles(basePath, fileGameId);
             }

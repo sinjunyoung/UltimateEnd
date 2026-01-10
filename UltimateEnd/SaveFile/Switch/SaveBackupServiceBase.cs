@@ -2,19 +2,21 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 
-namespace UltimateEnd.SaveFile
+namespace UltimateEnd.SaveFile.Switch
 {
-    public abstract class EdenSaveBackupServiceBase(GoogleDriveService driveService, IEmulatorCommand command) : SaveBackupServiceBase(driveService)
+
+    public abstract class SaveBackupServiceBase(GoogleDriveService driveService, IEmulatorCommand command) : SaveFile.SaveBackupServiceBase(driveService)
     {
         protected readonly IEmulatorCommand _command = command;
 
         protected override string EmulatorName => "Switch";
 
-        protected abstract string GetEdenBasePath(IEmulatorCommand command);
+        protected abstract string GetBasePath(IEmulatorCommand command);
 
         protected abstract string? GetProKeysPath();
 
@@ -22,14 +24,14 @@ namespace UltimateEnd.SaveFile
         {
             var keysPath = GetProKeysPath();
 
-            if (!string.IsNullOrEmpty(keysPath)) SwitchTitleIdExtractor.SetKeysPath(keysPath);
+            if (!string.IsNullOrEmpty(keysPath)) TitleIdExtractor.SetKeysPath(keysPath);
 
-            return SwitchTitleIdExtractor.GetTitleId(game);
+            return TitleIdExtractor.GetTitleId(game);
         }
 
         protected override string[] FindSaveFilePaths(GameMetadata game, string gameId, SaveBackupMode mode)
         {
-            var basePath = GetEdenBasePath(_command);
+            var basePath = GetBasePath(_command);
 
             if (string.IsNullOrEmpty(basePath) || !Directory.Exists(basePath))
                 return [];
@@ -100,6 +102,22 @@ namespace UltimateEnd.SaveFile
                         await _driveService.UploadFileAsync(fileName, zipData, folderId);
                         hasAnyBackup = true;
                     }
+
+                    var basePath = GetBasePath(_command);
+                    if (!string.IsNullOrEmpty(basePath))
+                    {
+                        var profilesData = ProfileParser.BackupProfilesFile(basePath);
+                        if (profilesData != null)
+                        {
+                            var profilesFileName = "profiles.dat";
+                            var existingProfiles = await _driveService.FindFilesByPrefixAsync("profiles", folderId, 10);
+
+                            foreach (var profile in existingProfiles)
+                                await _driveService.DeleteFileAsync(profile.FileId);
+
+                            await _driveService.UploadFileAsync(profilesFileName, profilesData, folderId);
+                        }
+                    }
                 }
 
                 if (mode == SaveBackupMode.SaveState || mode == SaveBackupMode.Both)
@@ -136,9 +154,9 @@ namespace UltimateEnd.SaveFile
 
         protected override void RestoreSaveFilesToDisk(byte[] zipData, GameMetadata game, string gameId, SaveBackupMode mode)
         {
-            var basePath = GetEdenBasePath(_command);
+            var basePath = GetBasePath(_command);
 
-            if (string.IsNullOrEmpty(basePath)) throw new InvalidOperationException("Eden 경로를 찾을 수 없습니다.");
+            if (string.IsNullOrEmpty(basePath)) throw new InvalidOperationException("경로를 찾을 수 없습니다.");
 
             if (mode == SaveBackupMode.NormalSave)
                 RestoreNormalSaveFiles(zipData, basePath, gameId);
@@ -167,13 +185,32 @@ namespace UltimateEnd.SaveFile
             }
 
             if (existingSaveDataDir == null)
-                throw new InvalidOperationException("세이브 폴더가 없습니다. 게임을 한 번 실행하여 세이브를 생성한 후 복원해주세요.");
+            {
+                var profileUUIDs = ProfileParser.ParseProfileUUIDs(
+                    ProfileParser.GetProfilesPath(basePath));
+
+                if (profileUUIDs.Count > 0)
+                {
+                    existingSaveDataDir = Path.Combine(userSavePath, profileUUIDs[0]);
+                    Directory.CreateDirectory(existingSaveDataDir);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        "세이브 폴더가 없습니다.\n\n" +
+                        "다음 중 하나를 수행해주세요:\n" +
+                        "1. 게임을 한 번 실행하여 세이브 폴더를 생성\n" +
+                        "2. 백업한 profiles.dat 파일을 먼저 복원\n\n" +
+                        "profiles.dat 복원 경로:\n" +
+                        ProfileParser.GetProfilesPath(basePath));
+                }
+            }
 
             titleIdPath = Path.Combine(existingSaveDataDir, titleId);
             Directory.CreateDirectory(titleIdPath);
 
             using var memoryStream = new MemoryStream(zipData);
-            using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read, false, System.Text.Encoding.UTF8);
+            using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read, false, Encoding.UTF8);
 
             foreach (var entry in archive.Entries)
             {
@@ -198,10 +235,35 @@ namespace UltimateEnd.SaveFile
             if (Directory.Exists(backupPath)) Directory.Delete(backupPath, true);
         }
 
+        public async Task<bool> RestoreProfilesFileAsync()
+        {
+            try
+            {
+                var folderId = await GetOrCreateDriveFolderAsync();
+                var profilesFiles = await _driveService.FindFilesByPrefixAsync("profiles", folderId, 10);
+
+                if (profilesFiles.Count == 0)
+                    return false;
+
+                var profilesData = await _driveService.DownloadFileAsync(profilesFiles[0].FileId);
+                var basePath = GetBasePath(_command);
+
+                if (string.IsNullOrEmpty(basePath))
+                    throw new InvalidOperationException("에뮬레이터 경로를 찾을 수 없습니다.");
+
+                ProfileParser.RestoreProfilesFile(basePath, profilesData);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private static byte[] CompressFilesWithStructure(string[] filePaths, string baseDirectory)
         {
             using var memoryStream = new MemoryStream();
-            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true, System.Text.Encoding.UTF8))
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true, Encoding.UTF8))
             {
                 foreach (var filePath in filePaths)
                 {

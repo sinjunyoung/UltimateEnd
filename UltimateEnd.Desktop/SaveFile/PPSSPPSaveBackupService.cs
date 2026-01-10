@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using UltimateEnd.SaveFile;
+using UltimateEnd.SaveFile.PPSSPP;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Desktop.SaveFile
 {
-    public class PPSSPPSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command) : PPSSPPSaveBackupServiceBase(driveService, command)
+    public class PPSSPPSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command) : UltimateEnd.SaveFile.PPSSPP.SaveBackupServiceBase(driveService, command)
     {
         protected override string GetPPSSPPBasePath(IEmulatorCommand command)
         {

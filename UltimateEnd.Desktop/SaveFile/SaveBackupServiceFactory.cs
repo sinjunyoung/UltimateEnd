@@ -11,8 +11,8 @@ namespace UltimateEnd.Desktop.SaveFile
         {
             if (command.IsRetroArch) return new RetroArchSaveBackupService(_driveService);
 
-            var sudachi = new SudachiSaveBackupService(_driveService, command);
-            var yuzu = new SudachiSaveBackupService(_driveService, command, "yuzu");
+            var sudachi = new SwitchSaveBackupService(_driveService, command);
+            var yuzu = new SwitchSaveBackupService(_driveService, command, "yuzu");
 
             return command.Id switch
             {

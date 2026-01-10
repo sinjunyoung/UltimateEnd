@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using UltimateEnd.Models;
 using UltimateEnd.SaveFile.CHD;
 
-namespace UltimateEnd.SaveFile
+namespace UltimateEnd.SaveFile.PPSSPP
 {
-    public static class PspSaveFolderExtractor
+    public static class SaveFolderExtractor
     {
         public static string? ExtractSaveFolderId(string romPath)
         {
@@ -211,11 +210,11 @@ namespace UltimateEnd.SaveFile
 
         private static string? DecryptAndSearchSavePath(byte[] ebootData)
         {
-            byte[]? decryptedData = PspPrxDecrypter.PartialDecrypt(ebootData);
+            byte[]? decryptedData = PrxDecrypter.PartialDecrypt(ebootData);
 
             decryptedData ??= ebootData;
 
-            string? saveId = PspPrxDecrypter.ExtractSaveFolderId(decryptedData);
+            string? saveId = PrxDecrypter.ExtractSaveFolderId(decryptedData);
 
             return saveId;
         }

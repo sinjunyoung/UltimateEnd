@@ -1,17 +1,14 @@
 ﻿using System;
 using System.IO;
-using UltimateEnd.Models;
-using UltimateEnd.SaveFile;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.SaveFile
 {
-    public class SudachiSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command, string? emulatorNameOrPath = null)
-        : EdenSaveBackupServiceBase(driveService, command)
+    public class SwitchSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command, string? emulatorNameOrPath = null) : Switch.SaveBackupServiceBase(driveService, command)
     {
         private readonly string? _emulatorNameOrPath = emulatorNameOrPath;
 
-        protected override string GetEdenBasePath(IEmulatorCommand command)
+        protected override string GetBasePath(IEmulatorCommand command)
         {
             if (!string.IsNullOrEmpty(_emulatorNameOrPath))
             {
@@ -31,7 +28,7 @@ namespace UltimateEnd.SaveFile
         {
             try
             {
-                var basePath = GetEdenBasePath(_command);
+                var basePath = GetBasePath(_command);
 
                 return Path.Combine(basePath, "keys", "prod.keys");
             }

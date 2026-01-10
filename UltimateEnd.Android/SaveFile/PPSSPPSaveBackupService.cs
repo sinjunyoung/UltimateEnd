@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using UltimateEnd.Android.Utils;
 using UltimateEnd.Models;
 using UltimateEnd.SaveFile;
+using UltimateEnd.SaveFile.PPSSPP;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Android.SaveFile
 {
-    public class PPSSPPSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command, IFolderPicker folderPicker) : PPSSPPSaveBackupServiceBase(driveService, command)
+    public class PPSSPPSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command, IFolderPicker folderPicker) : UltimateEnd.SaveFile.PPSSPP.SaveBackupServiceBase(driveService, command)
     {
         private const string CONFIG_FILE_NAME = "ppsspp_path_config.txt";
         private static string? _cachedPath;

@@ -1,4 +1,5 @@
-﻿using UltimateEnd.SaveFile;
+﻿using SQLite;
+using UltimateEnd.SaveFile;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Android.SaveFile
@@ -14,10 +15,12 @@ namespace UltimateEnd.Android.SaveFile
             var folderPicker = FolderPickerFactory.Create?.Invoke();
 
             var melonds = new MelonDSSaveBackupService(_driveService, command, folderPicker);
-            var edenstandard = new SwitchSaveBackupService(_driveService, command, folderPicker);
-            var edenlegacy = new SwitchSaveBackupService(_driveService, command, folderPicker, "dev.legacy.eden_emulator");
-            var edenoptimized = new SwitchSaveBackupService(_driveService, command, folderPicker, "com.miHoYo.Yuanshen");
-
+            var edenstandard = new SwitchSaveBackupService(_driveService, command);
+            var edenlegacy = new SwitchSaveBackupService(_driveService, command, "dev.legacy.eden_emulator");
+            var edenoptimized = new SwitchSaveBackupService(_driveService, command, "com.miHoYo.Yuanshen");
+            var yuzu = new SwitchSaveBackupService(_driveService, command, "org.yuzu.yuzu_emu");
+            var citron = new SwitchSaveBackupService(_driveService, command, "org.citron.citron_emu");
+            
             return command.Id switch
             {
                 "ppsspp" => new PPSSPPSaveBackupService(_driveService, command, folderPicker),
@@ -27,6 +30,8 @@ namespace UltimateEnd.Android.SaveFile
                 "edenstandard" => edenstandard,
                 "edenlegacy" => edenlegacy,
                 "edenoptimized" => edenoptimized,
+                "yuzu" => yuzu,
+                "citron" => citron,
                 _ => null,
             };
         }
@@ -44,6 +49,8 @@ namespace UltimateEnd.Android.SaveFile
                 "edenstandard" => true,
                 "edenlegacy" => true,
                 "edenoptimized" => true,
+                "yuzu" => true,
+                "citron" => true,
                 _ => false,
             };
         }

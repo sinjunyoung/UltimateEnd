@@ -6,9 +6,9 @@ using System.Text;
 using UltimateEnd.Models;
 using UltimateEnd.SaveFile.CHD;
 
-namespace UltimateEnd.SaveFile
+namespace UltimateEnd.SaveFile.PPSSPP
 {
-    public static class PspGameIdExtractor
+    public static class GameIdExtractor
     {
         public static string? ExtractGameId(string romPath)
         {
@@ -404,7 +404,7 @@ namespace UltimateEnd.SaveFile
 
                 for (int i = 0; i < entryCount; i++)
                 {
-                    var entryOffset = 0x14 + (i * 16);
+                    var entryOffset = 0x14 + i * 16;
 
                     if (entryOffset + 16 > sfoData.Length) break;
 

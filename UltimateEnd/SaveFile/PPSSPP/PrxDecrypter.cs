@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 
-namespace UltimateEnd.SaveFile
+namespace UltimateEnd.SaveFile.PPSSPP
 {
-    public static class PspPrxDecrypter
+    public static class PrxDecrypter
     {
         private const uint PSP_MODULE_INFO_MAGIC = 0x464C457F; // ~ELF
         private const uint PRX_MAGIC = 0x5053507E; // ~PSP
@@ -121,7 +121,7 @@ namespace UltimateEnd.SaveFile
                     {
                         byte b = decryptedData[idEnd];
 
-                        if ((b >= 0x30 && b <= 0x39) || (b >= 0x41 && b <= 0x5A) || (b >= 0x61 && b <= 0x7A) || b == 0x5F)
+                        if (b >= 0x30 && b <= 0x39 || b >= 0x41 && b <= 0x5A || b >= 0x61 && b <= 0x7A || b == 0x5F)
                             idEnd++;
                         else
                             break;
@@ -131,7 +131,7 @@ namespace UltimateEnd.SaveFile
                     {
                         string gameId = Encoding.ASCII.GetString(decryptedData, idStart, idEnd - idStart);
 
-                        if ((gameId.Length == 9 || gameId.Length == 11) && PspGameIdExtractor.IsValidGameId(gameId))
+                        if ((gameId.Length == 9 || gameId.Length == 11) && GameIdExtractor.IsValidGameId(gameId))
                             return gameId.ToUpper();
                     }
                 }
@@ -155,13 +155,13 @@ namespace UltimateEnd.SaveFile
                 {
                     string gameId = Encoding.ASCII.GetString(decryptedData, index, 9);
 
-                    if (PspGameIdExtractor.IsValidGameId(gameId))
+                    if (GameIdExtractor.IsValidGameId(gameId))
                     {
                         if (index + 12 <= decryptedData.Length && decryptedData[index + 9] == 0x5F)
                         {
                             string fullId = Encoding.ASCII.GetString(decryptedData, index, 12);
 
-                            if (PspGameIdExtractor.IsValidGameId(fullId)) return fullId.ToUpper();
+                            if (GameIdExtractor.IsValidGameId(fullId)) return fullId.ToUpper();
                         }
 
                         return gameId.ToUpper();
