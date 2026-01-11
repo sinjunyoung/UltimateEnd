@@ -20,7 +20,9 @@ namespace UltimateEnd.Android.SaveFile
             var edenoptimized = new SwitchSaveBackupService(_driveService, command, "com.miHoYo.Yuanshen");
             var yuzu = new SwitchSaveBackupService(_driveService, command, "org.yuzu.yuzu_emu");
             var citron = new SwitchSaveBackupService(_driveService, command, "org.citron.citron_emu");
-            
+            var dolphin = new DolphinSaveBackupService(_driveService, command);
+            var dolphinmmjr2 = new DolphinSaveBackupService(_driveService, command, "/storage/emulated/0/mmjr2-vbi");
+
             return command.Id switch
             {
                 "ppsspp" => new PPSSPPSaveBackupService(_driveService, command, folderPicker),
@@ -32,6 +34,8 @@ namespace UltimateEnd.Android.SaveFile
                 "edenoptimized" => edenoptimized,
                 "yuzu" => yuzu,
                 "citron" => citron,
+                "dolphin" => dolphin,
+                "dolphinmmjr2" => dolphinmmjr2,
                 _ => null,
             };
         }
@@ -51,6 +55,8 @@ namespace UltimateEnd.Android.SaveFile
                 "edenoptimized" => true,
                 "yuzu" => true,
                 "citron" => true,
+                "dolphin" => true,
+                "dolphinmmjr2" => true,
                 _ => false,
             };
         }

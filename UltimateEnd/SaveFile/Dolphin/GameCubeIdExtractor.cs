@@ -1,129 +1,40 @@
 ﻿using System;
 using System.IO;
-using System.IO.Compression;
-using System.Text;
 
 namespace UltimateEnd.SaveFile.Dolphin
 {
     public static class GameCubeIdExtractor
     {
-        private const uint GCZ_MAGIC = 0xB10BC001;
-
         public static string? ExtractGameId(string isoPath)
         {
             if (!File.Exists(isoPath)) return null;
 
             string ext = Path.GetExtension(isoPath).ToLower();
 
-            if (ext == ".gcz") return ExtractFromGcz(isoPath);
+            if (ext == ".gcz")
+            {
+                var gameId = CommonExtractor.ExtractFromGcz(isoPath);
 
-            return ExtractFromIso(isoPath);
+                return IsValidGameCubeId(gameId) ? gameId : null;
+            }
+
+            if (ext == ".rvz" || ext == ".wia")
+            {
+                var gameId = CommonExtractor.ExtractFromRvz(isoPath);
+
+                return IsValidGameCubeId(gameId) ? gameId : null;
+            }
+
+            var id = CommonExtractor.ExtractFromIso(isoPath);
+
+            return IsValidGameCubeId(id) ? id : null;
         }
 
-        private static string? ExtractFromIso(string isoPath)
+        private static bool IsValidGameCubeId(string? gameId)
         {
-            try
-            {
-                using var stream = File.OpenRead(isoPath);
-                byte[] gameIdBytes = new byte[6];
-                stream.ReadExactly(gameIdBytes, 0, 6);
-                string gameId = Encoding.ASCII.GetString(gameIdBytes);
+            if (string.IsNullOrWhiteSpace(gameId)) return false;
 
-                if (string.IsNullOrWhiteSpace(gameId) || gameId[0] != 'G') return null;
-
-                return gameId;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static string? ExtractFromGcz(string gczPath)
-        {
-            try
-            {
-                using var stream = File.OpenRead(gczPath);
-
-                byte[] headerBytes = new byte[32];
-
-                if (stream.Read(headerBytes, 0, 32) != 32) return null;
-
-                uint magic = BitConverter.ToUInt32(headerBytes, 0);
-                ulong compressedDataSize = BitConverter.ToUInt64(headerBytes, 8);
-                uint blockSize = BitConverter.ToUInt32(headerBytes, 24);
-                uint numBlocks = BitConverter.ToUInt32(headerBytes, 28);
-
-                if (magic != GCZ_MAGIC || numBlocks == 0) return null;
-
-                byte[] offsetBytes = new byte[8];
-
-                if (stream.Read(offsetBytes, 0, 8) != 8) return null;
-
-                ulong firstBlockPointer = BitConverter.ToUInt64(offsetBytes, 0);
-                bool isUncompressed = (firstBlockPointer & 0x8000000000000000UL) != 0;
-                ulong actualOffset = firstBlockPointer & 0x7FFFFFFFFFFFFFFFUL;
-                long dataOffset = 32 + (8 * numBlocks) + (4 * numBlocks);
-                long absoluteBlockOffset = dataOffset + (long)actualOffset;
-
-                stream.Seek(absoluteBlockOffset, SeekOrigin.Begin);
-
-                byte[] decompressedData = new byte[blockSize];
-
-                if (isUncompressed)
-                {
-                    if (stream.Read(decompressedData, 0, (int)blockSize) < 6) return null;
-                }
-                else
-                {
-                    long currentPos = stream.Position;
-                    stream.Seek(32 + 8, SeekOrigin.Begin);
-
-                    byte[] secondOffsetBytes = new byte[8];
-                    ulong compressedSize;
-
-                    if (stream.Read(secondOffsetBytes, 0, 8) == 8)
-                    {
-                        ulong secondBlockPointer = BitConverter.ToUInt64(secondOffsetBytes, 0);
-                        ulong secondActualOffset = secondBlockPointer & 0x7FFFFFFFFFFFFFFFUL;
-                        compressedSize = secondActualOffset - actualOffset;
-                    }
-                    else
-                        compressedSize = compressedDataSize - actualOffset;
-
-                    stream.Seek(currentPos, SeekOrigin.Begin);
-
-                    byte[] compressedBlock = new byte[compressedSize];
-
-                    if (stream.Read(compressedBlock, 0, (int)compressedSize) != (int)compressedSize) return null;
-
-                    try
-                    {
-                        using var memStream = new MemoryStream(compressedBlock);
-                        memStream.ReadByte();
-                        memStream.ReadByte();
-
-                        using var deflateStream = new DeflateStream(memStream, CompressionMode.Decompress);
-                        int bytesRead = deflateStream.Read(decompressedData, 0, (int)blockSize);
-
-                        if (bytesRead < 6) return null;
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                }
-
-                string gameId = Encoding.ASCII.GetString(decompressedData, 0, 6);
-
-                if (string.IsNullOrWhiteSpace(gameId) || gameId[0] != 'G') return null;
-
-                return gameId;
-            }
-            catch
-            {
-                return null;
-            }
+            return gameId[0] == 'G' || gameId[0] == 'D';
         }
 
         public static string? ExtractGameIdFromGci(string gciFilePath)
@@ -173,8 +84,7 @@ namespace UltimateEnd.SaveFile.Dolphin
                     {
                         var extractedId = ExtractGameIdFromGci(gciFile);
 
-                        if (extractedId != null && extractedId.StartsWith(searchPattern, StringComparison.OrdinalIgnoreCase))
-                            results.Add(gciFile);
+                        if (extractedId != null && extractedId.StartsWith(searchPattern, StringComparison.OrdinalIgnoreCase)) results.Add(gciFile);
                     }
                 }
             }
@@ -187,6 +97,7 @@ namespace UltimateEnd.SaveFile.Dolphin
             if (gameId.Length < 4) return "USA";
 
             char regionChar = gameId[3];
+
             return regionChar switch
             {
                 'E' => "USA",

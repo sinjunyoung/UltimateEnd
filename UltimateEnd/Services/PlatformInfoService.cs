@@ -41,6 +41,7 @@ namespace UltimateEnd.Services
                 if (!File.Exists(configPath))
                 {
                     _database = CreateDefaultDatabase();
+                    BuildAliasMap();
                     SaveDatabase(_database);
                     return _database;
                 }
@@ -60,6 +61,7 @@ namespace UltimateEnd.Services
                     if (_database == null || _database.Platforms == null)
                     {
                         _database = CreateDefaultDatabase();
+                        BuildAliasMap();
                         return _database;
                     }
 
@@ -69,6 +71,7 @@ namespace UltimateEnd.Services
                 catch
                 {
                     _database = CreateDefaultDatabase();
+                    BuildAliasMap();
                     return _database;
                 }
             }
@@ -271,8 +274,8 @@ namespace UltimateEnd.Services
             db.Platforms.Add(new PlatformInfo { Id = "nintendo64", DisplayName = "Nintendo 64", Aliases = ["n64"], Extensions = [".bin", ".d64", ".n64", ".ndd", ".u1", ".v64", ".z64", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.Nintendo64 });
             db.Platforms.Add(new PlatformInfo { Id = "nintendods", DisplayName = "Nintendo DS", Aliases = ["nds"], Extensions = [".app", ".bin", ".nds", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.NintendoDS });
             db.Platforms.Add(new PlatformInfo { Id = "3ds", DisplayName = "Nintendo 3DS", Aliases = ["nintendo3ds"], Extensions = [".3ds", ".3dsx", ".app", ".axf", ".cci", ".cxi", ".elf", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.Nintendo3DS });
-            db.Platforms.Add(new PlatformInfo { Id = "nintendogamecube", DisplayName = "GameCube", Aliases = ["gc", "ngc", "gamecube"], Extensions = [".ciso", ".gcz", ".iso", ".rvz", ".tgc", ".wad", ".wbfs", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.GameCube });
-            db.Platforms.Add(new PlatformInfo { Id = "wii", DisplayName = "Wii", Aliases = [], Extensions = [".ciso", ".iso", ".gcm", ".gcz", ".m3u", ".rvz", ".tgc", ".wad", ".wbfs", ".wia", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.Wii });
+            db.Platforms.Add(new PlatformInfo { Id = "nintendogamecube", DisplayName = "GameCube", Aliases = ["gc", "ngc", "gamecube"], Extensions = [".ciso", ".wia", ".gcz", ".iso", ".rvz", ".tgc", ".wad", ".wbfs", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.GameCube });
+            db.Platforms.Add(new PlatformInfo { Id = "wii", DisplayName = "Wii", Aliases = [], Extensions = [".ciso", ".iso", ".gcm", ".gcz", ".m3u", ".wia", ".rvz", ".tgc", ".wad", ".wbfs", ".wia", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.Wii });
             db.Platforms.Add(new PlatformInfo { Id = "wiiu", DisplayName = "Wii U", Aliases = [], Extensions = [".wua", ".wud", ".wuhb", ".wux"], ScreenScraperSystemId = ScreenScraperSystemId.WiiU });
             db.Platforms.Add(new PlatformInfo { Id = "nintendoswitch", DisplayName = "Nintendo Switch", Aliases = ["nsw", "switch"], Extensions = [".nsp", ".xci"], ScreenScraperSystemId = ScreenScraperSystemId.Switch });
 

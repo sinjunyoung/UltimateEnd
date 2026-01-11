@@ -32,7 +32,7 @@ namespace UltimateEnd.SaveFile.Dolphin
             }
             else if (consoleType == DolphinConsoleType.Wii)
             {
-                var titleId = WiiIdExtractor.ExtractTitleId(path);
+                var titleId = WiiIdExtractor.ExtractGameId(path);
                 return titleId;
             }
 
@@ -43,18 +43,17 @@ namespace UltimateEnd.SaveFile.Dolphin
         {
             string ext = Path.GetExtension(romPath).ToLower();
 
-            if (ext == ".wbfs" || ext == ".wad") return DolphinConsoleType.Wii;
+            if (ext == ".wbfs" || ext == ".wad")
+                return DolphinConsoleType.Wii;
 
-            if (ext == ".gcz")
-            {   
+            if (ext == ".gcz" || ext == ".rvz" || ext == ".wia")
+            {
                 try
                 {
                     var gameId = GameCubeIdExtractor.ExtractGameId(romPath);
-
                     if (!string.IsNullOrEmpty(gameId) && gameId.Length >= 1)
                     {
                         char firstChar = gameId[0];
-
                         if (firstChar == 'G' || firstChar == 'D')
                             return DolphinConsoleType.GameCube;
                         else if (firstChar == 'R' || firstChar == 'S')
@@ -68,7 +67,6 @@ namespace UltimateEnd.SaveFile.Dolphin
             {
                 using var stream = File.OpenRead(romPath);
                 using var reader = new BinaryReader(stream);
-
                 stream.Seek(0x00, SeekOrigin.Begin);
                 byte firstByte = reader.ReadByte();
 
