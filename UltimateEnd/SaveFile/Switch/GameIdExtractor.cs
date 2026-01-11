@@ -13,7 +13,7 @@ using UltimateEnd.Models;
 
 namespace UltimateEnd.SaveFile.Switch
 {
-    public static class TitleIdExtractor
+    public static class GameIdExtractor
     {
         private static KeySet? _keySetCache;
         private static string? _keysPath;
@@ -48,7 +48,7 @@ namespace UltimateEnd.SaveFile.Switch
             return keySet;
         }
 
-        public static string? GetTitleId(GameMetadata game)
+        public static string? ExtractGameId(GameMetadata game)
         {
             string fullPath = game?.GetRomFullPath();
 

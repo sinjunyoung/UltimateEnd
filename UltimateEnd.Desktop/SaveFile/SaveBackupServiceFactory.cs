@@ -13,12 +13,14 @@ namespace UltimateEnd.Desktop.SaveFile
 
             var sudachi = new SwitchSaveBackupService(_driveService, command);
             var yuzu = new SwitchSaveBackupService(_driveService, command, "yuzu");
+            var dolphin = new DolphinSaveBackupService(_driveService, command);
 
             return command.Id switch
             {
                 "ppsspp" => new PPSSPPSaveBackupService(_driveService, command),
                 "sudachi" => sudachi,
                 "yuzu" => yuzu,
+                "dolphin" => dolphin,
                 _ => null,
             };
         }
@@ -32,6 +34,7 @@ namespace UltimateEnd.Desktop.SaveFile
                 "ppsspp" => true,
                 "sudachi" => true,
                 "yuzu" => true,
+                "dolphin" => true,
                 _ => false,
             };
         }

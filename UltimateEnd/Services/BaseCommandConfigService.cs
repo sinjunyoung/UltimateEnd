@@ -171,7 +171,6 @@ namespace UltimateEnd.Services
                         return _config;
                     }
 
-                    LogInfo($"Config loaded successfully with {_config.Emulators.Count} emulators");
                     return _config;
                 }
                 catch (Exception ex)

@@ -24,9 +24,9 @@ namespace UltimateEnd.SaveFile.Switch
         {
             var keysPath = GetProKeysPath();
 
-            if (!string.IsNullOrEmpty(keysPath)) TitleIdExtractor.SetKeysPath(keysPath);
+            if (!string.IsNullOrEmpty(keysPath)) GameIdExtractor.SetKeysPath(keysPath);
 
-            return TitleIdExtractor.GetTitleId(game);
+            return GameIdExtractor.ExtractGameId(game);
         }
 
         protected override string[] FindSaveFilePaths(GameMetadata game, string gameId, SaveBackupMode mode)
