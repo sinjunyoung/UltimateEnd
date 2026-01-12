@@ -5,8 +5,9 @@ namespace UltimateEnd.SaveFile.PPSSPP
 {
     public static class PrxDecrypter
     {
-        private const uint PSP_MODULE_INFO_MAGIC = 0x464C457F; // ~ELF
-        private const uint PRX_MAGIC = 0x5053507E; // ~PSP
+        private const uint PSP_MODULE_INFO_MAGIC = 0x464C457F;
+        private const uint PRX_MAGIC = 0x5053507E;
+        private static readonly GameIdExtractor _extractor = new();
 
         public static bool IsEncrypted(byte[] data)
         {
@@ -44,7 +45,7 @@ namespace UltimateEnd.SaveFile.PPSSPP
 
         private static byte[]? TrySimpleDecryption(byte[] data)
         {
-            byte[][] commonKeys = [ [0x00], [0xFF], [0x55], [0xAA], ];
+            byte[][] commonKeys = [[0x00], [0xFF], [0x55], [0xAA],];
 
             byte[] result = new byte[data.Length];
             Array.Copy(data, result, data.Length);
@@ -53,7 +54,8 @@ namespace UltimateEnd.SaveFile.PPSSPP
             {
                 byte[] temp = new byte[data.Length];
 
-                for (int i = 0; i < data.Length; i++) temp[i] = (byte)(data[i] ^ key[i % key.Length]);
+                for (int i = 0; i < data.Length; i++)
+                    temp[i] = (byte)(data[i] ^ key[i % key.Length]);
 
                 if (ContainsSavePattern(temp)) return temp;
             }
@@ -63,7 +65,7 @@ namespace UltimateEnd.SaveFile.PPSSPP
 
         private static bool ContainsSavePattern(byte[] data)
         {
-            string[] patterns = [ "PSP/SAVEDATA/", "ms0:/PSP/SAVEDATA/", "host0:/PSP/SAVEDATA/", ];
+            string[] patterns = ["PSP/SAVEDATA/", "ms0:/PSP/SAVEDATA/", "host0:/PSP/SAVEDATA/",];
 
             foreach (var pattern in patterns)
             {
@@ -131,8 +133,7 @@ namespace UltimateEnd.SaveFile.PPSSPP
                     {
                         string gameId = Encoding.ASCII.GetString(decryptedData, idStart, idEnd - idStart);
 
-                        if ((gameId.Length == 9 || gameId.Length == 11) && GameIdExtractor.IsValidGameId(gameId))
-                            return gameId.ToUpper();
+                        if ((gameId.Length == 9 || gameId.Length == 11) && _extractor.IsValidGameId(gameId)) return gameId.ToUpper();
                     }
                 }
             }
@@ -155,13 +156,13 @@ namespace UltimateEnd.SaveFile.PPSSPP
                 {
                     string gameId = Encoding.ASCII.GetString(decryptedData, index, 9);
 
-                    if (GameIdExtractor.IsValidGameId(gameId))
+                    if (_extractor.IsValidGameId(gameId))
                     {
                         if (index + 12 <= decryptedData.Length && decryptedData[index + 9] == 0x5F)
                         {
                             string fullId = Encoding.ASCII.GetString(decryptedData, index, 12);
 
-                            if (GameIdExtractor.IsValidGameId(fullId)) return fullId.ToUpper();
+                            if (_extractor.IsValidGameId(fullId)) return fullId.ToUpper();
                         }
 
                         return gameId.ToUpper();

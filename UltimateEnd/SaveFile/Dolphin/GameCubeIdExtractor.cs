@@ -3,38 +3,27 @@ using System.IO;
 
 namespace UltimateEnd.SaveFile.Dolphin
 {
-    public static class GameCubeIdExtractor
+    public class GameCubeIdExtractor : IGameIdExtractor
     {
-        public static string? ExtractGameId(string isoPath)
+        private readonly DolphinFormatParserRegistry _parserRegistry = new();
+
+        public string? ExtractGameId(string romPath)
         {
-            if (!File.Exists(isoPath)) return null;
+            if (!File.Exists(romPath)) return null;
 
-            string ext = Path.GetExtension(isoPath).ToLower();
+            var gameId = _parserRegistry.ParseGameId(romPath);
 
-            if (ext == ".gcz")
-            {
-                var gameId = CommonExtractor.ExtractFromGcz(isoPath);
-
-                return IsValidGameCubeId(gameId) ? gameId : null;
-            }
-
-            if (ext == ".rvz" || ext == ".wia")
-            {
-                var gameId = CommonExtractor.ExtractFromRvz(isoPath);
-
-                return IsValidGameCubeId(gameId) ? gameId : null;
-            }
-
-            var id = CommonExtractor.ExtractFromIso(isoPath);
-
-            return IsValidGameCubeId(id) ? id : null;
+            return IsValidGameId(gameId) ? gameId : null;
         }
 
-        private static bool IsValidGameCubeId(string? gameId)
+        public bool IsValidGameId(string? gameId)
         {
-            if (string.IsNullOrWhiteSpace(gameId)) return false;
+            if (string.IsNullOrWhiteSpace(gameId) || gameId.Length < 4) return false;
 
-            return gameId[0] == 'G' || gameId[0] == 'D';
+            char firstChar = gameId[0];
+
+            return firstChar == 'G' || firstChar == 'D' || firstChar == 'P' ||
+                   firstChar == 'R' || firstChar == 'S';
         }
 
         public static string? ExtractGameIdFromGci(string gciFilePath)
@@ -50,7 +39,6 @@ namespace UltimateEnd.SaveFile.Dolphin
 
                     if (gameId.Length >= 4 && gameId.Length <= 6) return gameId;
                 }
-
                 return null;
             }
             catch
@@ -88,7 +76,6 @@ namespace UltimateEnd.SaveFile.Dolphin
                     }
                 }
             }
-
             return [.. results];
         }
 
@@ -97,7 +84,6 @@ namespace UltimateEnd.SaveFile.Dolphin
             if (gameId.Length < 4) return "USA";
 
             char regionChar = gameId[3];
-
             return regionChar switch
             {
                 'E' => "USA",

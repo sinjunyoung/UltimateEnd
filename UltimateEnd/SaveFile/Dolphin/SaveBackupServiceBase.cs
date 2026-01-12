@@ -27,13 +27,13 @@ namespace UltimateEnd.SaveFile.Dolphin
 
             if (consoleType == DolphinConsoleType.GameCube)
             {
-                var gameId = GameCubeIdExtractor.ExtractGameId(path);
-                return gameId;
+                var extractor = new GameCubeIdExtractor();
+                return extractor.ExtractGameId(path);
             }
             else if (consoleType == DolphinConsoleType.Wii)
             {
-                var titleId = WiiIdExtractor.ExtractGameId(path);
-                return titleId;
+                var extractor = new WiiIdExtractor();
+                return extractor.ExtractGameId(path);
             }
 
             return null;
@@ -43,18 +43,20 @@ namespace UltimateEnd.SaveFile.Dolphin
         {
             string ext = Path.GetExtension(romPath).ToLower();
 
-            if (ext == ".wbfs" || ext == ".wad")
-                return DolphinConsoleType.Wii;
+            if (ext == ".wbfs" || ext == ".wad") return DolphinConsoleType.Wii;
 
-            if (ext == ".gcz" || ext == ".rvz" || ext == ".wia")
+            if (ext == ".gcz" || ext == ".rvz" || ext == ".wia" || ext == ".iso")
             {
                 try
                 {
-                    var gameId = GameCubeIdExtractor.ExtractGameId(romPath);
+                    var gcExtractor = new GameCubeIdExtractor();
+                    var gameId = gcExtractor.ExtractGameId(romPath);
+
                     if (!string.IsNullOrEmpty(gameId) && gameId.Length >= 1)
                     {
                         char firstChar = gameId[0];
-                        if (firstChar == 'G' || firstChar == 'D')
+
+                        if (firstChar == 'G' || firstChar == 'D' || firstChar == 'P')
                             return DolphinConsoleType.GameCube;
                         else if (firstChar == 'R' || firstChar == 'S')
                             return DolphinConsoleType.Wii;
@@ -62,20 +64,6 @@ namespace UltimateEnd.SaveFile.Dolphin
                 }
                 catch { }
             }
-
-            try
-            {
-                using var stream = File.OpenRead(romPath);
-                using var reader = new BinaryReader(stream);
-                stream.Seek(0x00, SeekOrigin.Begin);
-                byte firstByte = reader.ReadByte();
-
-                if (firstByte == 'G' || firstByte == 'D')
-                    return DolphinConsoleType.GameCube;
-                else if (firstByte == 'R' || firstByte == 'S')
-                    return DolphinConsoleType.Wii;
-            }
-            catch { }
 
             return DolphinConsoleType.GameCube;
         }
@@ -88,7 +76,7 @@ namespace UltimateEnd.SaveFile.Dolphin
 
             if (mode == SaveBackupMode.SaveState) return FindSaveStateFiles(basePath, gameId);
 
-            var consoleType = DetectConsoleType(game.GetRomFullPath());            
+            var consoleType = DetectConsoleType(game.GetRomFullPath());
 
             if (consoleType == DolphinConsoleType.GameCube)
                 return FindGameCubeSaveFiles(basePath, gameId);
@@ -101,6 +89,7 @@ namespace UltimateEnd.SaveFile.Dolphin
         private static string[] FindGameCubeSaveFiles(string basePath, string gameId)
         {
             var files = GameCubeIdExtractor.FindGciFiles(basePath, gameId);
+
             return files;
         }
 
@@ -108,7 +97,7 @@ namespace UltimateEnd.SaveFile.Dolphin
         {
             var wiiPath = Path.Combine(basePath, "Wii", "title");
 
-            if (!Directory.Exists(wiiPath)) return [];            
+            if (!Directory.Exists(wiiPath)) return [];
 
             string hexTitleId = ConvertTitleIdToHex(titleId);
             var savePath = Path.Combine(wiiPath, "00010000", hexTitleId, "data");
@@ -128,8 +117,7 @@ namespace UltimateEnd.SaveFile.Dolphin
             string gameCode = titleId[..4];
             string hex = string.Empty;
 
-            foreach (char c in gameCode)
-                hex += ((int)c).ToString("X2");
+            foreach (char c in gameCode) hex += ((int)c).ToString("X2");
 
             return hex.ToUpper();
         }
@@ -220,12 +208,12 @@ namespace UltimateEnd.SaveFile.Dolphin
 
             if (mode == SaveBackupMode.SaveState)
             {
-                RestoreSaveStateFiles(zipData, basePath);
+                RestoreSaveStateFiles(zipData, basePath); 
                 return;
             }
 
             var consoleType = DetectConsoleType(game.GetRomFullPath());
-            System.Diagnostics.Debug.WriteLine($"[RestoreSaveFilesToDisk] Console type: {consoleType}");
+
             if (consoleType == DolphinConsoleType.GameCube)
                 RestoreGameCubeSaveFiles(zipData, basePath, gameId);
             else if (consoleType == DolphinConsoleType.Wii)
@@ -246,8 +234,7 @@ namespace UltimateEnd.SaveFile.Dolphin
 
             foreach (var entry in archive.Entries)
             {
-                if (string.IsNullOrEmpty(entry.Name))
-                    continue;
+                if (string.IsNullOrEmpty(entry.Name)) continue;
 
                 var destinationPath = Path.Combine(targetPath, entry.Name);
 
@@ -294,8 +281,7 @@ namespace UltimateEnd.SaveFile.Dolphin
 
             foreach (var entry in archive.Entries)
             {
-                if (string.IsNullOrEmpty(entry.Name))
-                    continue;
+                if (string.IsNullOrEmpty(entry.Name)) continue;
 
                 var destinationPath = Path.Combine(statePath, entry.Name);
 

@@ -5,39 +5,42 @@ using System.Text;
 using System.Text.RegularExpressions;
 using ZstdSharp;
 
-namespace UltimateEnd.SaveFile.Cemu
+namespace UltimateEnd.SaveFile.Parsers
 {
-    public static class CemuTitleIdExtractor
+    public class WuaParser : IFormatParser
     {
-        public static string? ExtractTitleId(string romPath)
-        {
-            if (!File.Exists(romPath)) return null;
+        #region Private Structures
 
-            string ext = Path.GetExtension(romPath).ToLower();
+        private record struct WuaSectionInfo(ulong Offset, ulong Size);
 
-            return ext switch
-            {   
-                ".wua" => ExtractFromWua(romPath),
-                _ => throw new NotSupportedException($"{ext.ToUpperInvariant()}는 지원하지 않습니다.\r\n.WUA만 지원합니다.")
-            };
-        }
+        private record struct ZArchiveFooter(
+            uint Magic,
+            uint Version,
+            ulong TotalSize,
+            WuaSectionInfo SectionCompressedData,
+            WuaSectionInfo SectionOffsetRecords,
+            WuaSectionInfo SectionNames,
+            WuaSectionInfo SectionFileTree,
+            WuaSectionInfo SectionMetaDirectory,
+            WuaSectionInfo SectionMetaData
+        );
 
-        private static string? ParseTitleIdFromMetaXml(string xmlContent)
-        {
-            var match = Regex.Match(xmlContent, @"<title_id[^>]*>([0-9A-Fa-f]{16})</title_id>");
+        private record struct FileEntry(
+            uint NameOffset,
+            bool IsFile,
+            ulong OffsetOrNodeStart,
+            ulong SizeOrCount
+        );
 
-            if (match.Success && match.Groups[1].Value.Length == 16) return match.Groups[1].Value.Substring(8, 8);
+        #endregion
 
-            return null;
-        }
+        public bool CanParse(string extension) => extension.Equals(".wua", StringComparison.CurrentCultureIgnoreCase);
 
-        #region WUA
-
-        private static string? ExtractFromWua(string wuaPath)
+        public string? ParseGameId(string filePath)
         {
             try
             {
-                using var stream = File.OpenRead(wuaPath);
+                using var stream = File.OpenRead(filePath);
                 long fileSize = stream.Length;
 
                 if (fileSize <= 0x90) return null;
@@ -51,17 +54,17 @@ namespace UltimateEnd.SaveFile.Cemu
 
                 if (footer == null) return null;
 
-                var nameTable = ReadSection(stream, footer.Value.sectionNames);
+                var nameTable = ReadSection(stream, footer.Value.SectionNames);
 
                 if (nameTable == null) return null;
 
-                var fileTree = ReadFileTree(stream, footer.Value.sectionFileTree);
+                var fileTree = ReadFileTree(stream, footer.Value.SectionFileTree);
 
                 if (fileTree == null || fileTree.Length <= 1) return null;
 
-                if (!fileTree[1].isFile)
+                if (!fileTree[1].IsFile)
                 {
-                    var gameDirName = GetName(nameTable, fileTree[1].nameOffset);
+                    var gameDirName = GetName(nameTable, fileTree[1].NameOffset);
 
                     if (gameDirName != null)
                     {
@@ -78,6 +81,7 @@ namespace UltimateEnd.SaveFile.Cemu
                             if (metaXmlContent != null)
                             {
                                 string xmlContent = Encoding.UTF8.GetString(metaXmlContent);
+
                                 return ParseTitleIdFromMetaXml(xmlContent);
                             }
                         }
@@ -90,6 +94,15 @@ namespace UltimateEnd.SaveFile.Cemu
             {
                 return null;
             }
+        }
+
+        private static string? ParseTitleIdFromMetaXml(string xmlContent)
+        {
+            var match = Regex.Match(xmlContent, @"<title_id[^>]*>([0-9A-Fa-f]{16})</title_id>");
+
+            if (match.Success && match.Groups[1].Value.Length == 16) return match.Groups[1].Value.Substring(8, 8);
+
+            return null;
         }
 
         private static ZArchiveFooter? ParseZArchiveFooter(byte[] data)
@@ -107,43 +120,41 @@ namespace UltimateEnd.SaveFile.Cemu
 
             int offset = 0;
 
-            return new ZArchiveFooter
-            {
-                magic = magic,
-                version = version,
-                totalSize = totalSize,
-                sectionCompressedData = ReadSectionInfoBE(data, ref offset),
-                sectionOffsetRecords = ReadSectionInfoBE(data, ref offset),
-                sectionNames = ReadSectionInfoBE(data, ref offset),
-                sectionFileTree = ReadSectionInfoBE(data, ref offset),
-                sectionMetaDirectory = ReadSectionInfoBE(data, ref offset),
-                sectionMetaData = ReadSectionInfoBE(data, ref offset)
-            };
+            return new ZArchiveFooter(
+                Magic: magic,
+                Version: version,
+                TotalSize: totalSize,
+                SectionCompressedData: ReadSectionInfoBE(data, ref offset),
+                SectionOffsetRecords: ReadSectionInfoBE(data, ref offset),
+                SectionNames: ReadSectionInfoBE(data, ref offset),
+                SectionFileTree: ReadSectionInfoBE(data, ref offset),
+                SectionMetaDirectory: ReadSectionInfoBE(data, ref offset),
+                SectionMetaData: ReadSectionInfoBE(data, ref offset)
+            );
         }
 
-        private static SectionInfo ReadSectionInfoBE(byte[] data, ref int offset)
+        private static WuaSectionInfo ReadSectionInfoBE(byte[] data, ref int offset)
         {
-            var info = new SectionInfo
-            {
-                offset = BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(offset, 8)),
-                size = BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(offset + 8, 8))
-            };
+            var info = new WuaSectionInfo(
+                Offset: BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(offset, 8)),
+                Size: BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(offset + 8, 8))
+            );
             offset += 16;
 
             return info;
         }
 
-        private static byte[]? ReadSection(FileStream stream, SectionInfo section)
+        private static byte[]? ReadSection(FileStream stream, WuaSectionInfo section)
         {
-            if (section.size > int.MaxValue) return null;
+            if (section.Size > int.MaxValue) return null;
 
-            stream.Seek((long)section.offset, SeekOrigin.Begin);
-            byte[] data = new byte[section.size];
+            stream.Seek((long)section.Offset, SeekOrigin.Begin);
+            byte[] data = new byte[section.Size];
 
-            return stream.Read(data, 0, (int)section.size) == (int)section.size ? data : null;
+            return stream.Read(data, 0, (int)section.Size) == (int)section.Size ? data : null;
         }
 
-        private static FileEntry[]? ReadFileTree(FileStream stream, SectionInfo section)
+        private static FileEntry[]? ReadFileTree(FileStream stream, WuaSectionInfo section)
         {
             var data = ReadSection(stream, section);
 
@@ -169,13 +180,12 @@ namespace UltimateEnd.SaveFile.Cemu
 
                 bool isFile = (flags & 0x80000000) != 0;
 
-                entries[i] = new FileEntry
-                {
-                    nameOffset = flags & 0x7FFFFFFF,
-                    isFile = isFile,
-                    offsetOrNodeStart = isFile ? value1 | ((ulong)(value3 & 0xFFFF) << 32) : value1,
-                    sizeOrCount = isFile ? value2 | ((ulong)(value3 >> 16) << 32) : value2
-                };
+                entries[i] = new FileEntry(
+                    NameOffset: flags & 0x7FFFFFFF,
+                    IsFile: isFile,
+                    OffsetOrNodeStart: isFile ? value1 | ((ulong)(value3 & 0xFFFF) << 32) : value1,
+                    SizeOrCount: isFile ? value2 | ((ulong)(value3 >> 16) << 32) : value2
+                );
             }
 
             return entries;
@@ -196,9 +206,7 @@ namespace UltimateEnd.SaveFile.Cemu
                 offset += 2;
             }
             else
-            {
                 offset++;
-            }
 
             return offset + nameLength <= nameTable.Length ? Encoding.UTF8.GetString(nameTable, offset, nameLength) : null;
         }
@@ -210,10 +218,10 @@ namespace UltimateEnd.SaveFile.Cemu
 
             foreach (var part in parts)
             {
-                if (fileTree[currentNode].isFile) return null;
+                if (fileTree[currentNode].IsFile) return null;
 
-                ulong startIndex = fileTree[currentNode].offsetOrNodeStart;
-                ulong count = fileTree[currentNode].sizeOrCount;
+                ulong startIndex = fileTree[currentNode].OffsetOrNodeStart;
+                ulong count = fileTree[currentNode].SizeOrCount;
                 bool found = false;
 
                 for (ulong i = 0; i < count; i++)
@@ -222,12 +230,13 @@ namespace UltimateEnd.SaveFile.Cemu
 
                     if (nodeIndex >= fileTree.Length) return null;
 
-                    var name = GetName(nameTable, fileTree[nodeIndex].nameOffset);
+                    var name = GetName(nameTable, fileTree[nodeIndex].NameOffset);
 
                     if (name != null && name.Equals(part, StringComparison.OrdinalIgnoreCase))
                     {
                         currentNode = nodeIndex;
                         found = true;
+
                         break;
                     }
                 }
@@ -235,22 +244,22 @@ namespace UltimateEnd.SaveFile.Cemu
                 if (!found) return null;
             }
 
-            return fileTree[currentNode].isFile ? currentNode : null;
+            return fileTree[currentNode].IsFile ? currentNode : null;
         }
 
         private static byte[]? ReadFileFromWua(FileStream stream, FileEntry file, ZArchiveFooter footer)
         {
-            if (!file.isFile || file.sizeOrCount > 1024 * 1024) return null;
+            if (!file.IsFile || file.SizeOrCount > 1024 * 1024) return null;
 
             const int BLOCK_SIZE = 0x10000;
             const int ENTRIES_PER_RECORD = 16;
 
-            ulong fileOffset = file.offsetOrNodeStart;
-            ulong fileSize = file.sizeOrCount;
+            ulong fileOffset = file.OffsetOrNodeStart;
+            ulong fileSize = file.SizeOrCount;
 
             try
             {
-                var offsetRecords = ReadSection(stream, footer.sectionOffsetRecords);
+                var offsetRecords = ReadSection(stream, footer.SectionOffsetRecords);
 
                 if (offsetRecords == null) return null;
 
@@ -307,7 +316,7 @@ namespace UltimateEnd.SaveFile.Cemu
                 ushort currentCompressedSize = BinaryPrimitives.ReadUInt16BigEndian(offsetRecords.AsSpan(recordOffset + 8 + subIndex * 2, 2));
                 int compressedSize = currentCompressedSize + 1;
 
-                stream.Seek((long)(footer.sectionCompressedData.offset + blockOffset), SeekOrigin.Begin);
+                stream.Seek((long)(footer.SectionCompressedData.Offset + blockOffset), SeekOrigin.Begin);
 
                 if (compressedSize == BLOCK_SIZE)
                 {
@@ -330,7 +339,5 @@ namespace UltimateEnd.SaveFile.Cemu
                 return null;
             }
         }
-
-        #endregion
     }
 }

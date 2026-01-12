@@ -1,22 +1,14 @@
-﻿using LibHac.Common;
+﻿using System.IO;
 using LibHac.Common.Keys;
-using LibHac.Fs;
-using LibHac.Fs.Fsa;
-using LibHac.FsSystem;
-using LibHac.Tools.Fs;
-using LibHac.Tools.FsSystem;
-using LibHac.Tools.FsSystem.NcaUtils;
-using System;
-using System.Diagnostics;
-using System.IO;
 using UltimateEnd.Models;
 
 namespace UltimateEnd.SaveFile.Switch
 {
-    public static class GameIdExtractor
+    public class GameIdExtractor : IGameIdExtractor
     {
         private static KeySet? _keySetCache;
         private static string? _keysPath;
+        private SwitchFormatParserRegistry? _parserRegistry;
 
         public static void SetKeysPath(string keysPath)
         {
@@ -26,8 +18,7 @@ namespace UltimateEnd.SaveFile.Switch
 
         private static KeySet LoadKeySet()
         {
-            if (_keySetCache != null)
-                return _keySetCache;
+            if (_keySetCache != null) return _keySetCache;
 
             var keySet = new KeySet();
 
@@ -35,109 +26,54 @@ namespace UltimateEnd.SaveFile.Switch
             {
                 try
                 {
-                    var keysText = File.ReadAllText(_keysPath);
                     ExternalKeyReader.ReadKeyFile(keySet, filename: _keysPath);
                     _keySetCache = keySet;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Debug.WriteLine($"prod.keys 로드 실패: {ex.Message}");
                 }
             }
 
             return keySet;
         }
 
+        private SwitchFormatParserRegistry GetRegistry()
+        {
+            if (_parserRegistry == null)
+            {
+                var keySet = LoadKeySet();
+                _parserRegistry = new SwitchFormatParserRegistry(keySet);
+            }
+
+            return _parserRegistry;
+        }
+
+        public string? ExtractGameId(string romPath)
+        {
+            if (string.IsNullOrEmpty(romPath) || !File.Exists(romPath)) return null;
+
+            var gameId = GetRegistry().ParseGameId(romPath);
+
+            return IsValidGameId(gameId) ? gameId : null;
+        }
+
+        public bool IsValidGameId(string? gameId)
+        {
+            if (string.IsNullOrEmpty(gameId) || gameId.Length != 16) return false;
+
+            foreach (char c in gameId)
+            {
+                if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'))) return false;
+            }
+
+            return true;
+        }
+
         public static string? ExtractGameId(GameMetadata game)
         {
-            string fullPath = game?.GetRomFullPath();
+            var extractor = new GameIdExtractor();
 
-            if (fullPath == null || !File.Exists(fullPath)) return null;
-
-            var extension = System.IO.Path.GetExtension(fullPath).ToLowerInvariant();
-
-            try
-            {
-                return extension switch
-                {
-                    ".nsp" => ExtractFromNSP(fullPath),
-                    ".xci" => ExtractFromXCI(fullPath),
-                    _ => null
-                };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Title ID 추출 실패: {ex.Message}");
-                return null;
-            }
-        }
-
-        private static string? ExtractFromNSP(string filePath)
-        {
-            try
-            {
-                using var storage = new LocalStorage(filePath, FileAccess.Read);
-
-                var pfs = new PartitionFileSystem();
-                pfs.Initialize(storage).ThrowIfFailure();
-
-                foreach (var entry in pfs.EnumerateEntries("/", "*"))
-                {
-                    if (entry.Name.EndsWith(".cnmt.nca", StringComparison.OrdinalIgnoreCase))
-                    {
-                        using var ncaStorage = new UniqueRef<IFile>();
-                        pfs.OpenFile(ref ncaStorage.Ref, entry.FullPath.ToU8Span(), OpenMode.Read).ThrowIfFailure();
-
-                        var nca = new Nca(LoadKeySet(), ncaStorage.Get.AsStorage());
-                        var titleId = nca.Header.TitleId;
-                        var titleIdStr = titleId.ToString("X16");
-
-                        return titleIdStr;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"NSP 오류: {ex.Message}");
-            }
-
-            return null;
-        }
-
-        private static string? ExtractFromXCI(string filePath)
-        {
-            try
-            {
-                using var storage = new LocalStorage(filePath, FileAccess.Read);
-
-                var xci = new Xci(LoadKeySet(), storage);
-
-                if (xci.HasPartition(XciPartitionType.Secure))
-                {
-                    var secure = xci.OpenPartition(XciPartitionType.Secure);
-
-                    foreach (var entry in secure.EnumerateEntries("/", "*"))
-                    {
-                        if (entry.Name.EndsWith(".cnmt.nca", StringComparison.OrdinalIgnoreCase))
-                        {
-                            using var ncaStorage = new UniqueRef<IFile>();
-                            secure.OpenFile(ref ncaStorage.Ref, entry.FullPath.ToU8Span(), OpenMode.Read).ThrowIfFailure();
-
-                            var nca = new Nca(LoadKeySet(), ncaStorage.Get.AsStorage());
-                            var titleId = nca.Header.TitleId;
-                            var titleIdStr = titleId.ToString("X16");
-
-                            return titleIdStr;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"XCI 오류: {ex.Message}");
-            }
-
-            return null;
+            return extractor.ExtractGameId(game?.GetRomFullPath());
         }
     }
 }

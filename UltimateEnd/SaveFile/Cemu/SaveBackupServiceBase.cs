@@ -17,7 +17,7 @@ namespace UltimateEnd.SaveFile.Cemu
 
         protected abstract string GetBasePath(IEmulatorCommand command);
 
-        protected override string? GetGameIdentifier(GameMetadata game) => CemuTitleIdExtractor.ExtractTitleId(game.GetRomFullPath());
+        protected override string? GetGameIdentifier(GameMetadata game) => GameIdExtractor.ExtractTitleId(game.GetRomFullPath());
 
         protected override string[] FindSaveFilePaths(GameMetadata game, string gameId, SaveBackupMode mode)
         {

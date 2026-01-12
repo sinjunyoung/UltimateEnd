@@ -4,45 +4,34 @@ using System.Text;
 
 namespace UltimateEnd.SaveFile.Dolphin
 {
-    public static class WiiIdExtractor
+    public class WiiIdExtractor : IGameIdExtractor
     {
-        public static string? ExtractGameId(string isoPath)
+        private readonly DolphinFormatParserRegistry _parserRegistry = new();
+
+        public string? ExtractGameId(string romPath)
         {
-            if (!File.Exists(isoPath)) return null;
+            if (!File.Exists(romPath)) return null;
 
-            string ext = Path.GetExtension(isoPath).ToLower();
+            string ext = Path.GetExtension(romPath).ToLower();
 
-            if (ext == ".gcz")
-            {
-                var titleId = CommonExtractor.ExtractFromGcz(isoPath);
+            if (ext == ".wbfs")
+                return ExtractFromWbfs(romPath);
+            if (ext == ".wad")
+                return ExtractFromWad(romPath);
 
-                return IsValidWiiId(titleId) ? titleId : null;
-            }
+            var titleId = _parserRegistry.ParseGameId(romPath);
 
-            if (ext == ".rvz" || ext == ".wia")
-            {
-                var titleId = CommonExtractor.ExtractFromRvz(isoPath);
-
-                return IsValidWiiId(titleId) ? titleId : null;
-            }
-
-            if (ext == ".wbfs") return ExtractFromWbfs(isoPath);
-
-            if (ext == ".wad") return ExtractFromWad(isoPath);
-
-            var id = CommonExtractor.ExtractFromIso(isoPath);
-
-            return IsValidWiiId(id) ? id : null;
+            return IsValidGameId(titleId) ? titleId : null;
         }
 
-        private static bool IsValidWiiId(string? titleId)
+        public bool IsValidGameId(string? titleId)
         {
             if (string.IsNullOrWhiteSpace(titleId) || titleId.Length < 6) return false;
 
             return titleId[0] == 'R' || titleId[0] == 'S';
         }
 
-        private static string? ExtractFromWbfs(string wbfsPath)
+        private string? ExtractFromWbfs(string wbfsPath)
         {
             try
             {
@@ -50,16 +39,18 @@ namespace UltimateEnd.SaveFile.Dolphin
                 using var reader = new BinaryReader(stream);
 
                 stream.Seek(0x00, SeekOrigin.Begin);
+                
                 byte[] magic = reader.ReadBytes(4);
                 string magicStr = Encoding.ASCII.GetString(magic);
 
                 if (magicStr != "WBFS") return null;
 
                 stream.Seek(0x200, SeekOrigin.Begin);
+
                 byte[] titleIdBytes = reader.ReadBytes(6);
                 string titleId = Encoding.ASCII.GetString(titleIdBytes);
 
-                return IsValidWiiId(titleId) ? titleId : null;
+                return IsValidGameId(titleId) ? titleId : null;
             }
             catch
             {
@@ -67,7 +58,7 @@ namespace UltimateEnd.SaveFile.Dolphin
             }
         }
 
-        private static string? ExtractFromWad(string wadPath)
+        private string? ExtractFromWad(string wadPath)
         {
             try
             {
@@ -75,9 +66,11 @@ namespace UltimateEnd.SaveFile.Dolphin
                 using var reader = new BinaryReader(stream);
 
                 stream.Seek(0x00, SeekOrigin.Begin);
+
                 uint headerSize = ReadBigEndianUInt32(reader);
 
                 stream.Seek(0x1E0, SeekOrigin.Begin);
+
                 byte[] titleIdBytes = reader.ReadBytes(8);
                 string titleId = Encoding.ASCII.GetString(titleIdBytes, 4, 4);
 
