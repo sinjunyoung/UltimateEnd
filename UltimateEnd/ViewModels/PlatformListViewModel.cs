@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
+using UltimateEnd.Orchestrators;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 
@@ -22,13 +23,14 @@ namespace UltimateEnd.ViewModels
         private Platform _selectedPlatform;
         private string _currentTime;
         private string _currentDate;
-        private readonly Timer? _timer;
-        private bool _isMenuFocused = false;
         private string _currentThemeName;
-
+        private readonly Timer? _timer;
+        private bool _isMenuFocused = false;        
         private bool _isCurrentlyLoading = false;
         private bool _triggerScrollFix;
-        
+
+        private readonly Random _random = new();
+
         #endregion
 
         #region Properties
@@ -325,6 +327,39 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
+
+        public async Task LaunchRandomGame()
+        {
+            var allGames = AllGamesManager.Instance.GetAllGames()
+                .Where(g => !g.Ignore)
+                .ToList();
+
+            if (allGames.Count == 0) return;
+
+            var favorites = allGames.Where(g => g.IsFavorite).ToList();
+            var nonFavorites = allGames.Where(g => !g.IsFavorite).ToList();
+
+            GameMetadata selectedGame;
+
+            if (favorites.Count > 0 && nonFavorites.Count > 0)
+            {
+                if (_random.NextDouble() < 0.2)
+                    selectedGame = favorites[_random.Next(favorites.Count)];
+                else
+                    selectedGame = nonFavorites[_random.Next(nonFavorites.Count)];
+            }
+            else if (favorites.Count > 0)
+                selectedGame = favorites[_random.Next(favorites.Count)];
+            else if (nonFavorites.Count > 0)
+                selectedGame = nonFavorites[_random.Next(nonFavorites.Count)];
+            else
+                return;
+
+            var orchestrator = new GameLaunchOrchestrator(null);
+
+            await orchestrator.LaunchAsync(selectedGame);
+        }
+
         #region Platform Helpers
 
         private static string GetPlatformDisplayName(string platformKey, PlatformMappingConfig mappingConfig)
@@ -374,6 +409,7 @@ namespace UltimateEnd.ViewModels
             }
             else SelectedIndex = 0;
         }
+
         #endregion
 
         #region Navigation

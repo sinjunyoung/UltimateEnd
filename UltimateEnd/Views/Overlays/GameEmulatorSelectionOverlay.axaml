@@ -62,11 +62,16 @@
 										   FontWeight="SemiBold"
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
-								<TextBlock Grid.Column="2"
-										   x:Name="DefaultEmulatorCheck"
-										   Text="✓"
-										   FontSize="20"
-										   VerticalAlignment="Center"/>
+								<Path Grid.Column="2"
+									  x:Name="DefaultEmulatorCheck"
+									  Data="{StaticResource Icon.Check}"
+									  Fill="{DynamicResource Text.Primary}"
+									  Width="20"
+									  Height="20"
+									  Stretch="Uniform"
+									  VerticalAlignment="Center"
+									  HorizontalAlignment="Right"
+									  Margin="0,0,8,0"/>
 							</Grid>
 						</Border>
 						<Border Height="1" Background="{DynamicResource Background.Border}" Margin="0,5"/>
@@ -92,12 +97,16 @@
 													   FontWeight="SemiBold"
 													   Foreground="{DynamicResource Text.Primary}"
 													   VerticalAlignment="Center"/>
-											<TextBlock Grid.Column="2"
-													   x:Name="EmulatorCheckMark"
-													   Text="✓"
-													   FontSize="20"
-													   VerticalAlignment="Center"
-													   IsVisible="{Binding IsSelected}"/>
+											<Path Grid.Column="2"
+												  Data="{StaticResource Icon.Check}"
+												  Fill="{DynamicResource Text.Primary}"
+												  Width="20"
+												  Height="20"
+												  Stretch="Uniform"
+												  VerticalAlignment="Center"
+												  HorizontalAlignment="Right"
+												  Margin="0,0,8,0"
+												  IsVisible="{Binding IsSelected}"/>
 										</Grid>
 									</Border>
 								</DataTemplate>

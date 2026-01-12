@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.SaveFile;
+using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 
 namespace UltimateEnd.Views.Overlays

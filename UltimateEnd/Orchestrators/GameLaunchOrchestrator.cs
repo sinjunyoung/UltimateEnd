@@ -92,8 +92,8 @@ namespace UltimateEnd.Orchestrators
 
         private void PrepareForLaunch()
         {
-            _videoCoordinator.CancelDelay();
-            _videoCoordinator.Stop();
+            _videoCoordinator?.CancelDelay();
+            _videoCoordinator?.Stop();
             Task.Delay(LaunchDelayMs).Wait();
         }
 

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Utils;
 
 namespace UltimateEnd.Views.Overlays

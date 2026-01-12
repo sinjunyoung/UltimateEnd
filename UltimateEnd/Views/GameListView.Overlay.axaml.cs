@@ -2,8 +2,8 @@
 using System;
 using System.Reactive.Linq;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Services;
+using UltimateEnd.Utils;
 using UltimateEnd.Views.Overlays;
 
 namespace UltimateEnd.Views

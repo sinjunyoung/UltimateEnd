@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
+using UltimateEnd.Utils;
 
 namespace UltimateEnd.Views.Overlays
 {

@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Models;
 using UltimateEnd.Scraper;
 using UltimateEnd.Scraper.Models;

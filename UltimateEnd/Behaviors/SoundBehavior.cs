@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
+using UltimateEnd.Utils;
 
 namespace UltimateEnd.Behaviors
 {    public static class SoundBehavior

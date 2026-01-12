@@ -5,7 +5,6 @@ using Avalonia.Interactivity;
 using System;
 using System.Linq;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;

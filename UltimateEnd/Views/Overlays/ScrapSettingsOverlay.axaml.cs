@@ -3,8 +3,8 @@ using Avalonia.Input;
 using Avalonia.Media;
 using System;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Scraper.Models;
+using UltimateEnd.Utils;
 
 namespace UltimateEnd.Views.Overlays
 {

@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Utils;
 
 namespace UltimateEnd.Views.Overlays;

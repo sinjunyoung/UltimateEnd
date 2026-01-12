@@ -2,14 +2,15 @@
 using System.Threading.Tasks;
 using UltimateEnd.Services;
 using Android.Media;
+using System.Threading;
 
 namespace UltimateEnd.Android.Services
 {
     public class SoundPlayer : ISoundPlayer
     {
         private MediaPlayer? _mediaPlayer;
-        private readonly object _lock = new();
-        private bool _isDisposed = false;
+        private readonly Lock _lock = new();
+        private readonly bool _isDisposed = false;
 
         public Task PlayAsync(string filePath)
         {

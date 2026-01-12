@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using UltimateEnd.Android.Models;
-using UltimateEnd.Helpers;
+using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 
 namespace UltimateEnd.Android.ViewModels

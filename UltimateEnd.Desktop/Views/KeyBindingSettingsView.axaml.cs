@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reactive;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Utils;
 
 namespace UltimateEnd.Desktop.Views

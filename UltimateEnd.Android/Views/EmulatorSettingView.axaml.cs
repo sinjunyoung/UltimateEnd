@@ -8,7 +8,6 @@ using UltimateEnd.Android.Models;
 using UltimateEnd.Android.ViewModels;
 using UltimateEnd.Android.Views.Overlays;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
 using UltimateEnd.Views.Overlays;

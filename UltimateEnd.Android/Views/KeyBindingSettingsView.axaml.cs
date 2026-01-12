@@ -5,7 +5,6 @@ using Avalonia.Threading;
 using System.Reactive;
 using UltimateEnd.Android.ViewModels;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Utils;
 
 namespace UltimateEnd.Android.Views

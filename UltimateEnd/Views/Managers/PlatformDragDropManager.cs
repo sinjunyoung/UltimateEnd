@@ -9,8 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using UltimateEnd.Helpers;
 using UltimateEnd.Models;
+using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 
 namespace UltimateEnd.Views.Managers

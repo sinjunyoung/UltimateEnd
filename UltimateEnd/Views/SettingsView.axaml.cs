@@ -6,7 +6,6 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using System.Linq;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;

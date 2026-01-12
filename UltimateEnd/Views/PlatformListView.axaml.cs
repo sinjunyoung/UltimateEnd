@@ -356,13 +356,15 @@ namespace UltimateEnd.Views
 
         private void InitializeMenuIcons()
         {
-            if (SettingsIcon != null && FolderIcon != null && ShutdownIcon != null) _menuIcons = [SettingsIcon, FolderIcon, ShutdownIcon];
+            if (RandomGameIcon != null && SettingsIcon != null && FolderIcon != null && ShutdownIcon != null)
+                _menuIcons = [RandomGameIcon, SettingsIcon, FolderIcon, ShutdownIcon];
         }
 
         private void AttachMenuIconHandlers()
         {
             Dispatcher.UIThread.Post(() =>
             {
+                AttachMenuIconHandler("RandomGameIcon", OnRandomGameClick);
                 AttachMenuIconHandler("FolderIcon", OnFolderIconClick);
                 AttachMenuIconHandler("ShutdownIcon", OnShutdownIconClick);
             }, DispatcherPriority.Loaded);
@@ -431,6 +433,22 @@ namespace UltimateEnd.Views
             }
         }
 
+        private async void OnRandomGameClick(object? sender, PointerPressedEventArgs e)
+        {
+            if (e != null) e.Handled = true;
+
+            await OnRandomGameClickAsync();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                this.Focus();
+                if (ViewModel != null && ViewModel.IsMenuFocused)
+                {
+                    FocusMenuIcon(_currentMenuIconIndex);
+                }
+            }, DispatcherPriority.Input);
+        }
+
         private async void OnSettingsClick(object? sender, PointerPressedEventArgs e)
         {
             if (e != null) e.Handled = true;
@@ -443,16 +461,39 @@ namespace UltimateEnd.Views
         {
             if (_menuIcons.Length == 0) return;
 
-            if (ViewModel != null) ViewModel.IsMenuFocused = false;
+            if (_currentMenuIconIndex == 0)
+            {
+                await OnRandomGameClickAsync();
 
+                Dispatcher.UIThread.Post(() =>
+                {
+                    this.Focus();
+                    if (ViewModel != null)
+                    {
+                        ViewModel.IsMenuFocused = true;
+                        FocusMenuIcon(_currentMenuIconIndex);
+                    }
+                }, DispatcherPriority.Input);
+                return;
+            }
+
+            if (ViewModel != null) ViewModel.IsMenuFocused = false;
             ResetMenuIcons();
 
             switch (_currentMenuIconIndex)
             {
-                case 0: OnSettingsClick(null, null); break;
-                case 1: NavigateToView(vm => vm.NavigateToRomSettings()); break;
-                case 2: await ShutdownApplication(); break;
+                case 1: OnSettingsClick(null, null); break;
+                case 2: NavigateToView(vm => vm.NavigateToRomSettings()); break;
+                case 3: await ShutdownApplication(); break;
             }
+        }
+
+        private async Task OnRandomGameClickAsync()
+        {
+            await WavSounds.Coin();
+
+            if (ViewModel != null)
+                await ViewModel.LaunchRandomGame();
         }
 
         private void NavigateToView(Action<MainViewModel> navigationAction)
@@ -597,7 +638,7 @@ namespace UltimateEnd.Views
             {
                 ViewModel.IsMenuFocused = true;
                 _carouselManager?.HideCardSelection();
-                FocusMenuIcon(0);
+                FocusMenuIcon(1);
 
                 return;
             }

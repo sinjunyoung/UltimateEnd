@@ -13,7 +13,6 @@ using System.Windows.Input;
 using UltimateEnd.Android.Models;
 using UltimateEnd.Android.Services;
 using UltimateEnd.Android.Utils;
-using UltimateEnd.Helpers;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 

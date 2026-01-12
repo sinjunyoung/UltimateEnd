@@ -3,7 +3,6 @@ using Avalonia.Input;
 using Avalonia.VisualTree;
 using System;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Managers;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;

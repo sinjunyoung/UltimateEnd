@@ -50,13 +50,17 @@
                                                    FontSize="15"
                                                    Foreground="{DynamicResource Text.Primary}"
                                                    VerticalAlignment="Center"/>
-										<TextBlock Grid.Column="1"
-                                                   Text="✓"
-                                                   FontSize="18"
-                                                   Foreground="{DynamicResource Accent.Blue}"
-                                                   IsVisible="{Binding IsAdded}"
-                                                   VerticalAlignment="Center"/>
-									</Grid>
+										<Path Grid.Column="1"
+                                              Data="{StaticResource Icon.Check}"
+                                              Fill="{DynamicResource Text.Primary}"
+                                              Width="18"
+                                              Height="18"
+                                              Stretch="Uniform"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Right"
+                                              Margin="0,0,8,0"
+                                              IsVisible="{Binding IsAdded}"/>
+									    </Grid>
 								</Border>
 							</DataTemplate>
 						</ItemsRepeater.ItemTemplate>

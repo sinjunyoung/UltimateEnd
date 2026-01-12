@@ -4,14 +4,14 @@ using System.IO;
 using System.Threading.Tasks;
 using UltimateEnd.Services;
 
-namespace UltimateEnd.Helpers
+namespace UltimateEnd.Utils
 {
     public static class WavSounds
     {
         public const int MillisecondsPerSecond = 1000;
         private static IAssetPathProvider? _pathProvider;
         private static ISoundPlayer? _currentPlayer;
-        private static readonly Dictionary<string, int> _durationCache = new();
+        private static readonly Dictionary<string, int> _durationCache = [];
 
         public static void Initialize(IAssetPathProvider pathProvider) => _pathProvider = pathProvider;
 

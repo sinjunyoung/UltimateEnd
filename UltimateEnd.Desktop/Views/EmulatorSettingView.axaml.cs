@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Utils;
 using UltimateEnd.Views.Overlays;
 

@@ -101,7 +101,7 @@
 										<StackPanel Orientation="Horizontal"
 													HorizontalAlignment="Center"
 													Spacing="4">
-											
+
 											<!-- 플레이리스트인 경우만 표시 -->
 											<Image Name="PlaylistIcon"
 												   Source="avares://UltimateEnd/Assets/Icons/trophy.png"
@@ -141,14 +141,9 @@
 			  VerticalAlignment="Top"
 			  HorizontalAlignment="Stretch"
 			  Margin="{Binding #PlatformListViewRoot.HeaderMargin}">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto"/>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="Auto"/>
-			</Grid.ColumnDefinitions>
 
-			<!-- 타이틀 -->
-			<StackPanel Grid.Column="0" VerticalAlignment="Top">
+			<!-- 타이틀 - 왼쪽 -->
+			<StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
 				<TextBlock Text="PLATFORMS"
 						   FontSize="{Binding #PlatformListViewRoot.TitleFontSize}"
 						   FontWeight="Bold"
@@ -161,10 +156,23 @@
 						   Margin="{Binding #PlatformListViewRoot.SubtitleMargin}"/>
 			</StackPanel>
 
-			<!-- 메뉴 아이콘 -->
-			<StackPanel Grid.Column="2"
-						Orientation="Horizontal"
+			<!-- 중앙 랜덤게임 아이콘 -->
+			<Border HorizontalAlignment="Center"
+					VerticalAlignment="Top"
+					ClipToBounds="False"
+					PointerPressed="OnRandomGameClick"
+					Cursor="Hand">
+				<PathIcon x:Name="RandomGameIcon"
+						  Classes="AnimatedIcon"
+						   Data="{StaticResource Icon.Random}"
+						  Width="{Binding #PlatformListViewRoot.IconSize}"
+						  Height="{Binding #PlatformListViewRoot.IconSize}"/>
+			</Border>
+
+			<!-- 메뉴 아이콘 - 오른쪽 -->
+			<StackPanel HorizontalAlignment="Right"
 						VerticalAlignment="Top"
+						Orientation="Horizontal"
 						Spacing="{Binding #PlatformListViewRoot.IconSpacing}">
 				<Border ClipToBounds="False"
 						PointerPressed="OnSettingsClick"

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Reactive;
 using System.Threading.Tasks;
-using UltimateEnd.Helpers;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 using UltimateEnd.Views.Overlays;

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Desktop.Services;
-using UltimateEnd.Helpers;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 

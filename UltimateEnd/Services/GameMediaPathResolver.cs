@@ -51,10 +51,15 @@ namespace UltimateEnd.Services
             }
 
             var fileName = Path.GetFileNameWithoutExtension(romFile);
-
             var pegasusMediaPath = TryGetPegasusMediaPath(basePath, fileName, pegasusFileNames);
 
             if (pegasusMediaPath != null) return pegasusMediaPath;
+
+            if (OperatingSystem.IsWindows())
+            {
+                var retrobatPath = TryGetRetroBatMediaPath(basePath, fileName, GetRetroBatSuffix(defaultBaseFolder));
+                if (retrobatPath != null) return retrobatPath;
+            }
 
             var actualDirs = _directoryCache.GetOrAdd(basePath, path => Directory.Exists(path) ? Directory.GetDirectories(path) : Array.Empty<string>());
 
@@ -73,9 +78,44 @@ namespace UltimateEnd.Services
             return Path.Combine(basePath, defaultBaseFolder, fileName + defaultExtension);
         }
 
+        private static string? TryGetRetroBatMediaPath(string basePath, string romFileNameWithoutExt, string suffix)
+        {
+            string[] folderNames = ["images", "videos"];
+
+            foreach (var folderName in folderNames)
+            {
+                var mediaFolder = Path.Combine(basePath, folderName);
+
+                if (Directory.Exists(mediaFolder))
+                {
+                    string[] extensions = [".png", ".jpg", ".jpeg", ".mp4", ".mkv", ".avi"];
+
+                    foreach (var ext in extensions)
+                    {
+                        var fullPath = Path.Combine(mediaFolder, $"{romFileNameWithoutExt}{suffix}{ext}");
+
+                        if (File.Exists(fullPath)) return fullPath;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetRetroBatSuffix(string defaultBaseFolder)
+        {
+            return defaultBaseFolder switch
+            {
+                "Covers" => "-thumb",
+                "Logos" => "-marquee",
+                "Videos" => "-video",
+                _ => ""
+            };
+        }
+
         private static string? TryGetPegasusMediaPath(string basePath, string romFileNameWithoutExt, string[] fileNames)
         {
-            string[] folderNames = [ "scrap", "media" ];
+            string[] folderNames = ["scrap", "media"];
 
             foreach (var folderName in folderNames)
             {
