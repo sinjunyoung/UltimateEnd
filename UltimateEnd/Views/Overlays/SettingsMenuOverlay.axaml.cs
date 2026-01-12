@@ -31,10 +31,12 @@ namespace UltimateEnd.Views.Overlays
 
         private bool _isShowingDeleted = false;
 
+        private GameViewMode _currentViewMode;
+
         public SettingsMenuOverlay()
         {
             InitializeComponent();
-            InitializeMenuActions();
+            InitializeMenuActions();            
         }
 
         private void InitializeMenuActions()
@@ -127,6 +129,7 @@ namespace UltimateEnd.Views.Overlays
             this.Focus();
 
             UpdateDeletedGamesToggle(this._isShowingDeleted);
+            UpdateResetLayoutVisibility();
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -245,6 +248,33 @@ namespace UltimateEnd.Views.Overlays
         {
             _isShowingDeleted = isShowingDeleted;
             UpdateDeletedGamesToggle(isShowingDeleted);
+        }
+
+        public void UpdateViewMode(GameViewMode viewMode)
+        {
+            _currentViewMode = viewMode;
+            UpdateResetLayoutVisibility();
+        }
+
+        private void UpdateResetLayoutVisibility()
+        {
+            var resetLayoutItem = this.FindControl<Border>("ResetLayoutMenuItem");
+
+            if (resetLayoutItem != null)
+                resetLayoutItem.IsVisible = _currentViewMode == GameViewMode.List;
+
+            RefreshMenuItems();
+        }
+
+        private void RefreshMenuItems()
+        {
+            _menuItems.Clear();
+            InitializeMenuItems();
+
+            if (_selectedIndex >= _menuItems.Count)
+                _selectedIndex = Math.Max(0, _menuItems.Count - 1);
+
+            UpdateSelection();
         }
     }
 }

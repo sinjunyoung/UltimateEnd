@@ -285,6 +285,7 @@ namespace UltimateEnd.Views
             e.Handled = true;
             await WavSounds.OK();
             SettingsMenuOverlayBase?.SetDeletedGamesMode(ViewModel.IsShowingDeletedGames);
+            SettingsMenuOverlayBase.UpdateViewMode(ViewModel.ViewMode);
             SettingsMenuOverlayBase?.Show();
         }
 

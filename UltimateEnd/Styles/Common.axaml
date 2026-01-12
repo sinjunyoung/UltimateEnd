@@ -94,6 +94,11 @@
 		<StreamGeometry x:Key="Icon.SaveBoth">
 			M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.8L12,18.54Z
 		</StreamGeometry>
+
+		<!-- 즐겨찾기용 별 -->
+		<StreamGeometry x:Key="Icon.Favorite">
+			M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z
+		</StreamGeometry>
 		
 		<StreamGeometry x:Key="Icon.Parent">
 			M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z

@@ -65,7 +65,7 @@
 												   Foreground="{DynamicResource Text.Primary}"
 												   VerticalAlignment="Center"/>
 										<TextBlock Grid.Column="2"
-												   Text="✅"
+												   Text="✓"
 												   FontSize="20"
 												   VerticalAlignment="Center"
 												   IsVisible="{Binding IsDefault}"/>

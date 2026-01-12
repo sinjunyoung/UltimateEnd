@@ -64,7 +64,7 @@
 										   VerticalAlignment="Center"/>
 								<TextBlock Grid.Column="2"
 										   x:Name="DefaultEmulatorCheck"
-										   Text="✅"
+										   Text="✓"
 										   FontSize="20"
 										   VerticalAlignment="Center"/>
 							</Grid>
