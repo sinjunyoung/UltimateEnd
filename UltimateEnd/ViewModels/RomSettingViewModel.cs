@@ -105,6 +105,7 @@ namespace UltimateEnd.ViewModels
         private async Task LoadPlatformNamesAsync()
         {
             if (_isCurrentlyLoading) return;
+
             _isCurrentlyLoading = true;
 
             try
@@ -143,8 +144,7 @@ namespace UltimateEnd.ViewModels
 
                             var scannedFolders = await Task.Run(() =>
                             {
-                                if (!Directory.Exists(realPath))
-                                    return [];
+                                if (!Directory.Exists(realPath)) return [];
 
                                 return Directory.GetDirectories(realPath)
                                     .Select(d => (Name: Path.GetFileName(d)!, FullPath: d))
@@ -392,8 +392,6 @@ namespace UltimateEnd.ViewModels
                     };
                 }
 
-                SettingsService.SavePlatformSettings(settings);
-
                 var mappingConfig = new PlatformMappingConfig
                 {
                     FolderMappings = [],
@@ -415,7 +413,7 @@ namespace UltimateEnd.ViewModels
                 }
 
                 PlatformMappingService.Instance.SaveMapping(mappingConfig);
-
+                SettingsService.SavePlatformSettings(settings);
                 MetadataService.ClearCache();
             });
 
@@ -440,8 +438,7 @@ namespace UltimateEnd.ViewModels
                     .Where(p => NormalizePath(p.BasePath).Equals(NormalizePath(item.Path), StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
-                foreach (var platform in platformsToRemove)
-                    PlatformNames.Remove(platform);
+                foreach (var platform in platformsToRemove) PlatformNames.Remove(platform);
 
                 RomsBasePaths.Remove(item);
             }
@@ -449,8 +446,7 @@ namespace UltimateEnd.ViewModels
 
         private static string NormalizePath(string path)
         {
-            if (string.IsNullOrEmpty(path))
-                return string.Empty;
+            if (string.IsNullOrEmpty(path)) return string.Empty;
 
             return path.TrimEnd('\\', '/');
         }

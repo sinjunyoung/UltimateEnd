@@ -15,11 +15,6 @@ namespace UltimateEnd.ViewModels
 {
     public class PlatformListViewModel : ViewModelBase
     {
-        #region Constants
-
-        private const int LOADING_OVERLAY_THRESHOLD = 999;
-
-        #endregion
 
         #region Fields
 
@@ -31,13 +26,7 @@ namespace UltimateEnd.ViewModels
         private bool _isMenuFocused = false;
         private string _currentThemeName;
 
-        private bool _isLoadingPlatforms = false;
-        private string _loadingStatus = string.Empty;
-        private int _loadingProgress = 0;
-        private int _totalPlatforms;
-
         private bool _isCurrentlyLoading = false;
-        private bool _useLoadingOverlay = false;
         private bool _triggerScrollFix;
         
         #endregion
@@ -45,6 +34,7 @@ namespace UltimateEnd.ViewModels
         #region Properties
 
         public ObservableCollection<Platform> Platforms { get; } = [];
+
         public ObservableCollection<ThemeOption> AvailableThemes { get; } = [];
 
         public int SelectedIndex
@@ -90,29 +80,6 @@ namespace UltimateEnd.ViewModels
             set => this.RaiseAndSetIfChanged(ref _currentThemeName, value);
         }
 
-        public bool IsLoadingPlatforms
-        {
-            get => _isLoadingPlatforms;
-            set => this.RaiseAndSetIfChanged(ref _isLoadingPlatforms, value);
-        }
-
-        public string LoadingStatus
-        {
-            get => _loadingStatus;
-            set => this.RaiseAndSetIfChanged(ref _loadingStatus, value);
-        }
-
-        public int LoadingProgress
-        {
-            get => _loadingProgress;
-            set => this.RaiseAndSetIfChanged(ref _loadingProgress, value);
-        }
-
-        public int TotalPlatforms
-        {
-            get => _totalPlatforms;
-            set => this.RaiseAndSetIfChanged(ref _totalPlatforms, value);
-        }
         public bool TriggerScrollFix
         {
             get => _triggerScrollFix;
@@ -197,10 +164,6 @@ namespace UltimateEnd.ViewModels
                 var savedSettings = SettingsService.LoadSettings();
                 var mappingConfig = PlatformMappingService.Instance.LoadMapping();
                 var currentSelectedId = SelectedPlatform?.Id;
-                var platformCount = savedSettings.PlatformSettings?.Count ?? 0;
-                _useLoadingOverlay = platformCount > LOADING_OVERLAY_THRESHOLD;
-
-                if (_useLoadingOverlay) await ShowLoadingOverlayAsync(platformCount);
 
                 List<Platform> allPlatforms = [.. GetSpecialPlatforms()];
 
@@ -214,12 +177,11 @@ namespace UltimateEnd.ViewModels
                 if (savedSettings.PlatformOrder != null && savedSettings.PlatformOrder.Count > 0)
                 {
                     allPlatforms = [.. allPlatforms
-                        .OrderBy(p =>
-                        {
-                            var index = savedSettings.PlatformOrder.IndexOf(p.Id);
-
-                            return index == -1 ? int.MaxValue : index;
-                        })];
+                .OrderBy(p =>
+                {
+                    var index = savedSettings.PlatformOrder.IndexOf(p.Id);
+                    return index == -1 ? int.MaxValue : index;
+                })];
                 }
 
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
@@ -228,13 +190,10 @@ namespace UltimateEnd.ViewModels
                     foreach (var platform in allPlatforms) Platforms.Add(platform);
                     RestoreSelection(currentSelectedId);
                 });
-                await Task.Delay(100);
             }
             finally
             {
                 _isCurrentlyLoading = false;
-
-                if (_useLoadingOverlay) await HideLoadingOverlayAsync();
 
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
@@ -293,31 +252,8 @@ namespace UltimateEnd.ViewModels
             };
         }
 
-        private async Task ShowLoadingOverlayAsync(int totalCount)
+        private static async Task<List<Platform>> LoadPlatformsInParallelAsync(List<KeyValuePair<string, PlatformSettings>> platformList, AppSettings settings, PlatformMappingConfig mappingConfig)
         {
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                IsLoadingPlatforms = true;
-                LoadingProgress = 0;
-                LoadingStatus = "초기화 중...";
-                TotalPlatforms = totalCount;
-            });
-        }
-
-        private async Task HideLoadingOverlayAsync()
-        {
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                IsLoadingPlatforms = false;
-                LoadingProgress = 0;
-                LoadingStatus = string.Empty;
-            });
-        }
-
-        private async Task<List<Platform>> LoadPlatformsInParallelAsync(List<KeyValuePair<string, PlatformSettings>> platformList, AppSettings settings, PlatformMappingConfig mappingConfig)
-        {
-            int total = platformList.Count;
-            int processed = 0;
             var converter = PathConverterFactory.Create?.Invoke();
 
             return await Task.Run(() =>
@@ -326,37 +262,24 @@ namespace UltimateEnd.ViewModels
                 {
                     try
                     {
-                        if (platformSetting.Key == GameMetadataManager.SteamKey || platformSetting.Key == GameMetadataManager.DesktopKey || platformSetting.Key == GameMetadataManager.AndroidKey)
-                        {
-                            Interlocked.Increment(ref processed);
-                            UpdateLoadingProgressIfNeeded(processed, total, platformSetting.Key);
+                        if (platformSetting.Key == GameMetadataManager.SteamKey ||
+                            platformSetting.Key == GameMetadataManager.DesktopKey ||
+                            platformSetting.Key == GameMetadataManager.AndroidKey)
                             return (Platform?)null;
-                        }
 
-                        if(!mappingConfig.FolderMappings.ContainsKey(platformSetting.Key))
-                        {
-                            Interlocked.Increment(ref processed);
-                            UpdateLoadingProgressIfNeeded(processed, total, platformSetting.Key);
+                        if (!mappingConfig.FolderMappings.ContainsKey(platformSetting.Key))
                             return (Platform?)null;
-                        }
 
                         bool hasGames = MetadataService.HasGames(platformSetting.Key);
 
                         if (!hasGames)
-                        {
-                            Interlocked.Increment(ref processed);
-                            UpdateLoadingProgressIfNeeded(processed, total, platformSetting.Key);
                             return (Platform?)null;
-                        }
 
                         var displayName = GetPlatformDisplayName(platformSetting.Key, mappingConfig);
                         var normalizedId = GetNormalizedPlatformId(platformSetting.Key);
 
                         var imagePath = GetPlatformImagePath(platformSetting, settings.RomsBasePaths[0], normalizedId);
                         var logoPath = ResourceHelper.GetLogoImage(normalizedId);
-
-                        Interlocked.Increment(ref processed);
-                        UpdateLoadingProgressIfNeeded(processed, total, platformSetting.Key);
 
                         return new Platform
                         {
@@ -370,8 +293,6 @@ namespace UltimateEnd.ViewModels
                     }
                     catch
                     {
-                        Interlocked.Increment(ref processed);
-                        UpdateLoadingProgressIfNeeded(processed, total, platformSetting.Key);
                         return (Platform?)null;
                     }
                 }).ToArray();
@@ -400,22 +321,6 @@ namespace UltimateEnd.ViewModels
 
                 return groupedPlatforms;
             });
-        }
-
-        private void UpdateLoadingProgressIfNeeded(int current, int total, string platformKey)
-        {
-            if (!_useLoadingOverlay) return;
-
-            var progress = (int)((current / (double)total) * 100);
-
-            if (current % 2 == 0)
-            {
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    LoadingProgress = progress;
-                    LoadingStatus = platformKey;
-                });
-            }
         }
 
         #endregion

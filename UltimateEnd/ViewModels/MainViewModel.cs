@@ -38,7 +38,6 @@ namespace UltimateEnd.ViewModels
 
             var settings = SettingsService.LoadSettings();
 
-            // ⭐ 앱 시작 시 모든 플랫폼 HasGames 캐시 미리 로드 (백그라운드)
             if (settings.PlatformSettings != null && settings.PlatformSettings.Count > 0)
             {
                 var platformKeys = settings.PlatformSettings.Keys.ToList();
@@ -145,8 +144,6 @@ namespace UltimateEnd.ViewModels
                     if (index >= 0) _platformListViewModel.SelectedIndex = index;
                 }
             }
-
-            _platformListViewModel.IsLoadingPlatforms = false;
 
             CurrentView = _platformListViewModel!;
 

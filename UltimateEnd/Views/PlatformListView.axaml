@@ -219,46 +219,6 @@
 			<overlays:GenreEditorOverlay Name="GenreEditorOverlay" IsVisible="False" DataContext="{Binding}"/>
 		</Grid>
 
-		<!-- 로딩 오버레이 -->
-		<Border Name="LoadingOverlay"
-				IsVisible="{Binding IsLoadingPlatforms}"
-				Background="{DynamicResource Background.Card}"
-				ZIndex="999">
-			<StackPanel HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Spacing="20"
-						MaxWidth="600"
-						Margin="20">
-				<TextBlock Text="플랫폼 불러오는 중..."
-						   FontSize="{Binding #PlatformListViewRoot.LoadingFontSize}"
-						   FontWeight="SemiBold"
-						   Foreground="White"
-						   HorizontalAlignment="Center"/>
-
-				<Border Background="#222222"
-						CornerRadius="8"
-						Padding="4">
-					<ProgressBar Value="{Binding LoadingProgress}"
-								 Maximum="100"
-								 Height="12"
-								 Background="Transparent"
-								 Foreground="#0078D4"
-								 CornerRadius="6">
-						<ProgressBar.Transitions>
-							<Transitions>
-								<DoubleTransition Property="Value" Duration="0:0:0.3" Easing="CubicEaseOut"/>
-							</Transitions>
-						</ProgressBar.Transitions>
-					</ProgressBar>
-				</Border>
-
-				<TextBlock Text="{Binding LoadingStatus}"
-						   FontSize="{Binding #PlatformListViewRoot.LoadingSubFontSize}"
-						   Foreground="#AAAAAA"
-						   TextTrimming="CharacterEllipsis"
-						   HorizontalAlignment="Center"/>
-			</StackPanel>
-		</Border>
 
 		<!-- 테마 로딩 오버레이 -->
 		<Border Name="ThemeLoadingOverlay"

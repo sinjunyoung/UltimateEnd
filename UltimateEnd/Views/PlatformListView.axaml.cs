@@ -148,22 +148,6 @@ namespace UltimateEnd.Views
             if (e.PropertyName == nameof(PlatformListViewModel.SelectedIndex) && _isInitialized && ViewModel != null && !ViewModel.IsMenuFocused)
                 _carouselManager?.UpdateCardStylesAndScroll(ViewModel);
 
-            if (e.PropertyName == nameof(PlatformListViewModel.IsLoadingPlatforms))
-            {
-                if (ViewModel != null && !ViewModel.IsLoadingPlatforms)
-                {
-                    Dispatcher.UIThread.Post(async () =>
-                    {
-                        await Task.Delay(200);
-
-                        _carouselManager?.ClearCache();
-
-                        if (_isInitialized) _carouselManager?.UpdateCardStylesAndScroll(ViewModel);
-
-                    }, DispatcherPriority.Background);
-                }
-            }
-
             if (e.PropertyName == nameof(PlatformListViewModel.TriggerScrollFix))
                 if (PlatformItemsControl != null) Dispatcher.UIThread.Post(() => PlatformItemsControl.InvalidateMeasure(), DispatcherPriority.Background);
         }
@@ -302,13 +286,13 @@ namespace UltimateEnd.Views
 
         private async void ShowThemeLoadingAndApply(ThemeOption theme)
         {
-            LoadingOverlay.IsVisible = true;
+            ThemeLoadingOverlay.IsVisible = true;
 
             await Task.Delay(100);
             await Task.Run(() => Dispatcher.UIThread.Invoke(() => PlatformListViewModel.SelectTheme(theme)));
             await Task.Delay(150);
 
-            LoadingOverlay.IsVisible = false;
+            ThemeLoadingOverlay.IsVisible = false;
             SettingsOverlay.Hide(HiddenState.Silent);
         }
 
