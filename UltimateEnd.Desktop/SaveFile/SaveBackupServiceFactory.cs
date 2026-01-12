@@ -14,6 +14,7 @@ namespace UltimateEnd.Desktop.SaveFile
             var sudachi = new SwitchSaveBackupService(_driveService, command);
             var yuzu = new SwitchSaveBackupService(_driveService, command, "yuzu");
             var dolphin = new DolphinSaveBackupService(_driveService, command);
+            var cemu = new CemuSaveBackupService(_driveService, command);
 
             return command.Id switch
             {
@@ -21,6 +22,7 @@ namespace UltimateEnd.Desktop.SaveFile
                 "sudachi" => sudachi,
                 "yuzu" => yuzu,
                 "dolphin" => dolphin,
+                "cemu" => cemu,
                 _ => null,
             };
         }
@@ -35,6 +37,7 @@ namespace UltimateEnd.Desktop.SaveFile
                 "sudachi" => true,
                 "yuzu" => true,
                 "dolphin" => true,
+                "cemu" => true,
                 _ => false,
             };
         }

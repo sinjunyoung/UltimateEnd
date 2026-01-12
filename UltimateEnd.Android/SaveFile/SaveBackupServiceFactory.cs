@@ -22,6 +22,7 @@ namespace UltimateEnd.Android.SaveFile
             var citron = new SwitchSaveBackupService(_driveService, command, "org.citron.citron_emu");
             var dolphin = new DolphinSaveBackupService(_driveService, command);
             var dolphinmmjr2 = new DolphinSaveBackupService(_driveService, command, "/storage/emulated/0/mmjr2-vbi");
+            var cemu = new CemuSaveBackupService(_driveService, command);
 
             return command.Id switch
             {
@@ -36,6 +37,7 @@ namespace UltimateEnd.Android.SaveFile
                 "citron" => citron,
                 "dolphin" => dolphin,
                 "dolphinmmjr2" => dolphinmmjr2,
+                "cemu" => cemu,
                 _ => null,
             };
         }
@@ -57,6 +59,7 @@ namespace UltimateEnd.Android.SaveFile
                 "citron" => true,
                 "dolphin" => true,
                 "dolphinmmjr2" => true,
+                "cemu" => true,
                 _ => false,
             };
         }

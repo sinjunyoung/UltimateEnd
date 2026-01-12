@@ -5,7 +5,7 @@ using UltimateEnd.Services;
 
 namespace UltimateEnd.Desktop.SaveFile
 {
-    public class SwitchSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command, string? emulatorNameOrPath = null) : UltimateEnd.SaveFile.Switch.SaveBackupServiceBase(driveService, command)
+    public class CemuSaveBackupService(GoogleDriveService driveService, IEmulatorCommand command, string? emulatorNameOrPath = null) : UltimateEnd.SaveFile.Cemu.SaveBackupServiceBase(driveService, command)
     {
         private readonly string? _emulatorNameOrPath = emulatorNameOrPath;
 
@@ -18,25 +18,11 @@ namespace UltimateEnd.Desktop.SaveFile
                 if (!string.IsNullOrEmpty(path) && IsValidPath(path)) return path;
             }
 
-            var defaultPath = GetDefaultSudachiPath();
+            var defaultPath = GetDefaultCemuPath();
 
             if (!string.IsNullOrEmpty(defaultPath) && IsValidPath(defaultPath)) return defaultPath;
 
             throw new InvalidOperationException("에뮬레이터 경로를 찾을 수 없습니다.");
-        }
-
-        protected override string? GetProKeysPath()
-        {
-            try
-            {
-                var basePath = GetBasePath(_command);
-
-                return Path.Combine(basePath, "keys", "prod.keys");
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private static string? ResolveEmulatorPath(string nameOrPath)
@@ -55,14 +41,14 @@ namespace UltimateEnd.Desktop.SaveFile
             }
         }
 
-        private static string? GetDefaultSudachiPath()
+        private static string? GetDefaultCemuPath()
         {
             try
             {
                 var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var sudachiPath = Path.Combine(roaming, "sudachi");
+                var cemuPath = Path.Combine(roaming, "Cemu");
 
-                if (Directory.Exists(sudachiPath)) return sudachiPath;
+                if (Directory.Exists(cemuPath)) return cemuPath;
 
                 return null;
             }
@@ -78,7 +64,7 @@ namespace UltimateEnd.Desktop.SaveFile
 
             try
             {
-                var savePath = Path.Combine(path, "nand", "user", "save");
+                var savePath = Path.Combine(path, "mlc01", "usr", "save");
 
                 return Directory.Exists(savePath);
             }

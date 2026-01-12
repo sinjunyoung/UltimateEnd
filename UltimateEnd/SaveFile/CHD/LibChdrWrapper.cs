@@ -30,7 +30,7 @@ namespace UltimateEnd.SaveFile.CHD
             return result;
         }
 
-        public string GetCompressionName(uint compression)
+        public static string GetCompressionName(uint compression)
         {
             return compression switch
             {
@@ -60,7 +60,7 @@ namespace UltimateEnd.SaveFile.CHD
         public string[] GetCompressionMethods()
         {
             if (!Header.HasValue)
-                return Array.Empty<string>();
+                return [];
 
             var methods = new System.Collections.Generic.List<string>();
             var header = Header.Value;
@@ -74,7 +74,7 @@ namespace UltimateEnd.SaveFile.CHD
             if (header.compression3 != 0)
                 methods.Add(LibChdr.GetCodecName(header.compression3));
 
-            return methods.ToArray();
+            return [.. methods];
         }
 
         public byte[] ReadHunk(uint hunkIndex)
