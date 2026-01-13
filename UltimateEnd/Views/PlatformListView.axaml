@@ -218,6 +218,18 @@
 					   Margin="{Binding #PlatformListViewRoot.DateMargin}"/>
 		</StackPanel>
 
+		<!-- 버전 - 오버레이 (추가) -->
+		<StackPanel ZIndex="100"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Bottom"
+					Opacity="0.8"
+					Margin="{Binding #PlatformListViewRoot.VersionMargin}">
+			<TextBlock x:Name="VersionText"
+					   FontSize="{Binding #PlatformListViewRoot.DateFontSize}"
+					   Foreground="{DynamicResource Text.Primary}"
+					   TextAlignment="Left"/>
+		</StackPanel>
+		
 		<!-- 오버레이들 -->
 		<Grid ZIndex="1000">
 			<overlays:PlatformSettingsOverlay Name="SettingsOverlay" IsVisible="False" DataContext="{Binding}"/>

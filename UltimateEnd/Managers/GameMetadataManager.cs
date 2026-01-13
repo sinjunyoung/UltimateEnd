@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UltimateEnd.Models;
-using UltimateEnd.Services;
 
 namespace UltimateEnd.Managers
 {
@@ -17,7 +17,7 @@ namespace UltimateEnd.Managers
         public static readonly string[] SpecialPlatforms = [AllGamesKey, FavoritesKey, HistoriesKey];
 
         private readonly HashSet<string> _changedPlatforms = [];
-        private readonly object _lockObject = new();
+        private readonly Lock _lockObject = new();
 
         public static bool IsSpecialPlatform(string id) => SpecialPlatforms.Contains(id) || PlaylistManager.IsPlaylistPlatformId(id);
 

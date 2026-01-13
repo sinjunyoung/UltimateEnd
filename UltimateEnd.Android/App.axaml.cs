@@ -39,7 +39,7 @@ public partial class App : Application
         PathConverterFactory.Create = () => new PathConverter(AndroidApplication.AppContext);
         PathResolverFactory.Create = () => new PathResolver(AndroidApplication.AppContext);
         PathValidatorFactory.Create = () => new PathValidator();
-        PlatformServiceFactory.Create = () => new PlatformService();
+        PlatformServiceFactory.Create = () => new PlatformService(AndroidApplication.AppContext);
         PlatformStorageInfoFactory.Create = () => new PlatformStorageInfo(AndroidApplication.AppContext);
         SaveBackupServiceFactoryProvider.Register(driveService => new SaveBackupServiceFactory(driveService));
         SoundPlayerFactory.Create = () => new SoundPlayer();

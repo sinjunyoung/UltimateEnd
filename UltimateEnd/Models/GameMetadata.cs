@@ -131,6 +131,9 @@ namespace UltimateEnd.Models
             set => this.RaiseAndSetIfChanged(ref _emulatorId, value);
         }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? SubFolder { get; set; }
+
         #endregion
 
         #region Public Properties - Media Paths
@@ -469,6 +472,7 @@ namespace UltimateEnd.Models
 
         public void CopyTo(GameMetadata target)
         {
+            target.SubFolder = this.SubFolder;
             target.CoverImagePath = this.CoverImagePath;
             target.LogoImagePath = this.LogoImagePath;
             target.VideoPath = this.VideoPath;
@@ -485,6 +489,12 @@ namespace UltimateEnd.Models
         public bool MergeFrom(GameMetadata source)
         {
             bool hasChanges = false;
+
+            if (!string.IsNullOrEmpty(source.SubFolder) && this.SubFolder != source.SubFolder)
+            {
+                this.SubFolder = source.SubFolder;
+                hasChanges = true;
+            }
 
             if (!string.IsNullOrEmpty(source.CoverImagePath) && this.CoverImagePath != source.CoverImagePath)
             {
@@ -559,6 +569,7 @@ namespace UltimateEnd.Models
         {
             var clone = new GameMetadata
             {
+                SubFolder = this.SubFolder,
                 PlatformId = this.PlatformId,
                 RomFile = this.RomFile,
 

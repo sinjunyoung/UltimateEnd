@@ -5,7 +5,6 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using System;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
 using UltimateEnd.Views.Overlays;

@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
@@ -53,6 +52,9 @@ namespace UltimateEnd.Views
         public PlatformListView()
         {
             InitializeComponent();
+
+            var ver = PlatformServiceFactory.Create?.Invoke();
+            VersionText.Text = $"{ver.GetAppName()} Ver {ver.GetAppVersion()}";
 
             Focusable = true;
             Background = Brushes.Transparent;
@@ -620,6 +622,7 @@ namespace UltimateEnd.Views
             }
             else if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonA, GamepadButton.Start))
             {
+                _ = WavSounds.OK();
                 ViewModel.SelectCurrentPlatform();
                 return true;
             }

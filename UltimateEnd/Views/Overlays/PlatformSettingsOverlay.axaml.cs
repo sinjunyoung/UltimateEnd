@@ -35,7 +35,10 @@ namespace UltimateEnd.Views.Overlays
         public PlatformSettingsOverlay()
         {
             InitializeComponent();
-            VersionText.Text = $"UltimateEnd Ver {PlatformServiceFactory.Create?.Invoke().GetAppVersion()}";
+
+            var ver = PlatformServiceFactory.Create?.Invoke();
+            VersionText.Text = $"{ver.GetAppName()} Ver {ver.GetAppVersion()}";
+
             this.IsVisible = false;
             InitializeMenuActions();
         }

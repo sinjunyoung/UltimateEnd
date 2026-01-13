@@ -12,5 +12,12 @@ namespace UltimateEnd.Desktop.Services
 
             return $"{version.Major}.{version.Minor}.{version.Build}";
         }
+
+        public string GetAppName()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            return assembly.GetName().Name ?? "UltimateEnd";
+        }
     }
 }

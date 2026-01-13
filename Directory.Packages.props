@@ -27,6 +27,7 @@
     <PackageVersion Include="Ryujinx.LibHac" Version="0.20.0" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
     <PackageVersion Include="SharpDX.DirectInput" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.XAudio2" Version="4.2.0" />
     <PackageVersion Include="Silk.NET.OpenAL" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.OpenAL.Extensions.Creative" Version="2.22.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.10.196-beta" />

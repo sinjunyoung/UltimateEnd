@@ -41,7 +41,7 @@
         <PackageReference Include="Avalonia.Diagnostics">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-    </PackageReference><PackageReference Include="DirectShowLib" />
+    </PackageReference><PackageReference Include="DirectShowLib" /><PackageReference Include="NAudio" />
     <PackageReference Include="SharpDX" />
     <PackageReference Include="SharpDX.DirectInput" />
     <PackageReference Include="System.Drawing.Common" />

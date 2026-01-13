@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,9 +13,9 @@ namespace UltimateEnd.Managers
     {
         private const int HistoryMaxCount = 200;
         private static AllGamesManager? _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
         private readonly Dictionary<string, GameMetadata> _allGames = [];
-        private readonly object _gamesLock = new();
+        private readonly Lock _gamesLock = new();
         private bool _isLoaded = false;
         private CancellationTokenSource? _fetchCancellationTokenSource;
         private bool _disposed;
@@ -59,19 +58,17 @@ namespace UltimateEnd.Managers
                 {
                     var compositeKey = platform.Key;
                     var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-
-                    MetadataService.ScanRomsFolder(realPath);
-
-                    var games = MetadataService.LoadMetadata(realPath);                    
                     var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.NormalizePlatformId(platform.Value.Name);
 
-                    foreach (var game in games)
-                    {
-                        game.PlatformId = actualPlatformId;
-                        game.SetBasePath(realPath);
+                    LoadGamesFromFolder(realPath, actualPlatformId, compositeKey, null);
 
-                        var key = GetGameKey(compositeKey, game.RomFile);
-                        _allGames[key] = game;
+                    if (Directory.Exists(realPath))
+                    {
+                        foreach (var subDir in Directory.GetDirectories(realPath))
+                        {
+                            var subFolderName = Path.GetFileName(subDir);
+                            LoadGamesFromFolder(subDir, actualPlatformId, compositeKey, subFolderName);
+                        }
                     }
                 }
 
@@ -90,6 +87,22 @@ namespace UltimateEnd.Managers
             }
         }
 
+        private void LoadGamesFromFolder(string folderPath, string platformId, string compositeKey, string? subFolder)
+        {
+            MetadataService.ScanRomsFolder(folderPath);
+            var games = MetadataService.LoadMetadata(folderPath);
+
+            foreach (var game in games)
+            {
+                game.PlatformId = platformId;
+                game.SubFolder = subFolder;
+                game.SetBasePath(folderPath);
+
+                var key = GetGameKey(compositeKey, subFolder, game.RomFile);
+                _allGames[key] = game;
+            }
+        }
+
         private void LoadNativeApps(string systemAppsPath, string platformId)
         {
             try
@@ -105,7 +118,7 @@ namespace UltimateEnd.Managers
                 {
                     game.PlatformId = platformId;
                     game.SetBasePath(Path.Combine(realSystemAppsPath, platformId));
-                    var key = GetGameKey(platformId, game.RomFile);
+                    var key = GetGameKey(platformId, game.SubFolder,game.RomFile);
                     _allGames[key] = game;
                 }
             }
@@ -139,14 +152,14 @@ namespace UltimateEnd.Managers
 
                     if (metadataDict != null && metadataDict.TryGetValue(game.RomFile, out var savedGame))
                     {
-                        var key = GetGameKey(GameMetadataManager.SteamKey, game.RomFile);
+                        var key = GetGameKey(GameMetadataManager.SteamKey, game.SubFolder, game.RomFile);
                         _allGames[key] = savedGame;
                     }
                     else
                     {
                         metadataService.TryLoadFromCache(appId, game);
 
-                        var key = GetGameKey(GameMetadataManager.SteamKey, game.RomFile);
+                        var key = GetGameKey(GameMetadataManager.SteamKey, game.SubFolder, game.RomFile);
                         _allGames[key] = game;
 
                         gamesToFetch.Add((appId, game));
@@ -291,7 +304,7 @@ namespace UltimateEnd.Managers
 
             lock (_gamesLock)
             {
-                var key = GetGameKey(game.GetBasePath(), game.RomFile);
+                var key = GetGameKey(game.GetBasePath(), game.SubFolder, game.RomFile);
                 _allGames[key] = game;
             }
         }
@@ -304,7 +317,7 @@ namespace UltimateEnd.Managers
 
             lock (_gamesLock)
             {
-                var key = GetGameKey(game.GetBasePath(), game.RomFile);
+                var key = GetGameKey(game.GetBasePath(), game.SubFolder, game.RomFile);
 
                 if (_allGames.TryGetValue(key, out var existing)) game.CopyTo(existing);
             }
@@ -360,7 +373,7 @@ namespace UltimateEnd.Managers
 
                 foreach (var game in gamesToRemove)
                 {
-                    var key = GetGameKey(game.GetBasePath(), game.RomFile);
+                    var key = GetGameKey(game.GetBasePath(), game.SubFolder, game.RomFile);
                     _allGames.Remove(key);
                     game.Dispose();
                 }
@@ -387,7 +400,7 @@ namespace UltimateEnd.Managers
                             {
                                 game.PlatformId = actualPlatformId;
                                 game.SetBasePath(realPath);
-                                var key = GetGameKey(compositeKey, game.RomFile);
+                                var key = GetGameKey(compositeKey, game.SubFolder, game.RomFile);
                                 _allGames[key] = game;
                             }
                         }
@@ -436,7 +449,11 @@ namespace UltimateEnd.Managers
             }
         }
 
-        private static string GetGameKey(string platformId, string romFile) => $"{platformId}|{romFile}";
+        private static string GetGameKey(string platformId, string? subFolder, string romFile)
+        {
+            var subFolderPart = string.IsNullOrEmpty(subFolder) ? "" : subFolder;
+            return $"{platformId}|{subFolderPart}|{romFile}";
+        }
 
         public void Dispose()
         {

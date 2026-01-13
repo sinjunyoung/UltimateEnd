@@ -171,6 +171,8 @@ namespace UltimateEnd.Services
     public interface IPlatformService
     {
         string GetAppVersion();
+
+        string GetAppName();
     }
 
     public interface IPlatformStorageInfo

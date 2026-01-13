@@ -1,17 +1,14 @@
 ﻿using Avalonia.Input;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Utils;
 
-namespace UltimateEnd.Helpers
+namespace UltimateEnd.Utils
 {
     public static class KeySoundHelper
     {
         public static async Task PlaySoundForKey(Key key)
         {
-            if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonA, GamepadButton.Start))
-                await WavSounds.OK();
-            else if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonB, GamepadButton.Select))
+            if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonB, GamepadButton.Select))
                 await WavSounds.Cancel();
             else if (InputManager.IsAnyButtonPressed(key,
                 GamepadButton.DPadUp,

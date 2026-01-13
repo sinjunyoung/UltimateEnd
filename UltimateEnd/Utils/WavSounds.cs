@@ -10,10 +10,14 @@ namespace UltimateEnd.Utils
     {
         public const int MillisecondsPerSecond = 1000;
         private static IAssetPathProvider? _pathProvider;
-        private static ISoundPlayer? _currentPlayer;
+        private static ISoundPlayer? _sharedPlayer;
         private static readonly Dictionary<string, int> _durationCache = [];
 
-        public static void Initialize(IAssetPathProvider pathProvider) => _pathProvider = pathProvider;
+        public static void Initialize(IAssetPathProvider pathProvider)
+        {
+            _pathProvider = pathProvider;
+            _sharedPlayer = SoundPlayerFactory.Create();
+        }
 
         public static class Durations
         {
@@ -56,14 +60,14 @@ namespace UltimateEnd.Utils
 
         public static async Task PlaySound(string fileName)
         {
-            if (_pathProvider == null)
-                throw new InvalidOperationException("WavSounds가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
+            if (_pathProvider == null) throw new InvalidOperationException("WavSounds가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
+
+            _sharedPlayer ??= SoundPlayerFactory.Create();
 
             try
             {
                 string soundPath = _pathProvider.GetAssetPath("Sounds", fileName);
-                _currentPlayer = SoundPlayerFactory.Create();
-                await _currentPlayer.PlayAsync(soundPath);
+                await _sharedPlayer.PlayAsync(soundPath);
             }
             catch { }
         }
@@ -76,29 +80,29 @@ namespace UltimateEnd.Utils
 
         private static int GetCachedDuration(string fileName)
         {
-            if (_durationCache.TryGetValue(fileName, out int duration))
-                return duration;
+            if (_durationCache.TryGetValue(fileName, out int duration)) return duration;
 
             duration = GetWavDuration(fileName);
             _durationCache[fileName] = duration;
+
             return duration;
         }
 
         public static int GetWavDuration(string fileName)
         {
-            if (_pathProvider == null)
-                return MillisecondsPerSecond;
+            if (_pathProvider == null) return MillisecondsPerSecond;
 
             try
             {
                 string filePath = _pathProvider.GetAssetPath("Sounds", fileName);
                 using var reader = new BinaryReader(File.OpenRead(filePath));
-
                 string riff = new(reader.ReadChars(4));
+
                 if (riff != "RIFF") return MillisecondsPerSecond;
 
                 reader.ReadInt32();
                 string wave = new(reader.ReadChars(4));
+
                 if (wave != "WAVE") return MillisecondsPerSecond;
 
                 string fmt = new(reader.ReadChars(4));
@@ -110,8 +114,7 @@ namespace UltimateEnd.Utils
                 int blockAlign = reader.ReadInt16();
                 int bitsPerSample = reader.ReadInt16();
 
-                if (fmtSize > 16)
-                    reader.BaseStream.Seek(fmtSize - 16, SeekOrigin.Current);
+                if (fmtSize > 16) reader.BaseStream.Seek(fmtSize - 16, SeekOrigin.Current);
 
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
@@ -121,6 +124,7 @@ namespace UltimateEnd.Utils
                     if (chunkId == "data")
                     {
                         double durationSeconds = (double)chunkSize / byteRate;
+
                         return (int)(durationSeconds * MillisecondsPerSecond);
                     }
                     else

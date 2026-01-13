@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
-using UltimateEnd.Helpers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;

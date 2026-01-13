@@ -51,6 +51,8 @@ namespace UltimateEnd.Views
 
         public static readonly StyledProperty<Thickness> ClockMarginProperty = AvaloniaProperty.Register<PlatformListView, Thickness>(nameof(ClockMargin), new Thickness(0, 0, 40, 30));
 
+        public static readonly StyledProperty<Thickness> VersionMarginProperty = AvaloniaProperty.Register<PlatformListView, Thickness>(nameof(ClockMargin), new Thickness(40, 0, 0, 30));
+
         public static readonly StyledProperty<double> LoadingFontSizeProperty = AvaloniaProperty.Register<PlatformListView, double>(nameof(LoadingFontSize), 24);
 
         public static readonly StyledProperty<double> LoadingSubFontSizeProperty = AvaloniaProperty.Register<PlatformListView, double>(nameof(LoadingSubFontSize), 16);
