@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
@@ -27,8 +28,14 @@ namespace UltimateEnd.Services
             var gameId = GetGameId(fullPath);
             var platformPath = Path.GetDirectoryName(fullPath);
             var gameFileName = Path.GetFileName(fullPath);
+            var parentDir = Path.GetDirectoryName(fullPath);
+            var grandParentDir = Path.GetDirectoryName(parentDir);
+            string subFolder = null;
 
-            if (state == PlayState.Start) await HandleStart(gameId, platformPath, gameFileName);
+            if (parentDir != platformPath && Directory.Exists(grandParentDir))
+                subFolder = Path.GetFileName(parentDir);
+
+            if (state == PlayState.Start) await HandleStart(gameId, platformPath, gameFileName, subFolder);
             else if (state == PlayState.Stop) await HandleStop(gameId);
         }
 
@@ -151,9 +158,14 @@ namespace UltimateEnd.Services
 
                 syncDb.CreateTable<GamePlayHistory>();
 
-                if (validPlatformPaths == null || validPlatformPaths.Count == 0) return [.. syncDb.Table<GamePlayHistory>()];
+                if (validPlatformPaths == null || validPlatformPaths.Count == 0)
+                    return [.. syncDb.Table<GamePlayHistory>()];
 
-                return [.. syncDb.Table<GamePlayHistory>().Where(g => validPlatformPaths.Contains(g.Platform))];
+                var allHistory = syncDb.Table<GamePlayHistory>().ToList();
+
+                return [.. allHistory
+                    .Where(g => validPlatformPaths.Any(path =>
+                        g.Platform.StartsWith(path, StringComparison.OrdinalIgnoreCase)))];
             }
             catch
             {
@@ -217,7 +229,7 @@ namespace UltimateEnd.Services
 
         private static string GetGameId(string fullPath) => fullPath.Replace("\\", "/").ToLowerInvariant();
 
-        private async Task HandleStart(string gameId, string platformPath, string gameFileName)
+        private async Task HandleStart(string gameId, string platformPath, string gameFileName, string subFolder)
         {
             if (_currentGameId != null && _currentSessionStart.HasValue) await HandleStop(_currentGameId);
 
@@ -235,6 +247,7 @@ namespace UltimateEnd.Services
                     Id = gameId,
                     Platform = platformPath,
                     GameFileName = gameFileName,
+                    SubFolder = subFolder,
                     LastPlayedTime = _currentSessionStart,
                     TotalPlayTimeSeconds = 0,
                     IsPlaying = true,
@@ -246,6 +259,7 @@ namespace UltimateEnd.Services
                 existing.IsPlaying = true;
                 existing.CurrentSessionStart = _currentSessionStart;
                 existing.LastPlayedTime = _currentSessionStart.Value;
+                existing.SubFolder = subFolder;
                 await _database.UpdateAsync(existing);
             }
         }

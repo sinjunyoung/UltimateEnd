@@ -13,6 +13,8 @@ namespace UltimateEnd.Models
 
         public string GameFileName { get; set; }
 
+        public string SubFolder { get; set; }
+
         public DateTime? LastPlayedTime { get; set; }
 
         public long TotalPlayTimeSeconds { get; set; }

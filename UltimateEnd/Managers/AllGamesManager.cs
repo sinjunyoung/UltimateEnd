@@ -451,7 +451,7 @@ namespace UltimateEnd.Managers
 
         private static string GetGameKey(string platformId, string? subFolder, string romFile)
         {
-            var subFolderPart = string.IsNullOrEmpty(subFolder) ? "" : subFolder;
+            var subFolderPart = string.IsNullOrEmpty(subFolder) ? string.Empty : subFolder;
             return $"{platformId}|{subFolderPart}|{romFile}";
         }
 

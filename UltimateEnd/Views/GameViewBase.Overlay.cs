@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Threading;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -554,7 +555,17 @@ namespace UltimateEnd.Views
         {
             await WavSounds.Click();
             if (ViewModel?.ContextMenuTargetGame != null)
+            {
                 ViewModel.RequestSave();
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ViewModel.BuildDisplayItems();
+
+                    if (ViewModel.DisplayItems.Count > 0)
+                        ViewModel.SelectedItem = ViewModel.DisplayItems[0];
+                }, DispatcherPriority.Background);
+            }
         }
 
         private void OnContextMenu_ScrapStarting(object? sender, EventArgs e)
