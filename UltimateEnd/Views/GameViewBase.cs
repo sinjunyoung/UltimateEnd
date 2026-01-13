@@ -98,7 +98,9 @@ namespace UltimateEnd.Views
         protected async override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
+            
             if (ViewModel == null) return;
+
             if (SearchBoxBase.IsFocused) return;
 
             if (await HandleCommonKeyInput(e))
@@ -162,19 +164,32 @@ namespace UltimateEnd.Views
 
             if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
             {
-                if (ViewModel?.SelectedGame != null)
-                    await ViewModel.LaunchGameAsync(ViewModel.SelectedGame);
+                if (ViewModel?.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing)
+                    return false;
+
+                if (ViewModel?.SelectedItem != null)
+                {
+                    if (ViewModel.SelectedItem.IsFolder)
+                    {
+                        await WavSounds.OK();
+                        ViewModel.EnterFolder(ViewModel.SelectedItem.SubFolder!);
+                    }
+                    else if (ViewModel.SelectedItem.IsGame)
+                    {
+                        await ViewModel.LaunchGameAsync(ViewModel.SelectedItem.Game!);
+                    }
+                }
                 e.Handled = true;
                 return true;
             }
 
             if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonY))
             {
-                if (ViewModel?.SelectedGame != null)
+                if (ViewModel?.SelectedItem?.IsGame == true)
                 {
-                    ViewModel.SelectedGame.IsFavorite = !ViewModel.SelectedGame.IsFavorite;
+                    ViewModel.SelectedItem.Game!.IsFavorite = !ViewModel.SelectedItem.Game.IsFavorite;
                     ViewModel.RequestSave();
-                    ViewModel.OnFavoritesChanged(ViewModel?.SelectedGame);
+                    ViewModel.OnFavoritesChanged(ViewModel.SelectedItem.Game);
                 }
                 e.Handled = true;
                 return true;

@@ -117,14 +117,14 @@ namespace UltimateEnd.Utils
 
             if (!string.IsNullOrEmpty(primaryStorage))
             {
-                var internalAliases = new[]
-                {
+                List<string> internalAliases =
+                    [
                     "/sdcard/",
                     "/mnt/sdcard/",
                     "/storage/sdcard0/",
                     "/storage/emulated/legacy/",
                     "/data/media/0/"
-                };
+                    ];
 
                 foreach (var alias in internalAliases)
                 {
@@ -137,20 +137,21 @@ namespace UltimateEnd.Utils
             }
 
             var externalSdCard = _storageInfo?.GetExternalSdCardPath();
+
             if (!string.IsNullOrEmpty(externalSdCard))
             {
-                var externalAliases = new[]
-                {
+                List<string> externalAliases =
+                    [
                     "/mnt/extSdCard/",
                     "/mnt/external_sd/",
                     "/storage/sdcard1/"
-                };
+                    ];
 
                 foreach (var alias in externalAliases)
                 {
                     if (path.StartsWith(alias, StringComparison.OrdinalIgnoreCase))
                     {
-                        path = externalSdCard + "/" + path.Substring(alias.Length);
+                        path = string.Concat(externalSdCard, "/", path.AsSpan(alias.Length));
                         break;
                     }
                 }
@@ -158,7 +159,20 @@ namespace UltimateEnd.Utils
 
             try
             {
-                path = path.Replace("//", "/").Replace("\\\\", "\\");
+                bool isUncPath = new Uri(path).IsUnc;
+
+                path = path.Replace("//", "/");
+
+                if (!isUncPath)
+                {
+                    path = path.Replace("\\\\", "\\");
+                }
+
+                if (isUncPath || Path.IsPathRooted(path))
+                {
+                    return path;
+                }
+
                 path = Path.GetFullPath(path);
             }
             catch

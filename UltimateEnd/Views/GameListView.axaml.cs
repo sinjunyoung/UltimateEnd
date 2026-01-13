@@ -171,10 +171,9 @@ namespace UltimateEnd.Views
             switch (e.Key)
             {
                 case Key.F2:
-                    if (ViewModel.SelectedGame != null)
-                        GameListViewModel.RenameGame(ViewModel.SelectedGame);
+                    if (ViewModel.SelectedItem?.IsGame == true)
+                        GameListViewModel.RenameGame(ViewModel.SelectedItem.Game!);
                     e.Handled = true;
-
                     break;
             }
         }
@@ -295,13 +294,17 @@ namespace UltimateEnd.Views
         protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
         {
             if (ViewModel == null) return;
+            if (ViewModel.DisplayItems.Count == 0) return;
 
-            if (ViewModel.Games.Count == 0 || ViewModel.SelectedGame?.IsEditing == true) return;
+            if (GameRenameOverlay?.Visible == true) return;
+
+            if (ViewModel.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return;
 
             await KeySoundHelper.PlaySoundForKeyEvent(e);
 
-            int count = ViewModel.Games.Count;
-            int currentIndex = ViewModel.Games.IndexOf(ViewModel.SelectedGame);
+            int count = ViewModel.DisplayItems.Count;
+
+            int currentIndex = ViewModel.SelectedItem != null ? ViewModel.DisplayItems.IndexOf(ViewModel.SelectedItem) : 0;
 
             if (currentIndex < 0)
                 currentIndex = 0;
@@ -318,7 +321,6 @@ namespace UltimateEnd.Views
                     newIndex = count - 1;
                     isCircular = true;
                 }
-
                 e.Handled = true;
             }
             else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
@@ -330,7 +332,6 @@ namespace UltimateEnd.Views
                     newIndex = 0;
                     isCircular = true;
                 }
-
                 e.Handled = true;
             }
             else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
@@ -338,7 +339,6 @@ namespace UltimateEnd.Views
                 ViewModel?.GoToPreviousPlatform();
                 ResetScrollToTop();
                 e.Handled = true;
-
                 return;
             }
             else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
@@ -346,7 +346,6 @@ namespace UltimateEnd.Views
                 ViewModel?.GoToNextPlatform();
                 ResetScrollToTop();
                 e.Handled = true;
-
                 return;
             }
             else if (InputManager.IsButtonPressed(e.Key, GamepadButton.RightBumper))
@@ -376,13 +375,14 @@ namespace UltimateEnd.Views
 
             if (newIndex >= 0 && newIndex < count && newIndex != currentIndex)
             {
-                ViewModel.SelectedGame = ViewModel.Games[newIndex];
+                ViewModel.SelectedItem = ViewModel.DisplayItems[newIndex];
 
                 if (isCircular)
                     ScrollToIndex(newIndex);
-                else
-                    ScrollToItem(ViewModel.SelectedGame);
+                else if (ViewModel.SelectedItem?.IsGame == true)
+                    ScrollToItem(ViewModel.SelectedItem.Game!);
             }
+
             Dispatcher.UIThread.Post(() => GameScrollViewer.Focus(), DispatcherPriority.Input);
         }
 
@@ -421,32 +421,47 @@ namespace UltimateEnd.Views
             {
                 e.Handled = true;
 
-                if (sender is TextBox textBox && textBox.DataContext is GameMetadata gameMetadata)
+                if (sender is TextBox textBox)
                 {
-                    GameListViewModel.FinishRename(gameMetadata);
-                    GameScrollViewerFocusLoaded();
+                    var border = textBox.FindAncestorOfType<Border>();
+
+                    if (border?.DataContext is FolderItem item && item.IsGame)
+                    {
+                        GameListViewModel.FinishRename(item.Game!);
+                        GameScrollViewerFocusLoaded();
+                    }
                 }
             }
             else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
             {
                 e.Handled = true;
 
-                if (sender is TextBox textBox && textBox.DataContext is GameMetadata gameMetadata)
+                if (sender is TextBox textBox)
                 {
-                    gameMetadata.IsEditing = false;
-                    GameScrollViewerFocusLoaded();
+                    var border = textBox.FindAncestorOfType<Border>();
+
+                    if (border?.DataContext is FolderItem item && item.IsGame)
+                    {
+                        item.Game!.IsEditing = false;
+                        GameScrollViewerFocusLoaded();
+                    }
                 }
             }
         }
 
         private void OnRenameTextBoxLostFocus(object? sender, RoutedEventArgs e)
         {
-            if (sender is TextBox textBox && textBox.DataContext is GameMetadata gameMetadata)
+            if (sender is TextBox textBox)
             {
-                if (!gameMetadata.IsEditing) return;
+                var border = textBox.FindAncestorOfType<Border>();
 
-                GameListViewModel.FinishRename(gameMetadata);
-                GameScrollViewerFocusLoaded();
+                if (border?.DataContext is FolderItem item && item.IsGame)
+                {
+                    if (!item.Game!.IsEditing) return;
+
+                    GameListViewModel.FinishRename(item.Game);
+                    GameScrollViewerFocusLoaded();
+                }
             }
         }
 
@@ -592,5 +607,29 @@ namespace UltimateEnd.Views
         }
 
         #endregion
+
+        protected async void OnDisplayItemTapped(object? sender, TappedEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is FolderItem item)
+            {
+                await WavSounds.OK();
+                await ViewModel?.OnItemTapped(item);
+            }
+        }
+
+        protected void OnDisplayItemLongPress(object? sender, object item)
+        {
+            if (item is FolderItem folderItem && folderItem.IsGame)
+                _ = ShowGameContextMenu(folderItem.Game);
+        }
+
+        protected async void OnDisplayItemDoubleTapped(object? sender, RoutedEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is FolderItem item)
+            {
+                if (item.IsGame)
+                    await ViewModel?.LaunchGameAsync(item.Game);
+            }
+        }
     }
 }

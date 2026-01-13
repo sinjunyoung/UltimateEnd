@@ -445,27 +445,83 @@
 										  Name="GameScrollViewer"
 										  AllowAutoHide="True"
 										  Focusable="True">
+								
+								<!-- ItemsRepeater 부분만 수정 -->
 								<ItemsRepeater Name="GameItemsRepeater"
-											   ItemsSource="{Binding Games}"
+											   ItemsSource="{Binding DisplayItems}"
 											   Background="Transparent">
 									<ItemsRepeater.Layout>
 										<StackLayout Orientation="Vertical" Spacing="0"/>
 									</ItemsRepeater.Layout>
-										<ItemsRepeater.ItemTemplate>
-											<DataTemplate>
-												<Border CornerRadius="{StaticResource CornerRadius.Small}"
-														Cursor="Hand"
-														BorderThickness="0"
-														Padding="{StaticResource Padding.ListItem}"
-														Margin="{StaticResource Margin.ListItem}"
-														Name="GameItemBorder"
-														Tapped="OnGameItemTapped"
-														behaviors:LongPressBehavior.IsEnabled="True"
-														behaviors:LongPressBehavior.Target="{Binding #RootControl}"
-														behaviors:LongPressBehavior.MethodName="OnGameItemLongPress"
-														DoubleTapped="OnGameItemDoubleTapped"
-														Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}}">
-													<Grid ColumnDefinitions="Auto,*,Auto">
+									<ItemsRepeater.ItemTemplate>
+										<DataTemplate>
+											<Border CornerRadius="{StaticResource CornerRadius.Small}"
+													Cursor="Hand"
+													BorderThickness="0"
+													Padding="{StaticResource Padding.ListItem}"
+													Margin="{StaticResource Margin.ListItem}"
+													Name="GameItemBorder"
+													Tapped="OnDisplayItemTapped"
+													behaviors:LongPressBehavior.IsEnabled="True"
+													behaviors:LongPressBehavior.Target="{Binding #RootControl}"
+													behaviors:LongPressBehavior.MethodName="OnDisplayItemLongPress"
+													DoubleTapped="OnDisplayItemDoubleTapped"
+													Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}}">
+												<Grid>
+													<!-- ⭐ 폴더 UI -->
+													<Grid ColumnDefinitions="Auto,*,Auto"
+														  IsVisible="{Binding IsFolder}">
+														<!-- 폴더 아이콘 -->
+														<Border Grid.Column="0"
+																Width="{StaticResource Size.LogoWidth}"
+																Height="{StaticResource Size.LogoHeight}"
+																CornerRadius="{StaticResource CornerRadius.Small}"
+																Margin="{StaticResource Margin.LogoRight}"
+																Background="{DynamicResource Background.Card}"
+																HorizontalAlignment="Stretch"
+																VerticalAlignment="Center">
+															<PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+																	  Width="40"
+																	  Height="40"
+																	  Foreground="{DynamicResource Accent.Blue}"
+																	  HorizontalAlignment="Center"
+																	  VerticalAlignment="Center"/>
+														</Border>
+
+														<!-- 폴더 정보 -->
+														<StackPanel Grid.Column="1"
+																	VerticalAlignment="Center"
+																	Spacing="5">
+															<TextBlock Text="{Binding Name}"
+																	   FontSize="{StaticResource FontSize.ListGameTitle}"
+																	   FontWeight="Bold"
+																	   Foreground="{DynamicResource Text.Primary}"/>
+															<TextBlock Text="{Binding GameCount, StringFormat='{}📁 {0}개의 게임'}"
+																	   FontSize="{StaticResource FontSize.ListTag}"
+																	   Foreground="{DynamicResource Text.Secondary}"/>
+														</StackPanel>
+
+														<!-- 화살표 아이콘 -->														
+														<Border Grid.Column="2"
+																Width="40"
+																Height="40"
+																VerticalAlignment="Center"
+																HorizontalAlignment="Center"
+																Cursor="Hand"
+																Background="Transparent">
+															<PathIcon Classes="AnimatedIcon"
+																	  Data="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+																	  Width="20"
+																	  Height="20"
+																	  Foreground="{DynamicResource Text.Secondary}"
+																	  HorizontalAlignment="Center"
+																	  VerticalAlignment="Center"/>
+														</Border>
+													</Grid>
+
+													<!-- ⭐ 게임 UI (기존 코드) -->
+													<Grid ColumnDefinitions="Auto,*,Auto"
+														  IsVisible="{Binding IsGame}">
 														<!-- 게임 로고 -->
 														<Border Grid.Column="0"
 																Width="{StaticResource Size.LogoWidth}"
@@ -479,18 +535,18 @@
 																<DynamicResource ResourceKey="Gradient.Background"/>
 															</Border.Background>
 															<Panel HorizontalAlignment="Stretch" VerticalAlignment="Center">
-																<Image Source="{Binding LogoImage}"
+																<Image Source="{Binding Game.LogoImage}"
 																	   Stretch="Uniform"
 																	   Margin="{StaticResource Padding.LogoImage}"
 																	   HorizontalAlignment="Center"
 																	   VerticalAlignment="Center"
 																	   RenderOptions.BitmapInterpolationMode="MediumQuality"
-																	   IsVisible="{Binding LogoImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+																	   IsVisible="{Binding Game.LogoImage, Converter={x:Static ObjectConverters.IsNotNull}}">
 																	<Image.Effect>
 																		<DropShadowEffect Color="White" BlurRadius="10" Opacity="0.3"/>
 																	</Image.Effect>
 																</Image>
-																<TextBlock Text="{Binding DisplayTitle}"
+																<TextBlock Text="{Binding Game.DisplayTitle}"
 																		   FontSize="{StaticResource FontSize.ListLogoFallback}"
 																		   FontWeight="Bold"
 																		   TextAlignment="Center"
@@ -498,7 +554,7 @@
 																		   VerticalAlignment="Center"
 																		   HorizontalAlignment="Center"
 																		   Margin="{StaticResource Padding.LogoText}"
-																		   IsVisible="{Binding LogoImage, Converter={x:Static ObjectConverters.IsNull}}">
+																		   IsVisible="{Binding Game.LogoImage, Converter={x:Static ObjectConverters.IsNull}}">
 																	<TextBlock.Foreground>
 																		<DynamicResource ResourceKey="Text.Primary"/>
 																	</TextBlock.Foreground>
@@ -521,18 +577,18 @@
 																<Grid HorizontalAlignment="Stretch">
 																	<Grid ColumnDefinitions="Auto,*"
 																		  HorizontalAlignment="Stretch"
-																		  IsVisible="{Binding !IsEditing}">
-																		
+																		  IsVisible="{Binding Game.IsEditing, Converter={x:Static BoolConverters.Not}}">
+
 																		<PathIcon Grid.Column="0"
 																				  Data="{StaticResource Icon.Favorite}"
 																				  Width="11"
 																				  Height="11"
 																				  Foreground="#FFD700"
 																				  VerticalAlignment="Center"
-																				  IsVisible="{Binding IsFavorite}"/>
-																		
+																				  IsVisible="{Binding Game.IsFavorite}"/>
+
 																		<TextBlock Grid.Column="1"
-																				   Text="{Binding DisplayTitle}"
+																				   Text="{Binding Game.DisplayTitle}"
 																				   ClipToBounds="True"
 																				   FontSize="{StaticResource FontSize.ListGameTitle}"
 																				   FontWeight="Bold"
@@ -543,8 +599,8 @@
 																	</Grid>
 																	<TextBox x:Name="RenameTextBox"
 																			 MinHeight="{Binding $parent[Grid].Bounds.Height}"
-																			 Text="{Binding TempTitle, Mode=TwoWay}"
-																			 IsVisible="{Binding IsEditing}"
+																			 Text="{Binding Game.TempTitle, Mode=TwoWay}"
+																			 IsVisible="{Binding Game.IsEditing}"
 																			 Focusable="True"
 																			 IsEnabled="True"
 																			 IsTabStop="True"
@@ -558,7 +614,7 @@
 																			 SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}"
 																			 Padding="3"
 																			 FontSize="{StaticResource FontSize.ListGameTitle}"
-																			 behaviors:FocusOnTrue.FocusOnTrue="{Binding IsEditing}"
+																			 behaviors:FocusOnTrue.FocusOnTrue="{Binding Game.IsEditing}"
 																			 KeyDown="OnRenameTextBoxKeyDown"
 																			 LostFocus="OnRenameTextBoxLostFocus">
 																		<Interaction.Behaviors>
@@ -576,11 +632,11 @@
 																			Padding="{StaticResource Padding.TagSmall}">
 																		<Border.IsVisible>
 																			<MultiBinding Converter="{StaticResource PlatformTagVisibilityConverter}">
-																				<Binding Path="PlatformId"/>
+																				<Binding Path="Game.PlatformId"/>
 																				<Binding Path="$parent[UserControl].DataContext.Platform.Id"/>
 																			</MultiBinding>
 																		</Border.IsVisible>
-																		<TextBlock Text="{Binding ShortPlatformId}"
+																		<TextBlock Text="{Binding Game.ShortPlatformId}"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
 																				   FontWeight="SemiBold"
@@ -591,8 +647,8 @@
 																	<Border Background="{DynamicResource Text.Secondary}"
 																			CornerRadius="{StaticResource CornerRadius.Tiny}"
 																			Padding="{StaticResource Padding.TagSmall}"
-																			IsVisible="{Binding Developer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-																		<TextBlock Text="{Binding Developer}"
+																			IsVisible="{Binding Game.Developer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+																		<TextBlock Text="{Binding Game.Developer}"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
 																				   FontWeight="SemiBold"
@@ -603,8 +659,8 @@
 																	<Border Background="{DynamicResource Accent.Red}"
 																			CornerRadius="{StaticResource CornerRadius.Tiny}"
 																			Padding="{StaticResource Padding.TagSmall}"
-																			IsVisible="{Binding Genre, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-																		<TextBlock Text="{Binding Genre}"
+																			IsVisible="{Binding Game.Genre, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+																		<TextBlock Text="{Binding Game.Genre}"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
 																				   FontWeight="SemiBold"
@@ -615,7 +671,7 @@
 																	<Border Background="{DynamicResource Accent.Green}"
 																			CornerRadius="{StaticResource CornerRadius.Tiny}"
 																			Padding="{StaticResource Padding.TagSmall}"
-																			IsVisible="{Binding HasKorean}">
+																			IsVisible="{Binding Game.HasKorean}">
 																		<TextBlock Text="한글"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
@@ -625,7 +681,7 @@
 															</StackPanel>
 														</Grid>
 
-														<!-- 메뉴 버튼 -->
+														<!-- 메뉴 버튼 (게임만) -->
 														<Border Grid.Column="2"
 																Width="40"
 																Height="40"
@@ -641,20 +697,14 @@
 																	  Foreground="{DynamicResource Text.Secondary}"
 																	  HorizontalAlignment="Center"
 																	  VerticalAlignment="Center"/>
-															<Border.Styles>
-																<Style Selector="Border:pointerover">
-																	<Setter Property="Background" Value="{DynamicResource Background.Hover}"/>
-																</Style>
-																<Style Selector="Border:pointerover PathIcon">
-																	<Setter Property="Foreground" Value="{DynamicResource Text.Primary}"/>
-																</Style>
-															</Border.Styles>
 														</Border>
 													</Grid>
-												</Border>
-											</DataTemplate>
-										</ItemsRepeater.ItemTemplate>
+												</Grid>
+											</Border>
+										</DataTemplate>
+									</ItemsRepeater.ItemTemplate>
 								</ItemsRepeater>
+								
 							</ScrollViewer>
 						</Grid>
 					</Border>

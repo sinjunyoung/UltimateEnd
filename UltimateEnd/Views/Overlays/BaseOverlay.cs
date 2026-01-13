@@ -45,6 +45,12 @@ namespace UltimateEnd.Views.Overlays
                 return;
             }
 
+            if (e.Source is TextBox)
+            {
+                base.OnKeyDown(e);
+                return;
+            }
+
             e.Handled = true;
 
             if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))

@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using System;
@@ -203,12 +204,17 @@ namespace UltimateEnd.Views
         protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
         {
             if (ViewModel == null) return;
-            if (ViewModel.Games.Count == 0) return;
+            if (ViewModel.DisplayItems.Count == 0) return;
+
+            if (GameRenameOverlay?.Visible == true) return;
+
+            if (ViewModel.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return;
 
             await KeySoundHelper.PlaySoundForKeyEvent(e);
 
-            int count = ViewModel.Games.Count;
-            int currentIndex = ViewModel.Games.IndexOf(ViewModel.SelectedGame);
+            int count = ViewModel.DisplayItems.Count;
+            int currentIndex = ViewModel.SelectedItem != null ? ViewModel.DisplayItems.IndexOf(ViewModel.SelectedItem) : 0;
+
             if (currentIndex < 0) currentIndex = 0;
 
             int row = currentIndex / _columns;
@@ -294,7 +300,7 @@ namespace UltimateEnd.Views
 
             if (newIndex >= 0 && newIndex < count && newIndex != currentIndex)
             {
-                ViewModel.SelectedGame = ViewModel.Games[newIndex];
+                ViewModel.SelectedItem = ViewModel.DisplayItems[newIndex];
                 ViewModel.StopVideo();
 
                 if (needsScroll)
@@ -305,5 +311,41 @@ namespace UltimateEnd.Views
         }
 
         #endregion
+
+        protected async void OnDisplayItemTapped(object? sender, TappedEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is FolderItem item)
+            {
+                await WavSounds.OK();
+
+                if (item.IsFolder)
+                {
+                    ViewModel?.EnterFolder(item.SubFolder!);
+                }
+                else if (item.IsGame)
+                {
+                    if (ViewModel != null)
+                    {
+                        ViewModel.SelectedItem = item;
+                        OnGameSelected(item.Game!);
+                    }
+                }
+            }
+        }
+
+        protected void OnDisplayItemLongPress(object? sender, object dataContext)
+        {
+            if (dataContext is FolderItem item && item.IsGame)
+                _ = ShowGameContextMenu(item.Game!);
+        }
+
+        protected async void OnDisplayItemDoubleTapped(object? sender, RoutedEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is FolderItem item)
+            {
+                if (item.IsGame)
+                    await ViewModel?.LaunchGameAsync(item.Game!);
+            }
+        }
     }
 }

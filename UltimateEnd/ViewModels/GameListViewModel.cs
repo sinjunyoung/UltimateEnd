@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -52,6 +53,7 @@ namespace UltimateEnd.ViewModels
         #endregion
 
         #region Properties
+
         public GameViewMode ViewMode
         {
             get => _viewMode;
@@ -238,6 +240,7 @@ namespace UltimateEnd.ViewModels
             {
                 _collectionManager.LoadGenres();
                 SetupPropertySubscriptions();
+                BuildDisplayItems();
 
                 if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
             }
@@ -327,13 +330,21 @@ namespace UltimateEnd.ViewModels
 
         public void GoBack()
         {
-            _videoCoordinator.Stop();
-            _selectionSubscription?.Dispose();
+            if (_currentSubFolder != null)
+            {
+                CurrentSubFolder = null;
+                BuildDisplayItems();
+            }
+            else
+            {
+                _videoCoordinator.Stop();
+                _selectionSubscription?.Dispose();
 
-            if (_persistenceService.HasUnsavedChanges)
-                _ = Task.Run(() => _persistenceService.SaveNow());
+                if (_persistenceService.HasUnsavedChanges)
+                    _ = Task.Run(() => _persistenceService.SaveNow());
 
-            BackRequested?.Invoke();
+                BackRequested?.Invoke();
+            }
         }
 
         public void GoToPreviousPlatform()
@@ -656,5 +667,115 @@ namespace UltimateEnd.ViewModels
         }
 
         public void MarkGameAsChanged(GameMetadata game) => _persistenceService.MarkGameAsChanged(game);
+
+        #region Folder Navigation
+
+        private string? _currentSubFolder = null;
+        private ObservableCollection<FolderItem> _displayItems = new();
+        private FolderItem? _selectedItem;
+
+        public string? CurrentSubFolder
+        {
+            get => _currentSubFolder;
+            private set => this.RaiseAndSetIfChanged(ref _currentSubFolder, value);
+        }
+
+        public bool IsInSubFolder => _currentSubFolder != null;
+
+        public string CurrentPath => _currentSubFolder != null
+            ? $"{Platform.Name} > {_currentSubFolder}"
+            : Platform.Name;
+
+        public ObservableCollection<FolderItem> DisplayItems
+        {
+            get => _displayItems;
+            private set => this.RaiseAndSetIfChanged(ref _displayItems, value);
+        }
+
+        public FolderItem? SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                if (_selectedItem != null)
+                    _selectedItem.IsSelected = false;
+
+                this.RaiseAndSetIfChanged(ref _selectedItem, value);
+
+                if (value != null)
+                {
+                    value.IsSelected = true;
+
+                    if (value.IsGame)
+                        SelectedGame = value.Game;
+                }
+            }
+        }
+
+        private void BuildDisplayItems()
+        {
+            var items = new ObservableCollection<FolderItem>();
+
+            if (_currentSubFolder == null)
+            {
+                var folders = Games
+                    .Where(g => !string.IsNullOrEmpty(g.SubFolder))
+                    .GroupBy(g => g.SubFolder)
+                    .OrderBy(g => g.Key);
+
+                foreach (var folder in folders)
+                {
+                    items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
+                }
+
+                foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
+                {
+                    var item = FolderItem.CreateGame(game);
+
+                    if (game == SelectedGame)
+                        item.IsSelected = true;
+                    items.Add(item);
+                }
+            }
+            else
+            {
+                foreach (var game in Games.Where(g => g.SubFolder == _currentSubFolder))
+                {
+                    var item = FolderItem.CreateGame(game);
+                    if (game == SelectedGame)
+                        item.IsSelected = true;
+                    items.Add(item);
+                }
+            }
+
+            DisplayItems = items;
+
+            SelectedItem = DisplayItems.FirstOrDefault(i => i.IsSelected);
+
+            if (SelectedItem == null && DisplayItems.Count > 0)
+                SelectedItem = DisplayItems[0];
+        }
+
+        public void EnterFolder(string subFolder)
+        {
+            CurrentSubFolder = subFolder;
+            BuildDisplayItems();
+        }
+
+        public async Task OnItemTapped(FolderItem item)
+        {
+            if (item.IsFolder)
+            {
+                await WavSounds.OK();
+                EnterFolder(item.SubFolder!);
+            }
+            else if (item.IsGame)
+            {
+                await WavSounds.OK();
+                SelectedItem = item;
+            }
+        }
+
+        #endregion
     }
 }
