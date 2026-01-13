@@ -59,7 +59,7 @@ namespace UltimateEnd.Desktop.Services
             {
                 VideoHost.SetWindowPos(handle, IntPtr.Zero, 0, 0, pWidth, pHeight, 0x0014);
                 _player.SetVideoWindow(handle, pWidth, pHeight);
-                _player.SetVideoSize(pWidth, pHeight);
+                VideoPlayer.SetVideoSize(pWidth, pHeight);
                 _videoHost.ApplyRounding(pWidth, pHeight, (int)(16 * scaling));
             }
         }

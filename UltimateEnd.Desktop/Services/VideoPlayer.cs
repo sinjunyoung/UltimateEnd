@@ -15,7 +15,7 @@ namespace UltimateEnd.Desktop.Services
         private static IMediaSeeking? _mediaSeeking;
         private static IVMRWindowlessControl9? _windowlessControl;
         private static IBaseFilter? _vmr9Filter;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
         private static string? _lastVideoPath;
         private static string? _playingVideoPath;
         private static IntPtr _staticVideoWindowHandle;
@@ -93,10 +93,10 @@ namespace UltimateEnd.Desktop.Services
 
             _lastVideoPath = videoPath;
 
-            Task.Run(() => PlayInternal(videoPath, currentOpId, cts.Token), cts.Token);
+            Task.Run(() => PlayInternal(videoPath, cts.Token), cts.Token);
         }
 
-        private void PlayInternal(string videoPath, int opId, CancellationToken ct)
+        private static void PlayInternal(string videoPath, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)
                 return;
@@ -176,7 +176,7 @@ namespace UltimateEnd.Desktop.Services
             }
         }
 
-        public void SetVideoSize(int width, int height)
+        public static void SetVideoSize(int width, int height)
         {
             _staticTargetWidth = width;
             _staticTargetHeight = height;
@@ -277,6 +277,19 @@ namespace UltimateEnd.Desktop.Services
                     _mediaControl?.Pause();
                 }
                 catch { }
+            }
+        }
+
+        public void ReleaseMedia()
+        {
+            _currentCts?.Cancel();
+
+            lock (_lock)
+            {
+                _lastVideoPath = null;
+                _playingVideoPath = null;
+
+                CleanupGraph();
             }
         }
 

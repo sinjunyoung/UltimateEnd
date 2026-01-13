@@ -3,13 +3,14 @@ using AndroidX.Media3.Common;
 using Android.App;
 using UltimateEnd.Services;
 using System;
+using System.Threading;
 
 namespace UltimateEnd.Android.Services
 {
     public class VideoPlayer : IVideoPlayer
     {
         private static IExoPlayer? _player;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
         private static string? _lastVideoPath;
         private static bool _isInitialized = false;
         private bool _isDisposed = false;
@@ -149,6 +150,23 @@ namespace UltimateEnd.Android.Services
                 try
                 {
                     _player?.Stop();
+                }
+                catch { }
+            }
+        }
+
+        public void ReleaseMedia()
+        {
+            if (_isDisposed || _player == null) return;
+
+            lock (_lock)
+            {
+                _lastVideoPath = null;
+
+                try
+                {
+                    _player?.Stop();
+                    _player?.ClearMediaItems();
                 }
                 catch { }
             }

@@ -1,0 +1,260 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="using:UltimateEnd.Behaviors"
+             x:Class="UltimateEnd.Views.Overlays.FolderContextMenuOverlay"
+             x:Name="RootControl">
+
+	<Grid Name="MainGrid"
+          IsVisible="False"
+          Background="#80000000"
+          ZIndex="3000"
+          PointerPressed="OnBackgroundClick">
+
+		<Border Background="{DynamicResource Background.Card}"
+                CornerRadius="12,0,0,12"
+                Padding="20"
+                Width="{StaticResource Size.OverlayWidth}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Stretch">
+
+			<StackPanel Spacing="15">
+				<!-- Header -->
+				<Grid ColumnDefinitions="*,Auto">
+					<TextBlock Grid.Column="0"
+                               Name="FolderNameText"
+                               Text="폴더"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource Text.Primary}"/>
+					<Border Grid.Column="1"
+                            PointerPressed="OnClose"
+                            Cursor="Hand">
+						<TextBlock Text="✕"
+                                   FontSize="20"
+                                   Foreground="{DynamicResource Text.Muted}"/>
+					</Border>
+				</Grid>
+
+				<!-- Menu Items -->
+				<StackPanel Spacing="5">
+					<!-- 이름 변경 -->
+					<Border Name="RenameBorder"
+							Background="{DynamicResource Background.Secondary}"
+							CornerRadius="8"
+							Padding="15,12"
+							Cursor="Hand"
+							PointerPressed="OnRenameClick">
+						<Grid ColumnDefinitions="Auto,*">
+							<PathIcon Grid.Column="0"
+									  Data="{StaticResource Icon.Edit}"
+									  Width="20"
+									  Height="20"
+									  Foreground="{DynamicResource Text.Primary}"
+									  Margin="0,0,15,0"/>
+							<TextBlock Grid.Column="1"
+									   Text="폴더 이름 변경"
+									   FontSize="15"
+									   Foreground="{DynamicResource Text.Primary}"
+									   VerticalAlignment="Center"/>
+						</Grid>
+						<Border.Styles>
+							<Style Selector="Border:pointerover">
+								<Setter Property="Background" Value="{DynamicResource Background.Hover}"/>
+							</Style>
+						</Border.Styles>
+					</Border>
+
+					<!-- 삭제 -->
+					<Border Name="DeleteBorder"
+							Background="{DynamicResource Background.Secondary}"
+							CornerRadius="8"
+							Padding="15,12"
+							Cursor="Hand"
+							PointerPressed="OnDeleteClick">
+						<Grid ColumnDefinitions="Auto,*">
+							<PathIcon Grid.Column="0"
+									  Data="{StaticResource Icon.Delete}"
+									  Width="20"
+									  Height="20"
+									  Foreground="{DynamicResource Accent.Red}"
+									  Margin="0,0,15,0"/>
+							<TextBlock Grid.Column="1"
+									   Text="폴더 삭제"
+									   FontSize="15"
+									   Foreground="{DynamicResource Accent.Red}"
+									   VerticalAlignment="Center"/>
+						</Grid>
+						<Border.Styles>
+							<Style Selector="Border:pointerover">
+								<Setter Property="Background" Value="{DynamicResource Background.Hover}"/>
+							</Style>
+						</Border.Styles>
+					</Border>
+				</StackPanel>
+
+				<!-- Cancel Button -->
+				<Button Content="취소"
+                        Focusable="False"
+                        behaviors:SoundBehavior.ClickSound="Cancel"
+                        Click="OnCancel"
+                        Padding="15,10"
+                        Background="{DynamicResource Background.Hover}"
+                        Foreground="{DynamicResource Text.Primary}"
+                        BorderThickness="0"
+                        CornerRadius="6"
+                        Cursor="Hand"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"/>
+			</StackPanel>
+		</Border>
+
+		<!-- Rename Overlay -->
+		<Grid Name="RenameOverlay"
+              IsVisible="False"
+              Background="#CC000000"
+              ZIndex="3100">
+			<Border Background="{DynamicResource Background.Card}"
+                    CornerRadius="10"
+                    Padding="20"
+                    MaxWidth="400"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+				<StackPanel Spacing="15">
+					<Grid ColumnDefinitions="*,Auto">
+						<TextBlock Grid.Column="0"
+                                   Text="폴더 이름 변경"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Text.Primary}"/>
+						<Border Grid.Column="1"
+                                PointerPressed="OnRenameOverlayClose"
+                                Cursor="Hand">
+							<TextBlock Text="✕"
+                                       FontSize="20"
+                                       Foreground="{DynamicResource Text.Muted}"/>
+						</Border>
+					</Grid>
+
+					<StackPanel Spacing="10">
+						<TextBlock Text="새 이름"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource Text.Primary}"/>
+						<TextBox Name="RenameTextBox"
+                                 Watermark="폴더 이름"
+                                 MaxLength="50"
+                                 Padding="12"
+                                 FontSize="15"
+                                 Background="{DynamicResource TextBox.Background}"
+                                 Foreground="{DynamicResource TextBox.Foreground}"
+                                 BorderBrush="{DynamicResource TextBox.BorderBrush}"
+                                 CaretBrush="{DynamicResource TextBox.CaretBrush}"
+                                 SelectionBrush="{DynamicResource TextBox.SelectionBrush}"
+                                 SelectionForegroundBrush="{DynamicResource TextBox.SelectionForegroundBrush}">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxColorFixBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+					</StackPanel>
+
+					<TextBlock Name="RenameStatusText"
+                               Text=" "
+                               FontSize="13"
+                               Foreground="{DynamicResource Accent.Red}"
+                               TextWrapping="Wrap"/>
+
+					<Grid ColumnDefinitions="*,10,*">
+						<Button Grid.Column="0"
+                                Content="취소"
+                                Focusable="False"
+                                behaviors:SoundBehavior.ClickSound="Cancel"
+                                Click="OnRenameCancel"
+                                Padding="15,10"
+                                Background="{DynamicResource Background.Hover}"
+                                Foreground="{DynamicResource Text.Primary}"
+                                BorderThickness="0"
+                                CornerRadius="6"
+                                Cursor="Hand"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+
+						<Button Grid.Column="2"
+                                Content="변경"
+                                Focusable="False"
+                                behaviors:SoundBehavior.ClickSound="OK"
+                                Click="OnRenameConfirm"
+                                Padding="15,10"
+                                Background="{DynamicResource Accent.Blue}"
+                                Foreground="{DynamicResource Button.Foreground}"
+                                BorderThickness="0"
+                                CornerRadius="6"
+                                Cursor="Hand"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+					</Grid>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<!-- Delete Confirmation Overlay -->
+		<Grid Name="DeleteOverlay"
+              IsVisible="False"
+              Background="#CC000000"
+              ZIndex="3100">
+			<Border Background="{DynamicResource Background.Card}"
+                    CornerRadius="10"
+                    Padding="20"
+                    MaxWidth="400"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+				<StackPanel Spacing="15">
+					<TextBlock Text="폴더 삭제"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource Text.Primary}"/>
+
+					<TextBlock Name="DeleteMessageText"
+                               Text="이 폴더를 삭제하시겠습니까?"
+                               FontSize="15"
+                               Foreground="{DynamicResource Text.Primary}"
+                               TextWrapping="Wrap"/>
+
+					<TextBlock Text="※ 폴더 안의 모든 게임 메타데이터가 삭제됩니다. ROM 파일은 삭제되지 않습니다."
+                               FontSize="13"
+                               Foreground="{DynamicResource Accent.Red}"
+                               TextWrapping="Wrap"/>
+
+					<Grid ColumnDefinitions="*,10,*">
+						<Button Grid.Column="0"
+                                Content="취소"
+                                Focusable="False"
+                                behaviors:SoundBehavior.ClickSound="Cancel"
+                                Click="OnDeleteCancel"
+                                Padding="15,10"
+                                Background="{DynamicResource Background.Hover}"
+                                Foreground="{DynamicResource Text.Primary}"
+                                BorderThickness="0"
+                                CornerRadius="6"
+                                Cursor="Hand"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+
+						<Button Grid.Column="2"
+                                Content="삭제"
+                                Focusable="False"
+                                behaviors:SoundBehavior.ClickSound="OK"
+                                Click="OnDeleteConfirm"
+                                Padding="15,10"
+                                Background="{DynamicResource Accent.Red}"
+                                Foreground="{DynamicResource Button.Foreground}"
+                                BorderThickness="0"
+                                CornerRadius="6"
+                                Cursor="Hand"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+					</Grid>
+				</StackPanel>
+			</Border>
+		</Grid>
+	</Grid>
+
+</UserControl>

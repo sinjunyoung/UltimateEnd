@@ -303,5 +303,7 @@
 		<overlays:PlatformTemplateOverlay x:Name="PlatformTemplateOverlay" Grid.RowSpan="2" Focusable="True"/>
 		<overlays:BackupListOverlay x:Name="BackupListOverlay" Grid.RowSpan="2" Focusable="True"/>
 		<overlays:PlaylistSelectionOverlay x:Name="PlaylistOverlay" Grid.RowSpan="2" Focusable="True"/>
+		<overlays:FolderContextMenuOverlay x:Name="FolderContextMenuOverlay" Grid.RowSpan="2" Focusable="True"/>
+		
 	</Grid>
 </UserControl>

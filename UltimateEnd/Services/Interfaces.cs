@@ -223,6 +223,8 @@ namespace UltimateEnd.Services
 
         void Pause();
 
+        void ReleaseMedia();
+
         object? GetPlayerInstance();
 
         int VideoWidth { get; }

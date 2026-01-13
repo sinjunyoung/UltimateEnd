@@ -80,6 +80,12 @@ namespace UltimateEnd.Coordinators
 
         public void CancelScheduledPlayback() => _videoManager.CancelDelay();
 
+        public void ReleaseMedia()
+        {
+            _videoManager.CancelDelay();
+            _videoManager.ReleaseMedia();
+        }
+
         public void Dispose()
         {
             if (_disposed) return;

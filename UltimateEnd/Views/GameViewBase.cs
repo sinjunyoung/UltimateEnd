@@ -344,8 +344,8 @@ namespace UltimateEnd.Views
         {
             e.Handled = true;
 
-            if (sender is Border border && border.DataContext is GameMetadata game)
-                await ShowGameContextMenu(game);
+            if (sender is Border border && border.DataContext is FolderItem item)
+                await ShowGameContextMenu(item.Game);
         }
 
         protected virtual void OnGameSelected(GameMetadata game) { }
@@ -462,6 +462,35 @@ namespace UltimateEnd.Views
         {
             await WavSounds.OK();
             await ViewModel.AddNativeAppAsync();
+        }
+
+        protected async void OnFolderMenuButtonTapped(object? sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            if (sender is Border border && border.DataContext is FolderItem item)
+            {
+                if (item.IsFolder)
+                {
+                    await WavSounds.Click();
+
+                    var folderGame = ViewModel?.Games.FirstOrDefault(g => g.SubFolder == item.SubFolder);
+
+                    if (folderGame != null)
+                    {
+                        FolderContextMenuOverlayBase?.SetFolder(
+                            item,
+                            ViewModel!.Platform.Id,
+                            folderGame.GetBasePath()
+                        );
+                        FolderContextMenuOverlayBase?.Show();
+                    }
+                }
+                else if (item.IsGame)
+                {
+                    await ShowGameContextMenu(item.Game!);
+                }
+            }
         }
     }
 }

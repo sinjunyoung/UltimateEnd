@@ -9,7 +9,7 @@ namespace UltimateEnd.Managers
     public class VideoPlayerManager : IDisposable
     {
         private static VideoPlayerManager? _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
 
         private readonly IVideoPlayer? _videoPlayer;
         private CancellationTokenSource? _delayCts;
@@ -91,6 +91,20 @@ namespace UltimateEnd.Managers
         }
 
         public void CancelDelay() => _delayCts?.Cancel();
+
+        public void ReleaseMedia()
+        {
+            if (_videoPlayer == null) return;
+
+            _delayCts?.Cancel();
+            _lastVideoPath = null;
+
+            try
+            {
+                _videoPlayer.ReleaseMedia();
+            }
+            catch { }
+        }
 
         public void Dispose()
         {

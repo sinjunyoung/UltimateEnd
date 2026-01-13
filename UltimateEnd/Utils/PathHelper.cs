@@ -8,13 +8,12 @@ namespace UltimateEnd.Utils
 {
     public static class PathHelper
     {
-        private static List<string> _romsBasePaths = new();
+        private static List<string> _romsBasePaths = [];
         private static IPlatformStorageInfo? _storageInfo;
 
         public static void Initialize(IEnumerable<string> romsBasePaths)
         {
-            if (romsBasePaths == null || !romsBasePaths.Any())
-                throw new ArgumentNullException(nameof(romsBasePaths));
+            if (romsBasePaths == null || !romsBasePaths.Any()) throw new ArgumentNullException(nameof(romsBasePaths));
 
             _storageInfo = PlatformStorageInfoFactory.Create?.Invoke();
             _romsBasePaths = [.. romsBasePaths.Select(NormalizePath)];
@@ -22,8 +21,7 @@ namespace UltimateEnd.Utils
 
         public static void Initialize(string romsBasePath)
         {
-            if (string.IsNullOrEmpty(romsBasePath))
-                throw new ArgumentNullException(nameof(romsBasePath));
+            if (string.IsNullOrEmpty(romsBasePath)) throw new ArgumentNullException(nameof(romsBasePath));
 
             Initialize([romsBasePath]);
         }
@@ -32,8 +30,7 @@ namespace UltimateEnd.Utils
         {
             if (string.IsNullOrEmpty(absolutePath)) return absolutePath;
 
-            if (_romsBasePaths.Count == 0)
-                throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
+            if (_romsBasePaths.Count == 0) throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
 
             if (absolutePath.StartsWith("content://")) return absolutePath;
 
@@ -53,8 +50,7 @@ namespace UltimateEnd.Utils
                         {
                             relativePath = relativePath.Replace('\\', '/');
 
-                            if (!relativePath.StartsWith("../"))
-                                relativePath = "./" + relativePath;
+                            if (!relativePath.StartsWith("../")) relativePath = "./" + relativePath;
 
                             return relativePath;
                         }
@@ -70,8 +66,7 @@ namespace UltimateEnd.Utils
         {
             if (string.IsNullOrEmpty(path)) return path;
 
-            if (_romsBasePaths.Count == 0)
-                throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
+            if (_romsBasePaths.Count == 0) throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
 
             if (path.StartsWith("content://")) return path;
 
@@ -117,20 +112,19 @@ namespace UltimateEnd.Utils
 
             if (!string.IsNullOrEmpty(primaryStorage))
             {
-                List<string> internalAliases =
-                    [
+                List<string> internalAliases = [
                     "/sdcard/",
                     "/mnt/sdcard/",
                     "/storage/sdcard0/",
                     "/storage/emulated/legacy/",
-                    "/data/media/0/"
+                    "/data/media/0/" 
                     ];
 
                 foreach (var alias in internalAliases)
                 {
                     if (path.StartsWith(alias, StringComparison.OrdinalIgnoreCase))
                     {
-                        path = primaryStorage + "/" + path.Substring(alias.Length);
+                        path = string.Concat(primaryStorage, "/", path.AsSpan(alias.Length));
                         break;
                     }
                 }
@@ -140,11 +134,10 @@ namespace UltimateEnd.Utils
 
             if (!string.IsNullOrEmpty(externalSdCard))
             {
-                List<string> externalAliases =
-                    [
+                List<string> externalAliases = [
                     "/mnt/extSdCard/",
                     "/mnt/external_sd/",
-                    "/storage/sdcard1/"
+                    "/storage/sdcard1/" 
                     ];
 
                 foreach (var alias in externalAliases)
@@ -163,15 +156,9 @@ namespace UltimateEnd.Utils
 
                 path = path.Replace("//", "/");
 
-                if (!isUncPath)
-                {
-                    path = path.Replace("\\\\", "\\");
-                }
+                if (!isUncPath) path = path.Replace("\\\\", "\\");
 
-                if (isUncPath || Path.IsPathRooted(path))
-                {
-                    return path;
-                }
+                if (isUncPath || Path.IsPathRooted(path)) return path;
 
                 path = Path.GetFullPath(path);
             }
@@ -222,8 +209,7 @@ namespace UltimateEnd.Utils
 
         public static string SanitizeFileName(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName))
-                return fileName;
+            if (string.IsNullOrEmpty(fileName)) return fileName;
 
             var invalidChars = Path.GetInvalidFileNameChars();
             var sanitized = string.Join("_", fileName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
@@ -233,16 +219,14 @@ namespace UltimateEnd.Utils
 
         public static List<string> GetBasePaths()
         {
-            if (_romsBasePaths.Count == 0)
-                throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다.");
+            if (_romsBasePaths.Count == 0) throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다.");
 
             return [.. _romsBasePaths];
         }
 
         public static string GetBasePath()
         {
-            if (_romsBasePaths.Count == 0)
-                throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다.");
+            if (_romsBasePaths.Count == 0) throw new InvalidOperationException("PathHelper가 초기화되지 않았습니다.");
 
             return _romsBasePaths[0];
         }
@@ -260,11 +244,9 @@ namespace UltimateEnd.Utils
 
         public static bool IsValidPath(string path)
         {
-            if (string.IsNullOrEmpty(path))
-                return false;
+            if (string.IsNullOrEmpty(path)) return false;
 
-            if (path.StartsWith("content://"))
-                return true;
+            if (path.StartsWith("content://")) return true;
 
             try
             {

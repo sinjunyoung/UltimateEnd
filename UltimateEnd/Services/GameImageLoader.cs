@@ -14,15 +14,13 @@ namespace UltimateEnd.Services
 
         private static Bitmap? LoadAndResizeImage(string path, double maxWidth, bool useFileAccessor)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-                return null;
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
 
             try
             {
                 byte[] imageBytes = LoadImageBytes(path, useFileAccessor);
 
-                if (imageBytes == null)
-                    return null;
+                if (imageBytes == null) return null;
 
                 using var ms = new MemoryStream(imageBytes);
                 var originalBitmap = new Bitmap(ms);
@@ -41,13 +39,11 @@ namespace UltimateEnd.Services
             {
                 var fileAccessor = FileAccessorFactory.Create?.Invoke();
 
-                if (fileAccessor?.Exists(path) != true)
-                    return null;
+                if (fileAccessor?.Exists(path) != true) return null;
 
                 using var stream = fileAccessor.OpenRead(path);
 
-                if (stream == null)
-                    return null;
+                if (stream == null) return null;
 
                 using var ms = new MemoryStream();
                 stream.CopyTo(ms);
@@ -60,12 +56,10 @@ namespace UltimateEnd.Services
 
         private static Bitmap ResizeIfNeeded(Bitmap originalBitmap, int maxWidth)
         {
-            if (maxWidth >= 9999 || originalBitmap.PixelSize.Width <= maxWidth)
-                return originalBitmap;
+            if (maxWidth >= 9999 || originalBitmap.PixelSize.Width <= maxWidth) return originalBitmap;
 
             var scale = (double)maxWidth / originalBitmap.PixelSize.Width;
             var newHeight = (int)(originalBitmap.PixelSize.Height * scale);
-
             var resized = originalBitmap.CreateScaledBitmap(new PixelSize(maxWidth, newHeight), BitmapInterpolationMode.HighQuality);
 
             originalBitmap.Dispose();

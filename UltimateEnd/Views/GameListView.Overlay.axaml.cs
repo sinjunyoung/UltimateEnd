@@ -25,8 +25,10 @@ namespace UltimateEnd.Views
         protected override GenreFilterOverlay GenreFilterOverlayBase => GenreFilterOverlay;
 
         protected override SettingsMenuOverlay SettingsMenuOverlayBase => SettingsMenuOverlay;
+
         protected override PlaylistSelectionOverlay PlaylistSelectionOverlayBase => PlaylistOverlay;
 
+        protected override FolderContextMenuOverlay FolderContextMenuOverlayBase => FolderContextMenuOverlay;
 
         #endregion
 

@@ -50,6 +50,10 @@ namespace UltimateEnd.ViewModels
         private bool _isLaunchingGame = false;
         private bool _isDownloadingMedia = false;
 
+        private string? _currentSubFolder = null;
+        private ObservableCollection<FolderItem> _displayItems = [];
+        private FolderItem? _selectedItem;       
+
         #endregion
 
         #region Properties
@@ -158,6 +162,44 @@ namespace UltimateEnd.ViewModels
         public bool IsShowingDeletedGames { get => _collectionManager.IsShowingDeletedGames; }
 
         public bool IsNativeAppPlatform => Platform?.Id == "desktop" || Platform?.Id == "android";
+
+        public string? CurrentSubFolder
+        {
+            get => _currentSubFolder;
+            private set => this.RaiseAndSetIfChanged(ref _currentSubFolder, value);
+        }
+
+        public bool IsInSubFolder => _currentSubFolder != null;
+
+        public string CurrentPath => _currentSubFolder != null ? $"{Platform.Name} > {_currentSubFolder}" : Platform.Name;
+
+        public ObservableCollection<FolderItem> DisplayItems
+        {
+            get => _displayItems;
+            private set => this.RaiseAndSetIfChanged(ref _displayItems, value);
+        }
+
+        public FolderItem? SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                if (_selectedItem != null)
+                    _selectedItem.IsSelected = false;
+
+                this.RaiseAndSetIfChanged(ref _selectedItem, value);
+
+                if (value != null)
+                {
+                    value.IsSelected = true;
+
+                    if (value.IsGame)
+                        SelectedGame = value.Game;
+                    else if (value.IsFolder)
+                         _videoCoordinator.ReleaseMedia();
+                }
+            }
+        }
 
         #endregion
 
@@ -269,8 +311,30 @@ namespace UltimateEnd.ViewModels
             _launchOrchestrator.IdleDetectionEnabled += (isEnabled) => RequestIdleDetectionChange?.Invoke(this, isEnabled);
 
             _collectionManager.SelectedGameChanged += game => Dispatcher.UIThread.Post(() => this.RaisePropertyChanged(nameof(SelectedGame)));
-            _collectionManager.SelectedGenreChanged += genre => Dispatcher.UIThread.Post(() => this.RaisePropertyChanged(nameof(SelectedGenre)));
-            _collectionManager.SearchTextChanged += text => Dispatcher.UIThread.Post(() => this.RaisePropertyChanged(nameof(SearchText)));
+            _collectionManager.SelectedGenreChanged += genre =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    this.RaisePropertyChanged(nameof(SelectedGenre));
+                    BuildDisplayItems();
+                });
+            };
+            _collectionManager.SearchTextChanged += text => Dispatcher.UIThread.Post(() =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    this.RaisePropertyChanged(nameof(SearchText));
+                    BuildDisplayItems();
+                });
+            });
+            _collectionManager.ShowingDeletedGamesChanged += value =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    BuildDisplayItems();
+                    this.RaisePropertyChanged(nameof(IsShowingDeletedGames));
+                });
+            };
             _collectionManager.GamePropertyChanged += game => _persistenceService.MarkGameAsChanged(game);
 
             _mediaAssetManager.LogoImageChanged += OnMediaChanged;
@@ -332,6 +396,8 @@ namespace UltimateEnd.ViewModels
         {
             if (_currentSubFolder != null)
             {
+                _videoCoordinator.ReleaseMedia();
+
                 CurrentSubFolder = null;
                 BuildDisplayItems();
             }
@@ -564,7 +630,7 @@ namespace UltimateEnd.ViewModels
                 else
                     SelectedGame = null;
 
-                this.RaisePropertyChanged(nameof(IsShowingDeletedGames));
+                this.RaisePropertyChanged(nameof(IsShowingDeletedGames));                
             });
         }
 
@@ -668,51 +734,9 @@ namespace UltimateEnd.ViewModels
 
         public void MarkGameAsChanged(GameMetadata game) => _persistenceService.MarkGameAsChanged(game);
 
-        #region Folder Navigation
+        #region Folder Navigation        
 
-        private string? _currentSubFolder = null;
-        private ObservableCollection<FolderItem> _displayItems = new();
-        private FolderItem? _selectedItem;
-
-        public string? CurrentSubFolder
-        {
-            get => _currentSubFolder;
-            private set => this.RaiseAndSetIfChanged(ref _currentSubFolder, value);
-        }
-
-        public bool IsInSubFolder => _currentSubFolder != null;
-
-        public string CurrentPath => _currentSubFolder != null
-            ? $"{Platform.Name} > {_currentSubFolder}"
-            : Platform.Name;
-
-        public ObservableCollection<FolderItem> DisplayItems
-        {
-            get => _displayItems;
-            private set => this.RaiseAndSetIfChanged(ref _displayItems, value);
-        }
-
-        public FolderItem? SelectedItem
-        {
-            get => _selectedItem;
-            set
-            {
-                if (_selectedItem != null)
-                    _selectedItem.IsSelected = false;
-
-                this.RaiseAndSetIfChanged(ref _selectedItem, value);
-
-                if (value != null)
-                {
-                    value.IsSelected = true;
-
-                    if (value.IsGame)
-                        SelectedGame = value.Game;
-                }
-            }
-        }
-
-        private void BuildDisplayItems()
+        public void BuildDisplayItems()
         {
             var items = new ObservableCollection<FolderItem>();
 

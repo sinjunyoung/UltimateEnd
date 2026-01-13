@@ -296,11 +296,11 @@ namespace UltimateEnd.Models
             {
                 var path = GetLogoPath();
 
-                if (_cache.LastLogoPath == path &&
-                    _cache.LogoBitmapRef?.TryGetTarget(out var cached) == true)
+                if (_cache.LastLogoPath == path && _cache.LogoBitmapRef?.TryGetTarget(out var cached) == true)
                     return cached;
 
                 var bitmap = GameImageLoader.LoadLogoImage(path);
+
                 if (bitmap != null)
                 {
                     _cache.LogoBitmapRef = new WeakReference<Bitmap>(bitmap);

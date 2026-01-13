@@ -37,6 +37,8 @@ namespace UltimateEnd.Views
 
         protected abstract BackupListOverlay BackupListOverlayBase { get; }
 
+        protected abstract FolderContextMenuOverlay FolderContextMenuOverlayBase { get; }
+
         #endregion
 
         #region Overlay Initialization
@@ -59,6 +61,7 @@ namespace UltimateEnd.Views
             _overlays.Add("GenreFilterOverlay", GenreFilterOverlayBase);
             _overlays.Add("SettingsMenuOverlay", SettingsMenuOverlayBase);
             _overlays.Add("BackupListOverlay", BackupListOverlayBase);
+            _overlays.Add("FolderContextMenuOverlay", FolderContextMenuOverlayBase);
         }
 
         private void AttachCommonOverlayEvents()
@@ -94,6 +97,9 @@ namespace UltimateEnd.Views
 
             GameRenameOverlayBase.SaveRequested += OnGameRename_Save;
             GameGenreOverlayBase.GenreSelected += OnGameGenre_Selected;
+
+            FolderContextMenuOverlayBase.FolderRenamed += OnFolderContext_Renamed;
+            FolderContextMenuOverlayBase.FolderDeleted += OnFolderContext_Deleted;
         }
 
         private void AttachGameContextMenuEvents()
@@ -304,6 +310,15 @@ namespace UltimateEnd.Views
         {
             ViewModel.SelectedGenre = genre;
             GenreFilterOverlayBase.Hide(HiddenState.Silent);
+
+            ViewModel.BuildDisplayItems();
+
+            if (ViewModel.DisplayItems.Count > 0)
+                ViewModel.SelectedItem = ViewModel.DisplayItems[0];
+
+            GenreFilterOverlayBase.Hide(HiddenState.Silent);
+
+            ResetScrollToTop();
         }
 
         #endregion
@@ -614,6 +629,32 @@ namespace UltimateEnd.Views
                 GameGenreOverlayBase.Hide(HiddenState.Silent);
                 GameContextMenuOverlayBase.Hide(HiddenState.Silent);
             }
+        }
+
+        #endregion
+
+        #region Folder Context Menu Overlay Events
+
+        private void OnFolderContext_Renamed(object? sender, string newName)
+        {
+            if (ViewModel != null)
+            {
+                AllGamesManager.Instance.ReloadPlatform(ViewModel.Platform.Id);
+                ViewModel.BuildDisplayItems();
+            }
+
+            FolderContextMenuOverlayBase.Hide(HiddenState.Confirm);
+        }
+
+        private void OnFolderContext_Deleted(object? sender, string folderName)
+        {
+            if (ViewModel != null)
+            {
+                AllGamesManager.Instance.ReloadPlatform(ViewModel.Platform.Id);
+                ViewModel.BuildDisplayItems();
+            }
+
+            FolderContextMenuOverlayBase.Hide(HiddenState.Confirm);
         }
 
         #endregion

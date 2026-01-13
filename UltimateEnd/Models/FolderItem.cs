@@ -25,6 +25,7 @@ namespace UltimateEnd.Models
         }
 
         public bool IsFolder => Type == ItemType.Folder;
+
         public bool IsGame => Type == ItemType.Game;
 
         public static FolderItem CreateFolder(string folderName, int gameCount)

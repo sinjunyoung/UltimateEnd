@@ -49,8 +49,8 @@ namespace UltimateEnd.Managers
                 if (_isShowingDeletedGames != value)
                 {
                     _isShowingDeletedGames = value;
-                    ShowingDeletedGamesChanged?.Invoke(value);
                     FilterGames();
+                    ShowingDeletedGamesChanged?.Invoke(value);                    
                 }
             }
         }
@@ -61,8 +61,8 @@ namespace UltimateEnd.Managers
             set
             {
                 _selectedGenre = value;
-                SelectedGenreChanged?.Invoke(value);
                 FilterGames();
+                SelectedGenreChanged?.Invoke(value);                
             }
         }
 

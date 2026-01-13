@@ -23,6 +23,7 @@ namespace UltimateEnd.Views
 
         protected override PlaylistSelectionOverlay PlaylistSelectionOverlayBase => PlaylistOverlay;
 
+        protected override FolderContextMenuOverlay FolderContextMenuOverlayBase => FolderContextMenuOverlay;
 
         #endregion
     }

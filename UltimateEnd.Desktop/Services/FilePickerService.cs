@@ -19,10 +19,9 @@ namespace UltimateEnd.Desktop.Services
             };
 
             IStorageFolder? startLocation = null;
+
             if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory))
-            {
                 startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
-            }
 
             var files = await _storageProvider.OpenFilePickerAsync(
                 new FilePickerOpenOptions
@@ -33,8 +32,7 @@ namespace UltimateEnd.Desktop.Services
                     SuggestedStartLocation = startLocation
                 });
 
-            if (files.Count == 0)
-                return null;
+            if (files.Count == 0) return null;
 
             return files[0].Path.LocalPath;
         }
