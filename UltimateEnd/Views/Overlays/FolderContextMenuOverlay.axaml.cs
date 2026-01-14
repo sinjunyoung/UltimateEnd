@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UltimateEnd.Enums;
@@ -226,21 +227,52 @@ namespace UltimateEnd.Views.Overlays
                 var converter = PathConverterFactory.Create?.Invoke();
                 var realBasePath = converter?.FriendlyPathToRealPath(_basePath) ?? _basePath;
 
-                var oldPath = Path.Combine(realBasePath, _currentFolder.SubFolder!);
-                var newPath = Path.Combine(realBasePath, newName);
+                var games = GameMetadataManager.LoadGames(_platformId!);
+                var matchingGames = games.Where(g => g.SubFolder == _currentFolder.SubFolder).ToList();
 
-                if (Directory.Exists(newPath))
+                if (matchingGames.Count == 0)
                 {
-                    if (RenameStatusText != null) RenameStatusText.Text = $"'{newName}' 폴더가 이미 존재합니다";
+                    if (RenameStatusText != null) RenameStatusText.Text = "변경할 게임을 찾을 수 없습니다";
                     return;
                 }
 
-                Directory.Move(oldPath, newPath);
-                var games = GameMetadataManager.LoadGames(_platformId!);
-
-                foreach (var game in games.Where(g => g.SubFolder == _currentFolder.SubFolder))
+                foreach (var game in matchingGames)
                 {
-                    AllGamesManager.Instance.UpdateGameKey(game, _currentFolder.SubFolder!, newName);
+                    var gameBasePath = game.GetBasePath();
+                    var gameRealBasePath = converter?.FriendlyPathToRealPath(Path.GetDirectoryName(gameBasePath)!)
+                                           ?? Path.GetDirectoryName(gameBasePath)!;
+
+                    var oldPath = Path.Combine(gameRealBasePath, game.SubFolder!);
+                    var newPath = Path.Combine(gameRealBasePath, newName);
+
+                    if (Directory.Exists(newPath) && oldPath != newPath)
+                    {
+                        if (RenameStatusText != null) RenameStatusText.Text = $"'{newName}' 폴더가 이미 존재합니다";
+                        return;
+                    }
+                }
+
+                var processedPaths = new HashSet<string>();
+
+                foreach (var game in matchingGames)
+                {
+                    var gameBasePath = game.GetBasePath();
+                    var gameRealBasePath = converter?.FriendlyPathToRealPath(Path.GetDirectoryName(gameBasePath)!)
+                                           ?? Path.GetDirectoryName(gameBasePath)!;
+
+                    var oldPath = Path.Combine(gameRealBasePath, game.SubFolder!);
+                    var newPath = Path.Combine(gameRealBasePath, newName);
+
+                    if (!processedPaths.Contains(oldPath.ToLower()))
+                    {
+                        if (Directory.Exists(oldPath))
+                        {
+                            Directory.Move(oldPath, newPath);
+                            processedPaths.Add(oldPath.ToLower());
+                        }
+                    }
+
+                    AllGamesManager.Instance.UpdateGameKey(game, game.SubFolder!, newName);
 
                     game.SubFolder = newName;
                     game.SetBasePath(newPath);

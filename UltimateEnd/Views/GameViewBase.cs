@@ -467,7 +467,7 @@ namespace UltimateEnd.Views
 
         protected async void OnFolderMenuButtonTapped(object? sender, RoutedEventArgs e)
         {
-            if(e != null) e.Handled = true;
+            if (e != null) e.Handled = true;
 
             if (sender is Border border && border.DataContext is FolderItem item)
             {
@@ -475,7 +475,7 @@ namespace UltimateEnd.Views
                 {
                     await WavSounds.Click();
 
-                    var folderGame = ViewModel?.Games.FirstOrDefault(g => g.SubFolder == item.SubFolder);
+                    var folderGame = item.Game ?? ViewModel?.Games.FirstOrDefault(g => g.SubFolder == item.SubFolder);
 
                     if (folderGame != null)
                     {

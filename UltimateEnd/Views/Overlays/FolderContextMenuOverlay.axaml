@@ -223,7 +223,6 @@
 						<Button Grid.Column="2"
                                 Content="변경"
                                 Focusable="False"
-                                behaviors:SoundBehavior.ClickSound="OK"
                                 Click="OnRenameConfirm"
                                 Padding="15,10"
                                 Background="{DynamicResource Accent.Blue}"
