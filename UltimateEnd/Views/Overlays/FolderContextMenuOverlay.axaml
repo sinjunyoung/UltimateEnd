@@ -64,6 +64,45 @@
 						</Border.Styles>
 					</Border>
 
+					<!-- 무시 토글 -->
+					<Border Name="IgnoreBorder"
+							Background="{DynamicResource Background.Secondary}"
+							CornerRadius="8"
+							Padding="15,12"
+							Cursor="Hand"
+							PointerPressed="OnIgnoreClick">
+						<Grid ColumnDefinitions="*,Auto">
+							<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,15,0">
+								<PathIcon Data="{StaticResource Icon.Delete}"
+										  Width="20"
+										  Height="20"
+										  Foreground="{DynamicResource Text.Primary}"
+										  Margin="0,0,15,0"/>
+								<TextBlock Text="목록에서 숨기기"
+										   FontSize="15"
+										   Foreground="{DynamicResource Text.Primary}"
+										   VerticalAlignment="Center"/>
+							</StackPanel>
+							<Border Grid.Column="1"
+									Name="IgnoreToggle"
+									Width="50"
+									Height="28"
+									CornerRadius="14"
+									Padding="2">
+								<Border Width="24"
+										Height="24"
+										CornerRadius="12"
+										Background="White"
+										Name="IgnoreToggleThumb"/>
+							</Border>
+						</Grid>
+						<Border.Styles>
+							<Style Selector="Border:pointerover">
+								<Setter Property="Background" Value="{DynamicResource Background.Hover}"/>
+							</Style>
+						</Border.Styles>
+					</Border>
+					
 					<!-- 삭제 -->
 					<!-- 
 					<Border Name="DeleteBorder"
@@ -120,8 +159,9 @@
                     CornerRadius="10"
                     Padding="20"
                     MaxWidth="400"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center">
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+					Margin="20,5,20,20">
 				<StackPanel Spacing="15">
 					<Grid ColumnDefinitions="*,Auto">
 						<TextBlock Grid.Column="0"

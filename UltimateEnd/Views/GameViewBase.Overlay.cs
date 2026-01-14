@@ -101,6 +101,8 @@ namespace UltimateEnd.Views
 
             FolderContextMenuOverlayBase.FolderRenamed += OnFolderContext_Renamed;
             FolderContextMenuOverlayBase.FolderDeleted += OnFolderContext_Deleted;
+            FolderContextMenuOverlayBase.FolderIgnoreChanged += OnFolderContext_IgnoreChanged;
+
         }
 
         private void AttachGameContextMenuEvents()
@@ -648,22 +650,24 @@ namespace UltimateEnd.Views
 
         private void OnFolderContext_Renamed(object? sender, string newName)
         {
-            if (ViewModel != null)
-            {
-                AllGamesManager.Instance.ReloadPlatform(ViewModel.Platform.Id);
-                ViewModel.BuildDisplayItems();
-            }
+            ViewModel?.BuildDisplayItems();
 
             FolderContextMenuOverlayBase.Hide(HiddenState.Confirm);
         }
 
         private void OnFolderContext_Deleted(object? sender, string folderName)
         {
-            if (ViewModel != null)
+            ViewModel?.BuildDisplayItems();
+
+            FolderContextMenuOverlayBase.Hide(HiddenState.Confirm);
+        }
+
+        private void OnFolderContext_IgnoreChanged(object? sender, (string folderName, bool ignore) e)
+        {
+            Dispatcher.UIThread.Post(() =>
             {
-                AllGamesManager.Instance.ReloadPlatform(ViewModel.Platform.Id);
-                ViewModel.BuildDisplayItems();
-            }
+                ViewModel?.BuildDisplayItems();
+            }, DispatcherPriority.Background);
 
             FolderContextMenuOverlayBase.Hide(HiddenState.Confirm);
         }

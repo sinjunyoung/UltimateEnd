@@ -20,7 +20,7 @@ namespace UltimateEnd.ViewModels
         #region Fields
 
         private int _selectedIndex = -1;
-        private Platform _selectedPlatform;
+        private Platform? _selectedPlatform;
         private string _currentTime;
         private string _currentDate;
         private string _currentThemeName;
@@ -112,10 +112,10 @@ namespace UltimateEnd.ViewModels
             _currentTime = string.Empty;
             _currentDate = string.Empty;
             _currentThemeName = string.Empty;
-            _selectedPlatform = null!;
+            _selectedPlatform = null;
 
             var ver = PlatformServiceFactory.Create?.Invoke();
-            VersionText = ver != null ? $"{ver.GetAppName()} Ver {ver.GetAppVersion()}" : "Unknown Version";
+            VersionText = ver != null ? $"{ver.GetAppName() ?? "Unknown"} Ver {ver.GetAppVersion() ?? "0.0"}" : "Unknown Version";
 
             SettingsService.PlatformSettingsChanged += OnPlatformSettingsChanged;
             ThemeService.ThemeChanged += OnThemeChanged;

@@ -28,14 +28,22 @@ namespace UltimateEnd.Models
 
         public bool IsGame => Type == ItemType.Game;
 
-        public static FolderItem CreateFolder(string folderName, int gameCount)
+        private bool _ignore;
+        public bool Ignore
+        {
+            get => _ignore;
+            set => this.RaiseAndSetIfChanged(ref _ignore, value);
+        }
+
+        public static FolderItem CreateFolder(string folderName, int gameCount, bool ignore = false)
         {
             return new FolderItem
             {
                 Type = ItemType.Folder,
                 Name = folderName,
                 SubFolder = folderName,
-                GameCount = gameCount
+                GameCount = gameCount,
+                Ignore = ignore 
             };
         }
 

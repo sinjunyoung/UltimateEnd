@@ -28,10 +28,10 @@ namespace UltimateEnd.Services
                 filtered = filtered.Where(g => g.SearchableText.Contains(keyword));
             }
 
-            return filtered.ToList();
+            return [.. filtered];
         }
 
-        public List<string> ExtractGenres(IEnumerable<GameMetadata> games)
+        public static List<string> ExtractGenres(IEnumerable<GameMetadata> games)
         {
             var genres = new List<string> { "전체" };
 

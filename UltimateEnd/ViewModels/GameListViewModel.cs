@@ -804,18 +804,12 @@ namespace UltimateEnd.ViewModels
             BuildDisplayItems();
         }
 
-        public async Task OnItemTapped(FolderItem item)
+        public void OnItemTapped(FolderItem item)
         {
             if (item.IsFolder)
-            {
-                await WavSounds.OK();
                 EnterFolder(item.SubFolder!);
-            }
             else if (item.IsGame)
-            {
-                await WavSounds.OK();
                 SelectedItem = item;
-            }
         }
 
         #endregion

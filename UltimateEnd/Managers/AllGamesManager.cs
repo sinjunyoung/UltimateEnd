@@ -67,6 +67,14 @@ namespace UltimateEnd.Managers
                         foreach (var subDir in Directory.GetDirectories(realPath))
                         {
                             var subFolderName = Path.GetFileName(subDir);
+
+                            if (subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(actualPlatformId);
+
+                            if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext)))) continue;
+
                             LoadGamesFromFolder(subDir, actualPlatformId, compositeKey, subFolderName);
                         }
                     }

@@ -55,8 +55,7 @@ namespace UltimateEnd.Services
 
         public static void ClearCache() => _hasGamesCache.Clear();
 
-        public static void InvalidatePlatformCache(string platformKey)
-            => _hasGamesCache.TryRemove(platformKey, out _);
+        public static void InvalidatePlatformCache(string platformKey) => _hasGamesCache.TryRemove(platformKey, out _);
 
         public static List<GameMetadata> LoadMetadata(string platformId)
         {
@@ -119,7 +118,6 @@ namespace UltimateEnd.Services
         public static void SaveMetadata(string platformId, IEnumerable<GameMetadata> games)
         {
             var platformPath = SettingsService.GetPlatformPath(platformId);
-
             SaveMetadataToPath(platformPath, games);
             InvalidatePlatformCache(platformId);
         }
@@ -127,7 +125,6 @@ namespace UltimateEnd.Services
         public static void SaveMetadata(string platformId, string basePath, IEnumerable<GameMetadata> games)
         {
             var platformPath = Path.Combine(basePath, platformId);
-
             SaveMetadataToPath(platformPath, games);
             InvalidatePlatformCache(platformId);
         }
@@ -185,6 +182,11 @@ namespace UltimateEnd.Services
                     foreach (var subDir in Directory.GetDirectories(platformPath))
                     {
                         var subFolderName = Path.GetFileName(subDir);
+
+                        if (IsBiosFolder(subFolderName)) continue;
+
+                        if (HasMatchingRomFile(platformPath, subFolderName, validExtensions)) continue;
+
                         ScanFolder(subDir, subFolderName, validExtensions, existingRomFiles, existingMetadata, ref addedCount);
                     }
                 }
@@ -222,7 +224,7 @@ namespace UltimateEnd.Services
 
                 if (!validExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase)) continue;
 
-                var key = $"{subFolder ?? ""}|{fileName}";
+                var key = $"{subFolder ?? string.Empty}|{fileName}";
 
                 if (!existingRomFiles.Contains(key))
                 {
@@ -342,9 +344,11 @@ namespace UltimateEnd.Services
             }
         }
 
-        public static HashSet<GameMetadata> UpdateFromPegasusMetadata(ObservableCollection<GameMetadata> games, string platformId, string pegasusFileName, CancellationToken cancellationToken = default) => UpdateFromExternalMetadata(games, platformId, pegasusFileName, PegasusMetadataParser.Parse, cancellationToken);
+        public static HashSet<GameMetadata> UpdateFromPegasusMetadata(ObservableCollection<GameMetadata> games, string platformId, string pegasusFileName, CancellationToken cancellationToken = default)
+            => UpdateFromExternalMetadata(games, platformId, pegasusFileName, PegasusMetadataParser.Parse, cancellationToken);
 
-        public static HashSet<GameMetadata> UpdateFromEsDeMetadata(ObservableCollection<GameMetadata> games, string platformId, string esdeFileName, CancellationToken cancellationToken = default) => UpdateFromExternalMetadata(games, platformId, esdeFileName, EsDeMetadataParser.Parse, cancellationToken);
+        public static HashSet<GameMetadata> UpdateFromEsDeMetadata(ObservableCollection<GameMetadata> games, string platformId, string esdeFileName, CancellationToken cancellationToken = default)
+            => UpdateFromExternalMetadata(games, platformId, esdeFileName, EsDeMetadataParser.Parse, cancellationToken);
 
         private static HashSet<string> GetActualRomFiles(string platformPath, string platformKey)
         {
@@ -352,24 +356,47 @@ namespace UltimateEnd.Services
 
             if (string.IsNullOrEmpty(platformPath)) return actualRomFiles;
 
-            var converter = PathConverterFactory.Create?.Invoke();
-            var realPath = converter?.FriendlyPathToRealPath(platformPath) ?? platformPath;
-
+            var realPath = GetRealPath(platformPath);
             if (!Directory.Exists(realPath)) return actualRomFiles;
 
             string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(platformKey) ?? platformKey;
             var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
 
-            ScanFolderForFiles(realPath, validExtensions, actualRomFiles);
+            CollectRomFilesFromDirectory(realPath, validExtensions, actualRomFiles);
+
+            return actualRomFiles;
+        }
+
+        private static void CollectRomFilesFromDirectory(string dirPath, IEnumerable<string> validExtensions, HashSet<string> romFiles)
+        {
+            ScanFolderForFiles(dirPath, validExtensions, romFiles);
+
+            var topLevelRomNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var ext in validExtensions)
+            {
+                try
+                {
+                    foreach (var file in Directory.EnumerateFiles(dirPath, $"*{ext}", SearchOption.TopDirectoryOnly))
+                        topLevelRomNames.Add(Path.GetFileNameWithoutExtension(file));
+                }
+                catch { }
+            }
 
             try
             {
-                foreach (var subDir in Directory.EnumerateDirectories(realPath))
-                    ScanFolderForFiles(subDir, validExtensions, actualRomFiles);
+                foreach (var subDir in Directory.EnumerateDirectories(dirPath))
+                {
+                    var subFolderName = Path.GetFileName(subDir);
+
+                    if (IsBiosFolder(subFolderName)) continue;
+
+                    if (topLevelRomNames.Contains(subFolderName)) continue;
+
+                    ScanFolderForFiles(subDir, validExtensions, romFiles);
+                }
             }
             catch { }
-
-            return actualRomFiles;
         }
 
         private static void ScanFolderForFiles(string folderPath, IEnumerable<string> validExtensions, HashSet<string> actualRomFiles)
@@ -405,8 +432,7 @@ namespace UltimateEnd.Services
 
             if (string.IsNullOrEmpty(platformPath)) return false;
 
-            var converter = PathConverterFactory.Create?.Invoke();
-            var realPath = converter?.FriendlyPathToRealPath(platformPath) ?? platformPath;
+            var realPath = GetRealPath(platformPath);
 
             if (!Directory.Exists(realPath)) return false;
 
@@ -419,6 +445,12 @@ namespace UltimateEnd.Services
 
                 foreach (var subDir in Directory.EnumerateDirectories(realPath))
                 {
+                    var subFolderName = Path.GetFileName(subDir);
+
+                    if (IsBiosFolder(subFolderName)) continue;
+
+                    if (HasMatchingRomFile(platformPath, subFolderName, validExtensions)) continue;
+
                     if (HasFilesInFolder(subDir, validExtensions)) return true;
                 }
             }
@@ -427,43 +459,31 @@ namespace UltimateEnd.Services
                 return false;
             }
 
-            var metadataPath = Path.Combine(realPath, MetadataFileName);
+            if (CheckMetadataFile(Path.Combine(realPath, MetadataFileName), platformKey, false)) return true;
 
-            if (File.Exists(metadataPath))
-            {
-                var fileInfo = new FileInfo(metadataPath);
-
-                if (fileInfo.Length > 10)
-                {
-                    try
-                    {
-                        var games = LoadMetadata(platformKey);
-
-                        return games.Count > 0;
-                    }
-                    catch { }
-                }
-            }
-
-            var pegasusPath = Path.Combine(realPath, PegasusMetadataFileName);
-
-            if (File.Exists(pegasusPath))
-            {
-                var fileInfo = new FileInfo(pegasusPath);
-
-                if (fileInfo.Length > 10)
-                {
-                    try
-                    {
-                        var games = PegasusMetadataParser.Parse(pegasusPath);
-
-                        return games.Count > 0;
-                    }
-                    catch { }
-                }
-            }
+            if (CheckMetadataFile(Path.Combine(realPath, PegasusMetadataFileName), platformKey, true)) return true;
 
             return false;
+        }
+
+        private static bool CheckMetadataFile(string filePath, string platformKey, bool isPegasus)
+        {
+            if (!File.Exists(filePath)) return false;
+
+            var fileInfo = new FileInfo(filePath);
+
+            if (fileInfo.Length <= 10) return false;
+
+            try
+            {
+                var games = isPegasus ? PegasusMetadataParser.Parse(filePath) : LoadMetadata(platformKey);
+
+                return games.Count > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static bool HasFilesInFolder(string folderPath, IEnumerable<string> validExtensions)
@@ -477,6 +497,17 @@ namespace UltimateEnd.Services
             }
             return false;
         }
+
+        private static string GetRealPath(string platformPath)
+        {
+            var converter = PathConverterFactory.Create?.Invoke();
+
+            return converter?.FriendlyPathToRealPath(platformPath) ?? platformPath;
+        }
+
+        private static bool IsBiosFolder(string folderName) => !string.IsNullOrEmpty(folderName) && folderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase);
+
+        private static bool HasMatchingRomFile(string path, string folderName, IEnumerable<string> validExtensions) => validExtensions.Any(ext => File.Exists(Path.Combine(path, folderName + ext)));
 
         private static bool IsSystemApp(string platformId) => platformId == GameMetadataManager.SteamKey || platformId == GameMetadataManager.DesktopKey || platformId == GameMetadataManager.AndroidKey;
     }

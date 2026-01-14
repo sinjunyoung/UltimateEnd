@@ -154,7 +154,7 @@ namespace UltimateEnd.Managers
             _genres.Clear();
 
             var gamesForGenre = _allGames.Where(g => _isShowingDeletedGames ? g.Ignore : !g.Ignore);
-            var genres = _filterService.ExtractGenres(gamesForGenre);
+            var genres = GameFilterService.ExtractGenres(gamesForGenre);
 
             foreach (var genre in genres) _genres.Add(genre);
 

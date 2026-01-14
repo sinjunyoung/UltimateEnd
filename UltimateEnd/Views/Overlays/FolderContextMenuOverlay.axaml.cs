@@ -26,6 +26,7 @@ namespace UltimateEnd.Views.Overlays
 
         public event EventHandler<string>? FolderRenamed;
         public event EventHandler<string>? FolderDeleted;
+        public event EventHandler<(string folderName, bool ignore)>? FolderIgnoreChanged;
 
         public FolderContextMenuOverlay()
         {
@@ -55,7 +56,7 @@ namespace UltimateEnd.Views.Overlays
                     ShowRenameOverlay();
                     break;
                 case 1:
-                    ShowDeleteOverlay();
+                    ToggleIgnore();
                     break;
             }
         }
@@ -63,7 +64,7 @@ namespace UltimateEnd.Views.Overlays
         private void UpdateMenuSelection()
         {
             var renameBorder = this.FindControl<Border>("RenameBorder");
-            var deleteBorder = this.FindControl<Border>("DeleteBorder");
+            var ignoreBorder = this.FindControl<Border>("IgnoreBorder");
 
             if (renameBorder != null)
             {
@@ -72,9 +73,9 @@ namespace UltimateEnd.Views.Overlays
                     : this.FindResource("Background.Secondary") as IBrush;
             }
 
-            if (deleteBorder != null)
+            if (ignoreBorder != null)
             {
-                deleteBorder.Background = _selectedMenuIndex == 1
+                ignoreBorder.Background = _selectedMenuIndex == 1
                     ? this.FindResource("Background.Hover") as IBrush
                     : this.FindResource("Background.Secondary") as IBrush;
             }
@@ -104,7 +105,12 @@ namespace UltimateEnd.Views.Overlays
             this.Focus();
 
             _selectedMenuIndex = 0;
-            Dispatcher.UIThread.Post(() => UpdateMenuSelection(), DispatcherPriority.Loaded);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                UpdateMenuSelection();
+                UpdateIgnoreToggle();
+            }, DispatcherPriority.Loaded);
         }
 
         public override void Hide(HiddenState state)
@@ -138,10 +144,9 @@ namespace UltimateEnd.Views.Overlays
 
         #region Rename
 
-        private async void OnRenameClick(object? sender, PointerPressedEventArgs e)
+        private void OnRenameClick(object? sender, PointerPressedEventArgs e)
         {
             e.Handled = true;
-            await WavSounds.OK();
             ShowRenameOverlay();
         }
 
@@ -277,10 +282,9 @@ namespace UltimateEnd.Views.Overlays
 
         #region Delete
 
-        private async void OnDeleteClick(object? sender, PointerPressedEventArgs e)
+        private void OnDeleteClick(object? sender, PointerPressedEventArgs e)
         {
             e.Handled = true;
-            await WavSounds.OK();
             ShowDeleteOverlay();
         }
 
@@ -318,7 +322,7 @@ namespace UltimateEnd.Views.Overlays
                 var realBasePath = converter?.FriendlyPathToRealPath(_basePath) ?? _basePath;
                 var folderPath = Path.Combine(realBasePath, _currentFolder.SubFolder!);
 
-                var games = AllGamesManager.Instance.GetPlatformGames(_platformId);
+                var games = GameMetadataManager.LoadGames(_platformId!);
                 var gamesToRemove = games.Where(g => g.SubFolder == _currentFolder.SubFolder).ToList();
 
                 foreach (var game in gamesToRemove)
@@ -336,6 +340,56 @@ namespace UltimateEnd.Views.Overlays
                 System.Diagnostics.Debug.WriteLine($"Delete folder error: {ex.Message}");
             }
         }
+
+        private void OnIgnoreClick(object? sender, PointerPressedEventArgs e)
+        {
+            e.Handled = true;
+            ToggleIgnore();
+        }
+
+        private void ToggleIgnore()
+        {
+            if (_currentFolder == null || string.IsNullOrEmpty(_platformId)) return;
+
+            var newIgnoreState = !_currentFolder.Ignore;
+            _currentFolder.Ignore = newIgnoreState;
+
+            var games = GameMetadataManager.LoadGames(_platformId!);
+
+            foreach (var game in games.Where(g => g.SubFolder == _currentFolder.SubFolder))
+                game.Ignore = newIgnoreState;
+
+            AllGamesManager.Instance.SavePlatformGames(_platformId);
+
+            UpdateIgnoreToggle();
+
+            FolderIgnoreChanged?.Invoke(this, (_currentFolder.SubFolder!, newIgnoreState));
+        }
+
+        private void UpdateIgnoreToggle()
+        {
+            if (_currentFolder == null || string.IsNullOrEmpty(_platformId)) return;
+
+            var allGames = GameMetadataManager.LoadGames(_platformId!);
+            var folderGames = allGames.Where(g => g.SubFolder == _currentFolder.SubFolder).ToList();
+
+            bool isIgnored = folderGames.Count != 0 && folderGames.All(g => g.Ignore);
+
+            _currentFolder.Ignore = isIgnored; 
+            UpdateToggle(IgnoreToggle, IgnoreToggleThumb, isIgnored);
+        }
+
+        private static void UpdateToggle(Border? toggleBack, Border? toggle, bool value)
+        {
+            if (toggleBack == null || toggle == null) return;
+
+            string resourceKey = value ? "Toggle.SelectionBackground" : "Toggle.Background";
+
+            if (Avalonia.Application.Current != null && Avalonia.Application.Current.Resources.TryGetResource(resourceKey, Avalonia.Application.Current?.ActualThemeVariant, out object? resourceObj)) toggleBack.Background = resourceObj as IBrush;
+
+            toggle.HorizontalAlignment = value ? Avalonia.Layout.HorizontalAlignment.Right : Avalonia.Layout.HorizontalAlignment.Left;
+        }
+
 
         #endregion
     }

@@ -608,37 +608,5 @@ namespace UltimateEnd.Views
         }
 
         #endregion
-
-        protected async void OnDisplayItemTapped(object? sender, TappedEventArgs e)
-        {
-            if (sender is Border border && LongPressBehavior.WasLongPressed(border))
-            {
-                e.Handled = true;
-                return;
-            }
-
-            if (sender is Border b && b.DataContext is FolderItem item)
-            {
-                await WavSounds.OK();
-                await ViewModel?.OnItemTapped(item);
-            }
-        }
-
-        protected void OnDisplayItemLongPress(object? sender, object item)
-        {
-            if (item is FolderItem folderItem && folderItem.IsGame)
-                _ = ShowGameContextMenu(folderItem.Game);
-            else if (item is FolderItem fi && fi.IsFolder)
-                OnFolderMenuButtonTapped(sender, null);
-        }
-
-        protected async void OnDisplayItemDoubleTapped(object? sender, RoutedEventArgs e)
-        {
-            if (sender is Border border && border.DataContext is FolderItem item)
-            {
-                if (item.IsGame)
-                    await ViewModel?.LaunchGameAsync(item.Game);
-            }
-        }
     }
 }
