@@ -1,5 +1,6 @@
 ﻿using ReactiveUI;
 using System.Collections.Generic;
+using System.IO;
 using UltimateEnd.Enums;
 using UltimateEnd.Services;
 using UltimateEnd.ViewModels;
@@ -34,7 +35,9 @@ namespace UltimateEnd.Models
             get
             {
                 if (IsFolderMissing) return PlatformStatusType.Missing;
+
                 if (IsNew) return PlatformStatusType.New;
+
                 return PlatformStatusType.Normal;
             }
         }
@@ -44,7 +47,9 @@ namespace UltimateEnd.Models
             get
             {
                 if (IsFolderMissing) return "폴더 없음";
+
                 if (IsNew) return "새 폴더";
+
                 return string.Empty;
             }
         }
@@ -67,20 +72,15 @@ namespace UltimateEnd.Models
 
         public List<PlatformOption> AvailablePlatforms { get; set; } = [];
 
-        public string PlatformInfo => SelectedPlatform != null
-            ? $"매핑: {PlatformInfoService.GetPlatformDisplayName(SelectedPlatform)}"
-            : "플랫폼을 선택하세요";
+        public string PlatformInfo => SelectedPlatform != null ? $"매핑: {PlatformInfoService.Instance.GetPlatformDisplayName(SelectedPlatform)}" : "플랫폼을 선택하세요";
 
         public string GetFullPath()
         {
-            if (string.IsNullOrEmpty(BasePath))
-                return FolderName;
+            if (string.IsNullOrEmpty(BasePath)) return FolderName;
 
-            return System.IO.Path.Combine(BasePath, FolderName);
+            return Path.Combine(BasePath, FolderName);
         }
 
-        public string DisplayPath => string.IsNullOrEmpty(BasePath)
-            ? ActualPath
-            : $"{BasePath} → {ActualPath}";
+        public string DisplayPath => string.IsNullOrEmpty(BasePath) ? ActualPath : $"{BasePath} → {ActualPath}";
     }
 }

@@ -53,9 +53,6 @@ namespace UltimateEnd.Views
         {
             InitializeComponent();
 
-            var ver = PlatformServiceFactory.Create?.Invoke();
-            VersionText.Text = $"{ver.GetAppName()} Ver {ver.GetAppVersion()}";
-
             Focusable = true;
             Background = Brushes.Transparent;
             AttachedToVisualTree += OnAttachedToVisualTree;

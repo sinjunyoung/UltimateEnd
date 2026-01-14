@@ -10,7 +10,9 @@ namespace UltimateEnd.Desktop.Models
     {
         private string? _coreName;
         private string _launchCommand = string.Empty;
-        private string? _workingDirectory;        
+        private string? _workingDirectory;
+        private string? _prelaunchScript;
+        private string? _postlaunchScript;
         private bool _isRetroArch;
 
         [JsonPropertyName("id")]
@@ -56,6 +58,22 @@ namespace UltimateEnd.Desktop.Models
             set => this.RaiseAndSetIfChanged(ref _coreName, value);
         }
 
+        [JsonPropertyName("prelaunchScript")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? PrelaunchScript
+        {
+            get => _prelaunchScript;
+            set => this.RaiseAndSetIfChanged(ref _prelaunchScript, value);
+        }
+
+        [JsonPropertyName("postlaunchScript")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? PostlaunchScript
+        {
+            get => _postlaunchScript;
+            set => this.RaiseAndSetIfChanged(ref _postlaunchScript, value);
+        }
+
         [JsonIgnore]
         public string Executable
         {
@@ -63,11 +81,9 @@ namespace UltimateEnd.Desktop.Models
             set
             {
                 var (_, args) = Utils.CommandParser.ParseCommand(LaunchCommand);
-
                 LaunchCommand = string.IsNullOrEmpty(args)
                     ? value
                     : (value.Contains(' ') ? $"\"{value}\" {args}" : $"{value} {args}");
-
                 this.RaisePropertyChanged(nameof(Executable));
                 this.RaisePropertyChanged(nameof(Arguments));
                 this.RaisePropertyChanged(nameof(Icon));

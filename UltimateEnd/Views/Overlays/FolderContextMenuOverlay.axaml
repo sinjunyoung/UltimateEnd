@@ -65,6 +65,7 @@
 					</Border>
 
 					<!-- 삭제 -->
+					<!-- 
 					<Border Name="DeleteBorder"
 							Background="{DynamicResource Background.Secondary}"
 							CornerRadius="8"
@@ -90,6 +91,8 @@
 							</Style>
 						</Border.Styles>
 					</Border>
+					-->
+					
 				</StackPanel>
 
 				<!-- Cancel Button -->

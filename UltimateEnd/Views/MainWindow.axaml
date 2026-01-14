@@ -5,6 +5,9 @@
         x:Class="UltimateEnd.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Ultimate End"
+		WindowStartupLocation="Manual"
+        Position="0,0"
+        Topmost="True"
         WindowState="FullScreen"
         SystemDecorations="None">
 

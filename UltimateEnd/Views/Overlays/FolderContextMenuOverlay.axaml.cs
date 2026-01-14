@@ -231,10 +231,12 @@ namespace UltimateEnd.Views.Overlays
                 }
 
                 Directory.Move(oldPath, newPath);
-                var games = AllGamesManager.Instance.GetPlatformGames(_platformId!);
+                var games = GameMetadataManager.LoadGames(_platformId!);
 
                 foreach (var game in games.Where(g => g.SubFolder == _currentFolder.SubFolder))
                 {
+                    AllGamesManager.Instance.UpdateGameKey(game, _currentFolder.SubFolder!, newName);
+
                     game.SubFolder = newName;
                     game.SetBasePath(newPath);
 
@@ -259,8 +261,7 @@ namespace UltimateEnd.Views.Overlays
             }
             catch (Exception ex)
             {
-                if (RenameStatusText != null)
-                    RenameStatusText.Text = $"오류: {ex.Message}";
+                if (RenameStatusText != null) RenameStatusText.Text = $"오류: {ex.Message}";
             }
         }
 
@@ -321,15 +322,9 @@ namespace UltimateEnd.Views.Overlays
                 var gamesToRemove = games.Where(g => g.SubFolder == _currentFolder.SubFolder).ToList();
 
                 foreach (var game in gamesToRemove)
-                {
                     games.Remove(game);
-                }
 
                 AllGamesManager.Instance.SavePlatformGames(_platformId);
-
-                // 실제 폴더는 삭제하지 않음 (ROM 파일 보존)
-                // 만약 폴더도 삭제하려면:
-                // Directory.Delete(folderPath, true);
 
                 FolderDeleted?.Invoke(this, _currentFolder.SubFolder!);
 

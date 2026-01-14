@@ -17,7 +17,7 @@ namespace UltimateEnd.Services
             ICommandConfig config = service.LoadConfig();
 
             var targetPlatformId = GameMetadataManager.IsSpecialPlatform(platformId) ? (selectedGamePlatformId ?? platformId) : platformId;
-            var normalizedPlatformId = PlatformInfoService.NormalizePlatformId(targetPlatformId);
+            var normalizedPlatformId = PlatformInfoService.Instance.NormalizePlatformId(targetPlatformId);
             var emulators = CollectEmulators(config, normalizedPlatformId);
 
             SortEmulators(emulators);
@@ -32,7 +32,7 @@ namespace UltimateEnd.Services
             foreach (IEmulatorCommand emulator in config.Emulators.Values)
             {
                 var normalizedSupportedPlatforms = emulator.SupportedPlatforms
-                    .Select(p => PlatformInfoService.NormalizePlatformId(p))
+                    .Select(p => PlatformInfoService.Instance.NormalizePlatformId(p))
                     .ToList();
 
                 if (normalizedSupportedPlatforms.Contains(platformId))
@@ -74,7 +74,7 @@ namespace UltimateEnd.Services
 
             var config = service.LoadConfig();
             var targetPlatformId = GameMetadataManager.IsSpecialPlatform(platformId) ? (selectedGamePlatformId ?? platformId) : platformId;
-            var normalizedPlatformId = PlatformInfoService.NormalizePlatformId(targetPlatformId);
+            var normalizedPlatformId = PlatformInfoService.Instance.NormalizePlatformId(targetPlatformId);
 
             config.DefaultEmulators[normalizedPlatformId] = emulatorId;
             service.SaveConfig(config);

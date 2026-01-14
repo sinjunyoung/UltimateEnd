@@ -28,8 +28,8 @@ namespace UltimateEnd.ViewModels
         private bool _isMenuFocused = false;        
         private bool _isCurrentlyLoading = false;
         private bool _triggerScrollFix;
-
         private readonly Random _random = new();
+        private string _versionText;
 
         #endregion
 
@@ -88,6 +88,12 @@ namespace UltimateEnd.ViewModels
             set => this.RaiseAndSetIfChanged(ref _triggerScrollFix, value);
         }
 
+        public string VersionText
+        {
+            get => _versionText;
+            set => this.RaiseAndSetIfChanged(ref _versionText, value);
+        }
+
         #endregion
 
         #region Events
@@ -107,6 +113,9 @@ namespace UltimateEnd.ViewModels
             _currentDate = string.Empty;
             _currentThemeName = string.Empty;
             _selectedPlatform = null!;
+
+            var ver = PlatformServiceFactory.Create?.Invoke();
+            VersionText = ver != null ? $"{ver.GetAppName()} Ver {ver.GetAppVersion()}" : "Unknown Version";
 
             SettingsService.PlatformSettingsChanged += OnPlatformSettingsChanged;
             ThemeService.ThemeChanged += OnThemeChanged;
@@ -312,7 +321,7 @@ namespace UltimateEnd.ViewModels
                         return new Platform
                         {
                             Id = mappedId,
-                            Name = PlatformInfoService.GetPlatformDisplayName(mappedId),
+                            Name = PlatformInfoService.Instance.GetPlatformDisplayName(mappedId),
                             ImagePath = representative.ImagePath,
                             LogoPath = representative.LogoPath,
                             FolderPath = representative.FolderPath,
@@ -370,9 +379,9 @@ namespace UltimateEnd.ViewModels
             var converter = PathConverterFactory.Create?.Invoke();
             var realPath = converter?.FriendlyPathToRealPath(platformKey) ?? platformKey;
             var mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath);
-            var platformDisplayName = !string.IsNullOrEmpty(mappedPlatformId) ? PlatformInfoService.GetPlatformDisplayName(mappedPlatformId) : PlatformInfoService.GetPlatformDisplayName(platformKey);
-            var normalizedFolder = PlatformInfoService.NormalizePlatformId(platformKey);
-            var normalizedDisplay = PlatformInfoService.NormalizePlatformId(platformDisplayName);
+            var platformDisplayName = !string.IsNullOrEmpty(mappedPlatformId) ? PlatformInfoService.Instance.GetPlatformDisplayName(mappedPlatformId) : PlatformInfoService.Instance.GetPlatformDisplayName(platformKey);
+            var normalizedFolder = PlatformInfoService.Instance.NormalizePlatformId(platformKey);
+            var normalizedDisplay = PlatformInfoService.Instance.NormalizePlatformId(platformDisplayName);
 
             return normalizedFolder == normalizedDisplay ? platformDisplayName : $"{platformDisplayName} ({platformKey})";
         }
@@ -382,7 +391,7 @@ namespace UltimateEnd.ViewModels
             var converter = PathConverterFactory.Create?.Invoke();
             var realPath = converter?.FriendlyPathToRealPath(platformKey) ?? platformKey;
 
-            return PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.NormalizePlatformId(platformKey);
+            return PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.Instance.NormalizePlatformId(platformKey);
         }
 
         private static string GetPlatformImagePath(KeyValuePair<string, PlatformSettings> platformSetting, string romsBasePath, string normalizedId)

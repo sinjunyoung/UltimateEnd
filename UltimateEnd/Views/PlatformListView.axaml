@@ -224,10 +224,10 @@
 					VerticalAlignment="Bottom"
 					Opacity="0.8"
 					Margin="{Binding #PlatformListViewRoot.VersionMargin}">
-			<TextBlock x:Name="VersionText"
-					   FontSize="{Binding #PlatformListViewRoot.DateFontSize}"
+			<TextBlock FontSize="{Binding #PlatformListViewRoot.DateFontSize}"
 					   Foreground="{DynamicResource Text.Primary}"
-					   TextAlignment="Left"/>
+					   TextAlignment="Left"
+					   Text="{Binding VersionText}"/>
 		</StackPanel>
 		
 		<!-- 오버레이들 -->

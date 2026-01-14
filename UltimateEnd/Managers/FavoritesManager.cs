@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using UltimateEnd.Models;
 
 namespace UltimateEnd.Managers
@@ -6,7 +7,7 @@ namespace UltimateEnd.Managers
     public class FavoritesManager
     {
         private static FavoritesManager? _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
 
         public static FavoritesManager Instance
         {

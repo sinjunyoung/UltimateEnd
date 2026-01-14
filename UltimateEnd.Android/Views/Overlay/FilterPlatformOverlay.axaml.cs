@@ -122,7 +122,7 @@ namespace UltimateEnd.Android.Views.Overlays
                     Image = null!
                 });
 
-                var database = PlatformInfoService.LoadDatabase();
+                var database = PlatformInfoService.Instance.GetDatabase();
 
                 foreach (var platform in database.Platforms.OrderBy(p => p.DisplayName))
                 {
@@ -169,9 +169,9 @@ namespace UltimateEnd.Android.Views.Overlays
             }
             else
             {
-                _filteredPlatforms = _platforms.Where(p =>
-                    p.DisplayName.ToLower().Contains(searchText) ||
-                    (p.Id != null && p.Id.ToLower().Contains(searchText))).ToList();
+                _filteredPlatforms = [.. _platforms.Where(p =>
+                    p.DisplayName.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ||
+                    (p.Id != null && p.Id.Contains(searchText, StringComparison.CurrentCultureIgnoreCase)))];
 
                 PlatformItemsControl.ItemsSource = _filteredPlatforms;
             }

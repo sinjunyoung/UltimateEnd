@@ -58,7 +58,7 @@ namespace UltimateEnd.Managers
                 {
                     var compositeKey = platform.Key;
                     var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-                    var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.NormalizePlatformId(platform.Value.Name);
+                    var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
 
                     LoadGamesFromFolder(realPath, actualPlatformId, compositeKey, null);
 
@@ -323,6 +323,23 @@ namespace UltimateEnd.Managers
             }
         }
 
+        public void UpdateGameKey(GameMetadata game, string oldSubFolder, string newSubFolder)
+        {
+            EnsureLoaded();
+
+            lock (_gamesLock)
+            {
+                var oldKey = GetGameKey(game.GetBasePath(), oldSubFolder, game.RomFile);
+                var newKey = GetGameKey(game.GetBasePath(), newSubFolder, game.RomFile);
+
+                if (_allGames.TryGetValue(oldKey, out var existing))
+                {
+                    _allGames.Remove(oldKey);
+                    _allGames[newKey] = existing;
+                }
+            }
+        }
+
         public void SavePlatformGames(string platformId)
         {
             EnsureLoaded();
@@ -389,7 +406,7 @@ namespace UltimateEnd.Managers
                     {
                         var compositeKey = platform.Key;
                         var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-                        var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.NormalizePlatformId(platform.Value.Name);
+                        var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
 
                         if (actualPlatformId == platformId)
                         {

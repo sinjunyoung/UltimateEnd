@@ -18,7 +18,7 @@ namespace UltimateEnd.Scraper
         #region Singleton
 
         private static AutoScrapService? _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
         private readonly SemaphoreSlim _startSemaphore = new(1, 1);
 
         public static AutoScrapService Instance
@@ -47,7 +47,7 @@ namespace UltimateEnd.Scraper
         private bool _disposed;
         private bool _isPaused;
 
-        private readonly object _runningLock = new();
+        private readonly Lock _runningLock = new();
 
         private CancellationTokenSource? _cts;
         private Task? _currentTask;
@@ -183,7 +183,7 @@ namespace UltimateEnd.Scraper
 
                     try
                     {
-                        var screenScraperSystemId = PlatformInfoService.GetScreenScraperSystemId(game.PlatformId);
+                        var screenScraperSystemId = PlatformInfoService.Instance.GetScreenScraperSystemId(game.PlatformId);
 
                         if (screenScraperSystemId == ScreenScraperSystemId.NotSupported)
                         {
@@ -286,7 +286,7 @@ namespace UltimateEnd.Scraper
 
                 var romPath = game.GetRomFullPath();
 
-                var screenScraperSystemId = PlatformInfoService.GetScreenScraperSystemId(game.PlatformId);
+                var screenScraperSystemId = PlatformInfoService.Instance.GetScreenScraperSystemId(game.PlatformId);
 
                 if (screenScraperSystemId != ScreenScraperSystemId.NotSupported)
                 {

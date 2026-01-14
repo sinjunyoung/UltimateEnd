@@ -258,8 +258,8 @@ namespace UltimateEnd.ViewModels
 
                         var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
                         var mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? TryAutoMapPlatform(folder.Name);
-                        var normalizedMappedId = !string.IsNullOrEmpty(mappedPlatformId) ? PlatformInfoService.NormalizePlatformId(mappedPlatformId) : null;
-                        var selectedOption = _cachedAvailablePlatforms?.FirstOrDefault(p => PlatformInfoService.NormalizePlatformId(p.Id) == normalizedMappedId);
+                        var normalizedMappedId = !string.IsNullOrEmpty(mappedPlatformId) ? PlatformInfoService.Instance.NormalizePlatformId(mappedPlatformId) : null;
+                        var selectedOption = _cachedAvailablePlatforms?.FirstOrDefault(p => PlatformInfoService.Instance.NormalizePlatformId(p.Id) == normalizedMappedId);
                         var customDisplayName = mappingConfig?.CustomDisplayNames?.TryGetValue(compositeKey, out var displayName) == true ? displayName : null;
 
                         result.Add(new PlatformNameSetting
@@ -299,7 +299,7 @@ namespace UltimateEnd.ViewModels
                 .Select(id => new PlatformOption
                 {
                     Id = id,
-                    DisplayName = PlatformInfoService.GetPlatformDisplayName(id),
+                    DisplayName = PlatformInfoService.Instance.GetPlatformDisplayName(id),
                     Image = LoadPlatformThumbnail(id)
                 })];
         }
@@ -308,7 +308,7 @@ namespace UltimateEnd.ViewModels
         {
             try
             {
-                var info = PlatformInfoService.GetPlatformInfo(platformId);
+                var info = PlatformInfoService.Instance.GetPlatformInfo(platformId);
                 var uri = new Uri(ResourceHelper.GetPlatformImage(info.Id));
 
                 if (!AssetLoader.Exists(uri)) return null;
@@ -332,13 +332,13 @@ namespace UltimateEnd.ViewModels
         {
             if (_cachedConfig == null) return null;
 
-            var extractedId = PlatformInfoService.ExtractPlatformIdFromFolderName(folderName);
+            var extractedId = PlatformInfoService.Instance.ExtractPlatformIdFromFolderName(folderName);
 
             foreach (var emulator in _cachedConfig.Emulators.Values)
             {
                 foreach (var supportedPlatform in emulator.SupportedPlatforms)
                 {
-                    var normalizedSupported = PlatformInfoService.NormalizePlatformId(supportedPlatform);
+                    var normalizedSupported = PlatformInfoService.Instance.NormalizePlatformId(supportedPlatform);
 
                     if (normalizedSupported.Equals(extractedId, StringComparison.OrdinalIgnoreCase))
                         return normalizedSupported;
@@ -404,7 +404,7 @@ namespace UltimateEnd.ViewModels
 
                     if (!string.IsNullOrEmpty(platform.SelectedPlatform))
                     {
-                        var normalized = PlatformInfoService.NormalizePlatformId(platform.SelectedPlatform);
+                        var normalized = PlatformInfoService.Instance.NormalizePlatformId(platform.SelectedPlatform);
                         mappingConfig.FolderMappings[compositeKey] = normalized;
                     }
 

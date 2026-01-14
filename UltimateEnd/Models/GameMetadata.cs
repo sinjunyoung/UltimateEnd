@@ -122,7 +122,7 @@ namespace UltimateEnd.Models
         public string? PlatformId { get; set; }
 
         [JsonIgnore] 
-        public string ShortPlatformId => PlatformInfoService.GetShortestAlias(PlatformId ?? string.Empty).ToUpper();
+        public string ShortPlatformId => PlatformInfoService.Instance.GetShortestAlias(PlatformId ?? string.Empty).ToUpper();
 
         [JsonPropertyName("emulatorId")]
         public string? EmulatorId

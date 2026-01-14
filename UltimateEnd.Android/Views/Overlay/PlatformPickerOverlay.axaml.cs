@@ -112,7 +112,7 @@ namespace UltimateEnd.Android.Views.Overlays
         {
             try
             {
-                var database = PlatformInfoService.LoadDatabase();
+                var database = PlatformInfoService.Instance.GetDatabase();
 
                 foreach (var platform in database.Platforms.OrderBy(p => p.DisplayName))
                 {
@@ -129,7 +129,7 @@ namespace UltimateEnd.Android.Views.Overlays
                     _platforms.Add(vm);
                 }
 
-                _filteredPlatforms = _platforms.ToList();
+                _filteredPlatforms = [.. _platforms];
                 PlatformItemsControl.ItemsSource = _filteredPlatforms;
             }
             catch
@@ -137,7 +137,7 @@ namespace UltimateEnd.Android.Views.Overlays
             }
         }
 
-        private object? LoadPlatformImage(string platformId)
+        private static Avalonia.Media.Imaging.Bitmap? LoadPlatformImage(string platformId)
         {
             try
             {
@@ -167,14 +167,14 @@ namespace UltimateEnd.Android.Views.Overlays
 
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                _filteredPlatforms = _platforms.ToList();
+                _filteredPlatforms = [.. _platforms];
                 PlatformItemsControl.ItemsSource = _filteredPlatforms;
             }
             else
             {
-                _filteredPlatforms = _platforms.Where(p =>
-                    p.DisplayName.ToLower().Contains(searchText) ||
-                    p.Id.ToLower().Contains(searchText)).ToList();
+                _filteredPlatforms = [.. _platforms.Where(p =>
+                    p.DisplayName.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ||
+                    p.Id.Contains(searchText, StringComparison.CurrentCultureIgnoreCase))];
 
                 PlatformItemsControl.ItemsSource = _filteredPlatforms;
             }

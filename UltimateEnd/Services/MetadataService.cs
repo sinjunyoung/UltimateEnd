@@ -162,7 +162,7 @@ namespace UltimateEnd.Services
                 if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return;
 
                 string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? realPath;
-                var validExtensions = PlatformInfoService.GetValidExtensions(mappedId);
+                var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
 
                 List<GameMetadata> existingMetadata;
 
@@ -202,7 +202,7 @@ namespace UltimateEnd.Services
             catch { }
         }
 
-        private static void ScanFolder(string folderPath, string? subFolder, HashSet<string> validExtensions, HashSet<string> existingRomFiles, List<GameMetadata> existingMetadata, ref int addedCount)
+        private static void ScanFolder(string folderPath, string? subFolder, IEnumerable<string> validExtensions, HashSet<string> existingRomFiles, List<GameMetadata> existingMetadata, ref int addedCount)
         {
             string[] romFiles;
 
@@ -358,7 +358,7 @@ namespace UltimateEnd.Services
             if (!Directory.Exists(realPath)) return actualRomFiles;
 
             string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(platformKey) ?? platformKey;
-            var validExtensions = PlatformInfoService.GetValidExtensions(mappedId);
+            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
 
             ScanFolderForFiles(realPath, validExtensions, actualRomFiles);
 
@@ -372,7 +372,7 @@ namespace UltimateEnd.Services
             return actualRomFiles;
         }
 
-        private static void ScanFolderForFiles(string folderPath, HashSet<string> validExtensions, HashSet<string> actualRomFiles)
+        private static void ScanFolderForFiles(string folderPath, IEnumerable<string> validExtensions, HashSet<string> actualRomFiles)
         {
             foreach (var ext in validExtensions)
             {
@@ -411,7 +411,7 @@ namespace UltimateEnd.Services
             if (!Directory.Exists(realPath)) return false;
 
             string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(platformKey) ?? platformKey;
-            var validExtensions = PlatformInfoService.GetValidExtensions(mappedId);
+            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
 
             try
             {
@@ -466,7 +466,7 @@ namespace UltimateEnd.Services
             return false;
         }
 
-        private static bool HasFilesInFolder(string folderPath, HashSet<string> validExtensions)
+        private static bool HasFilesInFolder(string folderPath, IEnumerable<string> validExtensions)
         {
             foreach (var ext in validExtensions)
             {

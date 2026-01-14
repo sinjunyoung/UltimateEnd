@@ -253,7 +253,7 @@ namespace UltimateEnd.Android.Services
                 }
             }
 
-            var normalizedPlatformId = PlatformInfoService.NormalizePlatformId(platformId);
+            var normalizedPlatformId = PlatformInfoService.Instance.NormalizePlatformId(platformId);
 
             if (config.DefaultEmulators.TryGetValue(normalizedPlatformId, out string? defaultEmulatorId))
                 if (!config.Emulators.ContainsKey(defaultEmulatorId)) defaultEmulatorId = null;
@@ -262,7 +262,7 @@ namespace UltimateEnd.Android.Services
             {
                 var supportedEmulators = config.Emulators.Values
                     .Where(e => e.SupportedPlatforms
-                    .Select(p => PlatformInfoService.NormalizePlatformId(p))
+                    .Select(p => PlatformInfoService.Instance.NormalizePlatformId(p))
                     .Contains(normalizedPlatformId))
                     .OrderBy(e => e.Name.Contains("RetroArch", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                     .ThenBy(e => e.Name, StringComparer.OrdinalIgnoreCase)

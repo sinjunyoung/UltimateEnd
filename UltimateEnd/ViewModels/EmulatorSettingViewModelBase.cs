@@ -74,11 +74,11 @@ namespace UltimateEnd.ViewModels
 
         protected EmulatorSettingViewModelBase()
         {
-            Commands = new ObservableCollection<IEmulatorCommand>();
-            FilteredCommands = new ObservableCollection<IEmulatorCommand>();
-            SelectedPlatforms = new ObservableCollection<PlatformTag>();
-            AvailablePlatforms = new ObservableCollection<PlatformInfo>();
-            FilterPlatforms = new ObservableCollection<PlatformInfo>();
+            Commands = [];
+            FilteredCommands = [];
+            SelectedPlatforms = [];
+            AvailablePlatforms = [];
+            FilterPlatforms = [];
 
             LoadAvailablePlatforms();
             LoadCommands();
@@ -106,7 +106,7 @@ namespace UltimateEnd.ViewModels
         {
             try
             {
-                var database = PlatformInfoService.LoadDatabase();
+                var database = PlatformInfoService.Instance.GetDatabase();
 
                 FilterPlatforms.Add(new PlatformInfo
                 {
@@ -176,14 +176,14 @@ namespace UltimateEnd.ViewModels
                 FilteredCommands.Add(cmd);
         }
 
-        private bool IsPlatformMatch(string commandPlatform, string filterPlatformId)
+        private static bool IsPlatformMatch(string commandPlatform, string filterPlatformId)
         {
             if (commandPlatform.Equals(filterPlatformId, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             try
             {
-                var database = PlatformInfoService.LoadDatabase();
+                var database = PlatformInfoService.Instance.GetDatabase();
                 var platform = database.Platforms.FirstOrDefault(p => p.Id == filterPlatformId);
 
                 if (platform?.Aliases != null)
@@ -211,11 +211,11 @@ namespace UltimateEnd.ViewModels
             }
         }
 
-        private string GetFullPlatformId(string alias)
+        private static string GetFullPlatformId(string alias)
         {
             try
             {
-                var database = PlatformInfoService.LoadDatabase();
+                var database = PlatformInfoService.Instance.GetDatabase();
                 var platform = database.Platforms.FirstOrDefault(p =>
                     p.Id.Equals(alias, StringComparison.OrdinalIgnoreCase) ||
                     (p.Aliases != null && p.Aliases.Any(a => a.Equals(alias, StringComparison.OrdinalIgnoreCase))));
@@ -244,11 +244,11 @@ namespace UltimateEnd.ViewModels
             UpdateCommandPlatforms();
         }
 
-        public string GetShortestAlias(string platformId)
+        public static string GetShortestAlias(string platformId)
         {
             try
             {
-                var database = PlatformInfoService.LoadDatabase();
+                var database = PlatformInfoService.Instance.GetDatabase();
                 var platform = database.Platforms.FirstOrDefault(p => p.Id == platformId);
 
                 if (platform?.Aliases != null && platform.Aliases.Count > 0)
@@ -269,7 +269,7 @@ namespace UltimateEnd.ViewModels
         {
             if (SelectedCommand == null) return;
 
-            OnPlatformsChanged(SelectedPlatforms.Select(p => p.Id).ToList());
+            OnPlatformsChanged([.. SelectedPlatforms.Select(p => p.Id)]);
         }
 
         private void AddCommand()

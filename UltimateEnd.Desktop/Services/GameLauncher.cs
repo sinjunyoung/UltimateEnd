@@ -208,7 +208,7 @@ namespace UltimateEnd.Desktop.Services
                 throw new InvalidOperationException($"에뮬레이터 '{emulatorId}'를 설정에서 찾을 수 없습니다.");
             }
 
-            var normalizedPlatformId = PlatformInfoService.NormalizePlatformId(platformId);
+            var normalizedPlatformId = PlatformInfoService.Instance.NormalizePlatformId(platformId);
 
             if (config.DefaultEmulators.TryGetValue(normalizedPlatformId, out string? defaultEmulatorId))
             {
@@ -220,7 +220,7 @@ namespace UltimateEnd.Desktop.Services
             {
                 var supportedEmulators = config.Emulators.Values
                     .Where(e => e.SupportedPlatforms
-                    .Select(p => PlatformInfoService.NormalizePlatformId(p))
+                    .Select(p => PlatformInfoService.Instance.NormalizePlatformId(p))
                     .Contains(normalizedPlatformId))
                     .OrderBy(e => e.Name.Contains("RetroArch", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                     .ThenBy(e => e.Name, StringComparer.OrdinalIgnoreCase)

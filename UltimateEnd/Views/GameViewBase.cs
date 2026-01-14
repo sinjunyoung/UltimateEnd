@@ -466,7 +466,7 @@ namespace UltimateEnd.Views
 
         protected async void OnFolderMenuButtonTapped(object? sender, RoutedEventArgs e)
         {
-            e.Handled = true;
+            if(e != null) e.Handled = true;
 
             if (sender is Border border && border.DataContext is FolderItem item)
             {

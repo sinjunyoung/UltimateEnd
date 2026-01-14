@@ -52,67 +52,128 @@ namespace UltimateEnd.Desktop.Services
 
             RegisterCommonEmulators(config);
 
-            config.AddEmulator(new Command { Id = "mGBA", Name = "mGBA", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "mGBA",
+                Name = "mGBA",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\mGBA\mGBA.exe {romPath} --fullscreen",
                 SupportedPlatforms = ["gb", "gbc", "gba"]
             });
 
-            config.AddEmulator(new Command { Id = "visualboyadvance", Name = "VisualBoyAdvance", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "visualboyadvance",
+                Name = "VisualBoyAdvance",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\VisualBoyAdvance\VisualBoyAdvance.exe {romPath}",
                 SupportedPlatforms = ["gb", "gbc", "gba"]
             });
 
-            config.AddEmulator(new Command { Id = "bsnes", Name = "BSNES", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "bsnes",
+                Name = "BSNES",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\bsnes\bsnes.exe {romPath} --fullscreen",
                 SupportedPlatforms = ["gb", "gbc", "gba", "sfc", "fc", "md", "mastersystem", "gg", "pce", "ws", "wsc"]
             });
 
-            config.AddEmulator(new Command { Id = "mesen", Name = "Mesen", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "mesen",
+                Name = "Mesen",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\Mesen\Mesen.exe {romPath} --fullscreen",
                 SupportedPlatforms = ["fc", "sfc", "gb", "gbc", "gba", "pce", "gg", "ws", "wsc"]
             });
 
-            config.AddEmulator(new Command { Id = "desmume", Name = "DeSmuME", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "desmume",
+                Name = "DeSmuME",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\desmume\DeSmuME_0.9.13_x64.exe {romPath} --windowed-fullscreen",
                 SupportedPlatforms = ["nds"]
             });
 
-            config.AddEmulator(new Command { Id = "ppsspp", Name = "PPSSPP", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "ppsspp",
+                Name = "PPSSPP",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\PPSSPP\PPSSPPWindows64.exe {romPath} --fullscreen",
                 SupportedPlatforms = ["psp"]
             });
 
-            config.AddEmulator(new Command { Id = "pcsx2", Name = "PCSX2", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "pcsx2",
+                Name = "PCSX2",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\pcsx2\pcsx2-qt.exe {romPath} -fullscreen",
                 SupportedPlatforms = ["ps2"]
             });
 
-            config.AddEmulator(new Command { Id = "vita3k", Name = "Vita3K", IsRetroArch = false,
+            //config.AddEmulator(new Command
+            //{
+            //    Id = "rpcs3",
+            //    Name = "RPCS3",
+            //    IsRetroArch = false,
+            //    LaunchCommand = @"Emulators\rpcs3\rpcs3_launcher.bat {romPath}",
+            //    SupportedPlatforms = ["ps3"]
+            //});
+
+            config.AddEmulator(new Command
+            {
+                Id = "vita3k",
+                Name = "Vita3K",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\Vita3K\Vita3K.exe -r {romName} --fullscreen",
                 SupportedPlatforms = ["vita"]
             });
 
-            config.AddEmulator(new Command { Id = "dolphin", Name = "Dolphin", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "dolphin",
+                Name = "Dolphin",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\Dolphin\Dolphin.exe {romPath} --config ""Dolphin.Display.Fullscreen=True""",
                 SupportedPlatforms = ["gc", "wii"]
             });
 
-            config.AddEmulator(new Command { Id = "cemu", Name = "CEMU", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "cemu",
+                Name = "CEMU",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\cemu\Cemu.exe -g {romPath} -f",
                 SupportedPlatforms = ["wiiu"]
             });
 
-            config.AddEmulator(new Command { Id = "sudachi", Name = "sudachi", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "sudachi",
+                Name = "sudachi",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\sudachi\sudachi.exe -f -g {romPath}",
                 SupportedPlatforms = ["switch"]
             });
 
-            config.AddEmulator(new Command { Id = "yuzu", Name = "yuzu", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "yuzu",
+                Name = "yuzu",
+                IsRetroArch = false,
                 LaunchCommand = @"Emulators\yuzu\yuzu.exe -f -g {romPath}",
                 SupportedPlatforms = ["switch"]
             });
 
-            config.AddEmulator(new Command { Id = "steam", Name = "STEAM", IsRetroArch = false,
+            config.AddEmulator(new Command
+            {
+                Id = "steam",
+                Name = "STEAM",
+                IsRetroArch = false,
                 LaunchCommand = @"""C:\Program Files (x86)\Steam\steam.exe"" -applaunch {romName}",
                 SupportedPlatforms = ["steam"]
             });
@@ -148,6 +209,8 @@ namespace UltimateEnd.Desktop.Services
                     WorkingDirectory = props.GetValueOrDefault("workingDirectory"),
                     IsRetroArch = props.GetValueOrDefault("isRetroArch") == "true",
                     CoreName = props.GetValueOrDefault("coreName"),
+                    PrelaunchScript = props.GetValueOrDefault("prelaunchScript"),
+                    PostlaunchScript = props.GetValueOrDefault("postlaunchScript"),
                     SupportedPlatforms = [.. (props.GetValueOrDefault("platforms") ?? string.Empty)
                         .Split(',')
                         .Select(p => p.Trim())
@@ -184,6 +247,12 @@ namespace UltimateEnd.Desktop.Services
 
                 if (!string.IsNullOrEmpty(cmd.CoreName))
                     props["coreName"] = cmd.CoreName;
+
+                if (!string.IsNullOrEmpty(cmd.PrelaunchScript))
+                    props["prelaunchScript"] = cmd.PrelaunchScript;
+
+                if (!string.IsNullOrEmpty(cmd.PostlaunchScript))
+                    props["postlaunchScript"] = cmd.PostlaunchScript;
 
                 data[cmd.Id] = props;
             }

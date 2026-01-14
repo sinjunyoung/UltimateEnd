@@ -317,7 +317,7 @@ namespace UltimateEnd.Scraper
             var systemIdCache = new Dictionary<string, ScreenScraperSystemId>();
 
             foreach (var platformId in games.Select(g => g.PlatformId).Distinct())
-                systemIdCache[platformId] = PlatformInfoService.GetScreenScraperSystemId(platformId);
+                systemIdCache[platformId] = PlatformInfoService.Instance.GetScreenScraperSystemId(platformId);
 
             return systemIdCache;
         }

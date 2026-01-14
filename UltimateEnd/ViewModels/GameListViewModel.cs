@@ -742,23 +742,43 @@ namespace UltimateEnd.ViewModels
 
             if (_currentSubFolder == null)
             {
-                var folders = Games
-                    .Where(g => !string.IsNullOrEmpty(g.SubFolder))
-                    .GroupBy(g => g.SubFolder)
-                    .OrderBy(g => g.Key);
-
-                foreach (var folder in folders)
+                if (Platform.Id == GameMetadataManager.HistoriesKey)
                 {
-                    items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
+                    var addedFolders = new HashSet<string>();
+
+                    foreach (var game in Games)
+                    {
+                        if (!string.IsNullOrEmpty(game.SubFolder) && !addedFolders.Contains(game.SubFolder))
+                        {
+                            var folderGames = Games.Where(g => g.SubFolder == game.SubFolder).ToList();
+                            items.Add(FolderItem.CreateFolder(game.SubFolder, folderGames.Count));
+                            addedFolders.Add(game.SubFolder);
+                        }
+                        else if (string.IsNullOrEmpty(game.SubFolder))
+                        {
+                            items.Add(FolderItem.CreateGame(game));
+                        }
+                    }
                 }
-
-                foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
+                else
                 {
-                    var item = FolderItem.CreateGame(game);
+                    var folders = Games
+                        .Where(g => !string.IsNullOrEmpty(g.SubFolder))
+                        .GroupBy(g => g.SubFolder)
+                        .OrderBy(g => g.Key);
 
-                    if (game == SelectedGame)
-                        item.IsSelected = true;
-                    items.Add(item);
+                    foreach (var folder in folders)
+                    {
+                        items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
+                    }
+
+                    foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
+                    {
+                        var item = FolderItem.CreateGame(game);
+                        if (game == SelectedGame)
+                            item.IsSelected = true;
+                        items.Add(item);
+                    }
                 }
             }
             else
@@ -773,9 +793,7 @@ namespace UltimateEnd.ViewModels
             }
 
             DisplayItems = items;
-
             SelectedItem = DisplayItems.FirstOrDefault(i => i.IsSelected);
-
             if (SelectedItem == null && DisplayItems.Count > 0)
                 SelectedItem = DisplayItems[0];
         }

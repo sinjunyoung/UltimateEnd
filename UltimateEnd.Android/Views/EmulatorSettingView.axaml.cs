@@ -58,7 +58,7 @@ namespace UltimateEnd.Android.Views
 
         private void InitializeOverlays()
         {
-            BaseOverlay[] overlays = {
+            BaseOverlay[] overlays = [
                 AppPickerOverlay,
                 ActionPickerOverlay,
                 CategoryPickerOverlay,
@@ -67,7 +67,7 @@ namespace UltimateEnd.Android.Views
                 FilterPlatformPickerOverlay,
                 CommandDetailOverlay,
                 TemplateVariablePickerOverlay
-            };
+            ];
 
             foreach (var overlay in overlays)
             {
@@ -133,7 +133,7 @@ namespace UltimateEnd.Android.Views
                 {
                     ViewModel.SelectedPlatforms.Add(new PlatformTag
                     {
-                        Id = ViewModel.GetShortestAlias(id),
+                        Id = UltimateEnd.ViewModels.EmulatorSettingViewModelBase.GetShortestAlias(id),
                         Image = ViewModel.LoadPlatformImage(GetFullPlatformId(id))
                     });
                 }
@@ -244,7 +244,7 @@ namespace UltimateEnd.Android.Views
         {
             try
             {
-                var database = UltimateEnd.Services.PlatformInfoService.LoadDatabase();
+                var database = UltimateEnd.Services.PlatformInfoService.Instance.GetDatabase();
                 var platform = database.Platforms.FirstOrDefault(p => p.Id.Equals(alias, StringComparison.OrdinalIgnoreCase) || (p.Aliases != null && p.Aliases.Any(a => a.Equals(alias, StringComparison.OrdinalIgnoreCase))));
 
                 return platform?.Id ?? alias;
