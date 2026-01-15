@@ -19,7 +19,7 @@ namespace UltimateEnd.Services
         private static readonly ConcurrentDictionary<string, (bool hasGames, DateTime scanned)> _hasGamesCache = new();
         private static readonly TimeSpan CacheValidDuration = TimeSpan.FromMinutes(30);
 
-        public static void PreloadAllPlatforms(IEnumerable<string> platformKeys)
+        public static void PreloadHasGamesCache(IEnumerable<string> platformKeys)
         {
             _ = Task.Run(() =>
             {

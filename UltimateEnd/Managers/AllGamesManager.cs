@@ -16,7 +16,9 @@ namespace UltimateEnd.Managers
         private static readonly Lock _lock = new();
         private readonly Dictionary<string, GameMetadata> _allGames = [];
         private readonly Lock _gamesLock = new();
-        private bool _isLoaded = false;
+        private volatile bool _isLoaded = false;
+        private volatile bool _isLoading = false;
+        private Task? _loadingTask = null;
         private CancellationTokenSource? _fetchCancellationTokenSource;
         private bool _disposed;
 
@@ -39,62 +41,95 @@ namespace UltimateEnd.Managers
         {
             if (_isLoaded) return;
 
+            if (_isLoading)
+            {
+                _loadingTask?.Wait();
+                return;
+            }
+
             lock (_gamesLock)
             {
                 if (_isLoaded) return;
+                if (_isLoading) return;
 
-                _allGames.Clear();
-                var settings = SettingsService.LoadSettings();
+                _isLoading = true;
 
-                if (settings.PlatformSettings == null)
+                try
                 {
-                    _isLoaded = true;
-                    return;
-                }
+                    _allGames.Clear();
+                    var settings = SettingsService.LoadSettings();
 
-                var mappingConfig = PlatformMappingService.Instance.LoadMapping();
-                var converter = PathConverterFactory.Create?.Invoke();
-
-                foreach (var platform in settings.PlatformSettings)
-                {
-                    var compositeKey = platform.Key;
-                    var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-                    var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
-
-                    MetadataService.ScanRomsFolder(realPath);
-                    LoadGamesFromFolder(realPath, actualPlatformId, compositeKey, null);
-
-                    if (Directory.Exists(realPath))
+                    if (settings.PlatformSettings == null)
                     {
-                        foreach (var subDir in Directory.GetDirectories(realPath))
+                        _isLoaded = true;
+                        return;
+                    }
+
+                    var converter = PathConverterFactory.Create?.Invoke();
+
+                    foreach (var platform in settings.PlatformSettings)
+                    {
+                        var compositeKey = platform.Key;
+                        var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
+                        var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath)
+                            ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
+
+                        MetadataService.ScanRomsFolder(realPath);
+                        LoadGamesFromFolder(realPath, actualPlatformId, compositeKey, null);
+
+                        if (Directory.Exists(realPath))
                         {
-                            var subFolderName = Path.GetFileName(subDir);
-
-                            if (subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase)) continue;
-
                             var validExtensions = PlatformInfoService.Instance.GetValidExtensions(actualPlatformId);
 
-                            if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext)))) continue;
+                            foreach (var subDir in Directory.GetDirectories(realPath))
+                            {
+                                var subFolderName = Path.GetFileName(subDir);
 
-                            MetadataService.ScanRomsFolder(subDir, actualPlatformId);
-                            LoadGamesFromFolder(subDir, actualPlatformId, compositeKey, subFolderName);
+                                if (subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase))
+                                    continue;
+
+                                if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext))))
+                                    continue;
+
+                                MetadataService.ScanRomsFolder(subDir, actualPlatformId);
+                                LoadGamesFromFolder(subDir, actualPlatformId, compositeKey, subFolderName);
+                            }
                         }
                     }
+
+                    var systemAppsPath = AppSettings.SystemAppsPath;
+
+                    if (!string.IsNullOrEmpty(systemAppsPath))
+                    {
+                        if (OperatingSystem.IsWindows()) LoadSteamGames(systemAppsPath);
+
+                        var appProvider = AppProviderFactory.Create?.Invoke();
+
+                        if (appProvider != null) LoadNativeApps(systemAppsPath, appProvider.PlatformId);
+                    }
+
+                    _isLoaded = true;
                 }
-
-                var systemAppsPath = AppSettings.SystemAppsPath;
-
-                if (!string.IsNullOrEmpty(systemAppsPath))
+                finally
                 {
-                    if (OperatingSystem.IsWindows()) LoadSteamGames(systemAppsPath);
-
-                    var appProvider = AppProviderFactory.Create?.Invoke();
-
-                    if (appProvider != null) LoadNativeApps(systemAppsPath, appProvider.PlatformId);
+                    _isLoading = false;
                 }
-
-                _isLoaded = true;
             }
+        }
+
+        public async Task LoadAsync()
+        {
+            if (_isLoaded) return;
+
+            if (_isLoading)
+            {
+                if (_loadingTask != null)
+                    await _loadingTask;
+                return;
+            }
+
+            _loadingTask = Task.Run(() => EnsureLoaded());
+            await _loadingTask;
         }
 
         private void LoadGamesFromFolder(string folderPath, string platformId, string compositeKey, string? subFolder)
@@ -127,7 +162,7 @@ namespace UltimateEnd.Managers
                 {
                     game.PlatformId = platformId;
                     game.SetBasePath(Path.Combine(realSystemAppsPath, platformId));
-                    var key = GetGameKey(platformId, game.SubFolder,game.RomFile);
+                    var key = GetGameKey(platformId, game.SubFolder, game.RomFile);
                     _allGames[key] = game;
                 }
             }
@@ -415,7 +450,8 @@ namespace UltimateEnd.Managers
                     {
                         var compositeKey = platform.Key;
                         var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-                        var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
+                        var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath)
+                            ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
 
                         if (actualPlatformId == platformId)
                         {
@@ -436,14 +472,15 @@ namespace UltimateEnd.Managers
                                 {
                                     var subFolderName = Path.GetFileName(subDir);
 
-                                    if (subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase)) continue;
+                                    if (subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase))
+                                        continue;
 
                                     var validExtensions = PlatformInfoService.Instance.GetValidExtensions(actualPlatformId);
 
-                                    if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext)))) continue;
+                                    if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext))))
+                                        continue;
 
                                     MetadataService.ScanRomsFolder(subDir, actualPlatformId);
-
                                     var subGames = MetadataService.LoadMetadata(subDir);
 
                                     foreach (var game in subGames)
@@ -497,6 +534,8 @@ namespace UltimateEnd.Managers
                 _allGames.Clear();
                 _invalidatedPlatforms.Clear();
                 _isLoaded = false;
+                _isLoading = false;
+                _loadingTask = null;
 
                 GameMetadata.ClearDirectoryCache();
             }

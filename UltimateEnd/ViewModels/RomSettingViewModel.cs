@@ -363,7 +363,7 @@ namespace UltimateEnd.ViewModels
             if (IsLoading) return;
 
             IsLoading = true;
-            LoadingMessage = "플랫폼 목록을 불러오는 중...";
+            LoadingMessage = "설정 저장 중...";
 
             try
             {
@@ -418,26 +418,23 @@ namespace UltimateEnd.ViewModels
                     }
 
                     PlatformMappingService.Instance.SaveMapping(mappingConfig);
-                    SettingsService.SavePlatformSettings(settings);
+                    SettingsService.SaveSettingsQuiet(settings);
                     MetadataService.ClearCache();
                 });
 
                 PlatformMappingService.Instance.ClearCache();
                 AllGamesManager.Instance.Clear();
-
-                var currentSettings = SettingsService.LoadSettings();
-                if (currentSettings.PlatformSettings.Count > 0)
-                {
-                    var platformKeys = currentSettings.PlatformSettings.Keys.ToList();
-                    _ = Task.Run(() => MetadataService.PreloadAllPlatforms(platformKeys));
-                    _ = Task.Run(() => AllGamesManager.Instance.GetAllGames());
-                }
             }
             finally
             {
                 IsLoading = false;
                 LoadingMessage = string.Empty;
             }
+
+            _ = Task.Run(() =>
+            {
+                SettingsService.InvokePlatformSettingsChanged();
+            });
         }
 
         public void AddBasePath() => RomsBasePaths.Add(new RomsBasePathItem());

@@ -153,8 +153,19 @@ namespace UltimateEnd.ViewModels
             PlatformMappingService.Instance.ClearCache();
             _ = LoadPlatformsAsync();
 
-            _ = Task.Run(() => AllGamesManager.Instance.GetAllGames());
+            _ = Task.Run(() =>
+            {
+                AllGamesManager.Instance.Clear();
+                var settings = SettingsService.LoadSettings();
+                var platformKeys = settings.PlatformSettings?.Keys.ToList();
+                if (platformKeys?.Count > 0)
+                {
+                    MetadataService.PreloadHasGamesCache(platformKeys);
+                    AllGamesManager.Instance.GetAllGames();
+                }
+            });
         }
+
         private void OnThemeChanged(string theme) => LoadThemesFromService();
 
         public void OnShowEmulatorSettingViewRequested() => EmulatorSettingViewRequested?.Invoke(this, EventArgs.Empty);
@@ -219,7 +230,7 @@ namespace UltimateEnd.ViewModels
                     Platforms.AddRange(allPlatforms);
                     RestoreSelection(currentSelectedId);
                     PlatformCount = Platforms.Count;
-                }, DispatcherPriority.Send);
+                }, DispatcherPriority.Normal);
 
                 IsInitialLoadComplete = true;
             }

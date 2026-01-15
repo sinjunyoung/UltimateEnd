@@ -107,5 +107,7 @@ namespace UltimateEnd.Services
 
             return Path.Combine(realBasePath, platformKey);
         }
+
+        public static void InvokePlatformSettingsChanged() => PlatformSettingsChanged?.Invoke();
     }
 }

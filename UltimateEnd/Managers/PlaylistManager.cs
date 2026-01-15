@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 
@@ -9,10 +10,10 @@ namespace UltimateEnd.Managers
     public class PlaylistManager
     {
         private static PlaylistManager? _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
 
         private readonly List<Playlist> _playlists = [];
-        private readonly object _playlistsLock = new();
+        private readonly Lock _playlistsLock = new();
 
         public const string PlaylistPrefix = "_playlist_";
 

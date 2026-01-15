@@ -41,9 +41,12 @@ namespace UltimateEnd.ViewModels
             if (settings.PlatformSettings != null && settings.PlatformSettings.Count > 0)
             {
                 var platformKeys = settings.PlatformSettings.Keys.ToList();
-                MetadataService.PreloadAllPlatforms(platformKeys);
 
-                _ = Task.Run(() => AllGamesManager.Instance.GetAllGames());
+                _ = Task.Run(() =>
+                {
+                    MetadataService.PreloadHasGamesCache(platformKeys);
+                    AllGamesManager.Instance.GetAllGames();
+                });
             }
 
             if (settings.RomsBasePaths.Count == 0) NavigateToRomSettings();
@@ -132,7 +135,8 @@ namespace UltimateEnd.ViewModels
 
             if (_platformListViewModel == null) InitializePlatformListVM();
 
-            if (NeedsRefresh()) await _platformListViewModel.LoadPlatformsAsync();
+            if (CurrentView is not RomSettingViewModel)
+                if (NeedsRefresh()) await _platformListViewModel.LoadPlatformsAsync();
 
             if (_lastSelectedPlatform != null)
             {
