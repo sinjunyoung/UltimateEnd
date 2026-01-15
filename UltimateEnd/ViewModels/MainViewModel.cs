@@ -42,6 +42,8 @@ namespace UltimateEnd.ViewModels
             {
                 var platformKeys = settings.PlatformSettings.Keys.ToList();
                 MetadataService.PreloadAllPlatforms(platformKeys);
+
+                _ = Task.Run(() => AllGamesManager.Instance.GetAllGames());
             }
 
             if (settings.RomsBasePaths.Count == 0) NavigateToRomSettings();

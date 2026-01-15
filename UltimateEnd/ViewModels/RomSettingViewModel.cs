@@ -362,69 +362,81 @@ namespace UltimateEnd.ViewModels
         {
             if (IsLoading) return;
 
-            await Task.Run(() =>
+            IsLoading = true;
+            LoadingMessage = "플랫폼 목록을 불러오는 중...";
+
+            try
             {
-                var settings = SettingsService.LoadSettings();
-                settings.PlatformSettings.Clear();
-                settings.RomsBasePaths.Clear();
-
-                var validBasePaths = RomsBasePaths
-                    .Where(bp => !string.IsNullOrEmpty(bp.Path))
-                    .Select(bp => bp.Path)
-                    .ToList();
-
-                foreach (var basePath in validBasePaths)
-                    settings.RomsBasePaths.Add(basePath);
-
-                if (settings.RomsBasePaths.Count > 0)
-                    PathHelper.Initialize(settings.RomsBasePaths);
-
-                foreach (var p in PlatformNames)
+                await Task.Run(() =>
                 {
-                    if (string.IsNullOrEmpty(p.BasePath)) continue;
-                    var compositeKey = Path.Combine(p.BasePath, p.FolderName);
+                    var settings = SettingsService.LoadSettings();
+                    settings.PlatformSettings.Clear();
+                    settings.RomsBasePaths.Clear();
 
-                    settings.PlatformSettings[compositeKey] = new PlatformSettings
+                    var validBasePaths = RomsBasePaths
+                        .Where(bp => !string.IsNullOrEmpty(bp.Path))
+                        .Select(bp => bp.Path)
+                        .ToList();
+
+                    foreach (var basePath in validBasePaths)
+                        settings.RomsBasePaths.Add(basePath);
+
+                    if (settings.RomsBasePaths.Count > 0)
+                        PathHelper.Initialize(settings.RomsBasePaths);
+
+                    foreach (var p in PlatformNames)
                     {
-                        Name = p.FolderName,
-                        BasePath = p.BasePath,
-                        ImagePath = null
-                    };
-                }
+                        if (string.IsNullOrEmpty(p.BasePath)) continue;
+                        var compositeKey = Path.Combine(p.BasePath, p.FolderName);
 
-                var mappingConfig = new PlatformMappingConfig
-                {
-                    FolderMappings = [],
-                    CustomDisplayNames = []
-                };
-
-                foreach (var platform in PlatformNames)
-                {
-                    var compositeKey = Path.Combine(platform.BasePath, platform.FolderName);
-
-                    if (!string.IsNullOrEmpty(platform.SelectedPlatform))
-                    {
-                        var normalized = PlatformInfoService.Instance.NormalizePlatformId(platform.SelectedPlatform);
-                        mappingConfig.FolderMappings[compositeKey] = normalized;
+                        settings.PlatformSettings[compositeKey] = new PlatformSettings
+                        {
+                            Name = p.FolderName,
+                            BasePath = p.BasePath,
+                            ImagePath = null
+                        };
                     }
 
-                    if (!string.IsNullOrEmpty(platform.CustomDisplayName))
-                        mappingConfig.CustomDisplayNames[compositeKey] = platform.CustomDisplayName;
+                    var mappingConfig = new PlatformMappingConfig
+                    {
+                        FolderMappings = [],
+                        CustomDisplayNames = []
+                    };
+
+                    foreach (var platform in PlatformNames)
+                    {
+                        var compositeKey = Path.Combine(platform.BasePath, platform.FolderName);
+
+                        if (!string.IsNullOrEmpty(platform.SelectedPlatform))
+                        {
+                            var normalized = PlatformInfoService.Instance.NormalizePlatformId(platform.SelectedPlatform);
+                            mappingConfig.FolderMappings[compositeKey] = normalized;
+                        }
+
+                        if (!string.IsNullOrEmpty(platform.CustomDisplayName))
+                            mappingConfig.CustomDisplayNames[compositeKey] = platform.CustomDisplayName;
+                    }
+
+                    PlatformMappingService.Instance.SaveMapping(mappingConfig);
+                    SettingsService.SavePlatformSettings(settings);
+                    MetadataService.ClearCache();
+                });
+
+                PlatformMappingService.Instance.ClearCache();
+                AllGamesManager.Instance.Clear();
+
+                var currentSettings = SettingsService.LoadSettings();
+                if (currentSettings.PlatformSettings.Count > 0)
+                {
+                    var platformKeys = currentSettings.PlatformSettings.Keys.ToList();
+                    _ = Task.Run(() => MetadataService.PreloadAllPlatforms(platformKeys));
+                    _ = Task.Run(() => AllGamesManager.Instance.GetAllGames());
                 }
-
-                PlatformMappingService.Instance.SaveMapping(mappingConfig);
-                SettingsService.SavePlatformSettings(settings);
-                MetadataService.ClearCache();
-            });
-
-            PlatformMappingService.Instance.ClearCache();
-            AllGamesManager.Instance.Clear();
-
-            var currentSettings = SettingsService.LoadSettings();
-            if (currentSettings.PlatformSettings.Count > 0)
+            }
+            finally
             {
-                var platformKeys = currentSettings.PlatformSettings.Keys.ToList();
-                _ = Task.Run(() => MetadataService.PreloadAllPlatforms(platformKeys));
+                IsLoading = false;
+                LoadingMessage = string.Empty;
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Avalonia.Threading;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UltimateEnd.Enums;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Orchestrators;
@@ -30,12 +32,14 @@ namespace UltimateEnd.ViewModels
         private bool _triggerScrollFix;
         private readonly Random _random = new();
         private string _versionText;
+        private int _platformCount;
+        private bool _isInitialLoadComplete = false;
 
         #endregion
 
         #region Properties
 
-        public ObservableCollection<Platform> Platforms { get; } = [];
+        public RangeObservableCollection<Platform> Platforms { get; } = [];
 
         public ObservableCollection<ThemeOption> AvailableThemes { get; } = [];
 
@@ -94,6 +98,18 @@ namespace UltimateEnd.ViewModels
             set => this.RaiseAndSetIfChanged(ref _versionText, value);
         }
 
+        public int PlatformCount
+        {
+            get => _platformCount;
+            set => this.RaiseAndSetIfChanged(ref _platformCount, value);
+        }
+
+        public bool IsInitialLoadComplete
+        {
+            get => _isInitialLoadComplete;
+            private set => this.RaiseAndSetIfChanged(ref _isInitialLoadComplete, value);
+        }
+
         #endregion
 
         #region Events
@@ -136,6 +152,8 @@ namespace UltimateEnd.ViewModels
         {
             PlatformMappingService.Instance.ClearCache();
             _ = LoadPlatformsAsync();
+
+            _ = Task.Run(() => AllGamesManager.Instance.GetAllGames());
         }
         private void OnThemeChanged(string theme) => LoadThemesFromService();
 
@@ -188,103 +206,61 @@ namespace UltimateEnd.ViewModels
                 if (savedSettings.PlatformOrder != null && savedSettings.PlatformOrder.Count > 0)
                 {
                     allPlatforms = [.. allPlatforms
-                .OrderBy(p =>
-                {
-                    var index = savedSettings.PlatformOrder.IndexOf(p.Id);
-                    return index == -1 ? int.MaxValue : index;
-                })];
+                        .OrderBy(p =>
+                        {
+                            var index = savedSettings.PlatformOrder.IndexOf(p.Id);
+                            return index == -1 ? int.MaxValue : index;
+                        })];
                 }
 
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     Platforms.Clear();
-                    foreach (var platform in allPlatforms) Platforms.Add(platform);
+                    Platforms.AddRange(allPlatforms);
                     RestoreSelection(currentSelectedId);
-                });
+                    PlatformCount = Platforms.Count;
+                }, DispatcherPriority.Send);
+
+                IsInitialLoadComplete = true;
             }
             finally
             {
                 _isCurrentlyLoading = false;
 
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    TriggerScrollFix = !TriggerScrollFix;
-                });
+                await Dispatcher.UIThread.InvokeAsync(() => TriggerScrollFix = !TriggerScrollFix, DispatcherPriority.Background);
             }
         }
 
-        private static List<Platform> GetSpecialPlatforms()
+        private void RestoreSelection(string currentSelectedId)
         {
-            var platforms = new List<Platform>
+            if (Platforms.Count == 0) return;
+
+            if (!string.IsNullOrEmpty(currentSelectedId))
             {
-                CreatePlatform(GameMetadataManager.AllGamesKey, "전체", GameMetadataManager.AllGamesKey)
-            }; 
-
-            if (FavoritesManager.Count > 0)
-                platforms.Add(CreatePlatform(GameMetadataManager.FavoritesKey, "즐겨찾기", GameMetadataManager.FavoritesKey));
-
-            if (AllGamesManager.GetHistoryCount() > 0)
-                platforms.Add(CreatePlatform(GameMetadataManager.HistoriesKey, "플레이 기록", GameMetadataManager.HistoriesKey));
-
-            var playlists = PlaylistManager.Instance.GetAllPlaylists();
-
-            foreach (var playlist in playlists)
-                platforms.Add(playlist.ToPlatform());
-
-            if (OperatingSystem.IsWindows())
-            {
-                var steamGames = AllGamesManager.Instance.GetPlatformGames(GameMetadataManager.SteamKey);
-
-                if (steamGames.Count > 0)
-                    platforms.Add(CreatePlatform(GameMetadataManager.SteamKey, "Steam", GameMetadataManager.SteamKey));
+                var index = Platforms.ToList().FindIndex(p => p.Id == currentSelectedId);
+                SelectedIndex = index >= 0 ? index : 0;
             }
-
-            var settings = SettingsService.LoadSettings();
-
-            if (settings.ShowNativeAppPlatform)
+            else
             {
-                var appProvider = AppProviderFactory.Create?.Invoke();
-
-                if (appProvider != null)
-                    platforms.Add(CreatePlatform(appProvider.PlatformId, appProvider.PlatformName, appProvider.PlatformId));
+                SelectedIndex = 0;
             }
-
-            return platforms;
-        }
-
-        private static Platform CreatePlatform(string id, string name, string platform)
-        {
-            return new()
-            {
-                Id = id,
-                Name = name,
-                ImagePath = ResourceHelper.GetPlatformImage(platform),
-                LogoPath = ResourceHelper.GetLogoImage(platform)
-            };
         }
 
         private static async Task<List<Platform>> LoadPlatformsInParallelAsync(List<KeyValuePair<string, PlatformSettings>> platformList, AppSettings settings, PlatformMappingConfig mappingConfig)
         {
-            var converter = PathConverterFactory.Create?.Invoke();
-
             return await Task.Run(() =>
             {
                 var tasks = platformList.Select(platformSetting =>
                 {
                     try
                     {
-                        if (platformSetting.Key == GameMetadataManager.SteamKey ||
-                            platformSetting.Key == GameMetadataManager.DesktopKey ||
-                            platformSetting.Key == GameMetadataManager.AndroidKey)
-                            return (Platform?)null;
+                        if (platformSetting.Key == GameMetadataManager.SteamKey || platformSetting.Key == GameMetadataManager.DesktopKey || platformSetting.Key == GameMetadataManager.AndroidKey) return (Platform?)null;
 
-                        if (!mappingConfig.FolderMappings.ContainsKey(platformSetting.Key))
-                            return (Platform?)null;
+                        if (!mappingConfig.FolderMappings.ContainsKey(platformSetting.Key)) return (Platform?)null;
 
                         bool hasGames = MetadataService.HasGames(platformSetting.Key);
 
-                        if (!hasGames)
-                            return (Platform?)null;
+                        if (!hasGames) return (Platform?)null;
 
                         var displayName = GetPlatformDisplayName(platformSetting.Key, mappingConfig);
                         var normalizedId = GetNormalizedPlatformId(platformSetting.Key);
@@ -309,6 +285,7 @@ namespace UltimateEnd.ViewModels
                 }).ToArray();
 
                 var platforms = new Platform?[tasks.Length];
+
                 Parallel.For(0, tasks.Length, i => { platforms[i] = tasks[i]; });
 
                 var groupedPlatforms = platforms
@@ -334,16 +311,80 @@ namespace UltimateEnd.ViewModels
             });
         }
 
-        #endregion
+        private static List<Platform> GetSpecialPlatforms()
+        {
+            List<Platform> platforms = [ 
+                CreatePlatform(GameMetadataManager.AllGamesKey, "전체", GameMetadataManager.AllGamesKey),
+                CreatePlatform(GameMetadataManager.FavoritesKey, "즐겨찾기", GameMetadataManager.FavoritesKey),
+                CreatePlatform(GameMetadataManager.HistoriesKey, "플레이 기록", GameMetadataManager.HistoriesKey) ];
 
+            var playlists = PlaylistManager.Instance.GetAllPlaylists();
+
+            foreach (var playlist in playlists) platforms.Add(playlist.ToPlatform());
+
+            if (OperatingSystem.IsWindows())
+            {
+                var steamGames = AllGamesManager.Instance.GetPlatformGames(GameMetadataManager.SteamKey);
+
+                if (steamGames.Count > 0) platforms.Add(CreatePlatform(GameMetadataManager.SteamKey, "Steam", GameMetadataManager.SteamKey));
+            }
+
+            var settings = SettingsService.LoadSettings();
+
+            if (settings.ShowNativeAppPlatform)
+            {
+                var appProvider = AppProviderFactory.Create?.Invoke();
+
+                if (appProvider != null) platforms.Add(CreatePlatform(appProvider.PlatformId, appProvider.PlatformName, appProvider.PlatformId));
+            }
+
+            return platforms;
+        }
+
+        private static Platform CreatePlatform(string id, string name, string platform)
+        {
+            return new()
+            {
+                Id = id,
+                Name = name,
+                ImagePath = ResourceHelper.GetPlatformImage(platform),
+                LogoPath = ResourceHelper.GetLogoImage(platform)
+            };
+        }
+
+        #endregion
 
         public async Task LaunchRandomGame()
         {
+            if (!AllGamesManager.Instance.IsLoaded)
+            {
+                var cts = new CancellationTokenSource();
+                await DialogService.Instance.ShowLoading("게임 목록을 불러오는 중 입니다...", cts);
+
+                try
+                {
+                    int waitCount = 0;
+                    while (!AllGamesManager.Instance.IsLoaded && waitCount < 300)
+                    {
+                        await Task.Delay(100);
+                        waitCount++;
+                    }
+                }
+                finally
+                {
+                    await DialogService.Instance.HideLoading();
+                }
+
+                if (!AllGamesManager.Instance.IsLoaded)
+                {
+                    await DialogService.Instance.ShowMessage("알림", "게임 목록 로딩이 완료되지 않았습니다.", MessageType.Warning);
+                    return;
+                }
+            }
+
             var allGames = AllGamesManager.Instance.GetAllGames()
                 .Where(g => !g.Ignore)
                 .ToList();
-
-            if (allGames.Count == 0) return;
 
             var favorites = allGames.Where(g => g.IsFavorite).ToList();
             var nonFavorites = allGames.Where(g => !g.IsFavorite).ToList();
@@ -373,8 +414,7 @@ namespace UltimateEnd.ViewModels
 
         private static string GetPlatformDisplayName(string platformKey, PlatformMappingConfig mappingConfig)
         {
-            if (mappingConfig?.CustomDisplayNames?.TryGetValue(platformKey, out var customName) == true && !string.IsNullOrEmpty(customName))
-                return customName;
+            if (mappingConfig?.CustomDisplayNames?.TryGetValue(platformKey, out var customName) == true && !string.IsNullOrEmpty(customName)) return customName;
 
             var converter = PathConverterFactory.Create?.Invoke();
             var realPath = converter?.FriendlyPathToRealPath(platformKey) ?? platformKey;
@@ -405,18 +445,6 @@ namespace UltimateEnd.ViewModels
             var realImagePath = converter?.FriendlyPathToRealPath(imagePath) ?? imagePath;
 
             return File.Exists(realImagePath) ? imagePath : ResourceHelper.GetPlatformImage(normalizedId);
-        }
-
-        private void RestoreSelection(string currentSelectedId)
-        {
-            if (Platforms.Count == 0) return;
-
-            if (!string.IsNullOrEmpty(currentSelectedId))
-            {
-                var index = Platforms.ToList().FindIndex(p => p.Id == currentSelectedId);
-                SelectedIndex = index >= 0 ? index : 0;
-            }
-            else SelectedIndex = 0;
         }
 
         #endregion

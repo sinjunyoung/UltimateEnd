@@ -150,7 +150,7 @@
 						   Foreground="{DynamicResource Text.Primary}"
 						   Opacity="0.9"
 						   LetterSpacing="2"/>
-				<TextBlock Text="{Binding Platforms.Count, StringFormat='{}{0} 플랫폼'}"
+				<TextBlock Text="{Binding PlatformCount, StringFormat='{}{0} 플랫폼'}"
 						   FontSize="{Binding #PlatformListViewRoot.SubtitleFontSize}"
 						   Foreground="{DynamicResource Text.Muted}"
 						   Margin="{Binding #PlatformListViewRoot.SubtitleMargin}"/>

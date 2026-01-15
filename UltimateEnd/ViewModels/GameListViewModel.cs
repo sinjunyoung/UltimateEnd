@@ -276,16 +276,55 @@ namespace UltimateEnd.ViewModels
 
             InitializeCommands();
 
-            LoadGames(platform.Id);
-
-            if (Games.Count > 0)
+            if (!AllGamesManager.Instance.IsLoaded)
+                _ = InitializeGamesAsync(platform.Id);
+            else
             {
-                _collectionManager.LoadGenres();
-                SetupPropertySubscriptions();
-                BuildDisplayItems();
+                LoadGames(platform.Id);
 
-                if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
+                if (Games.Count > 0)
+                {
+                    _collectionManager.LoadGenres();
+                    SetupPropertySubscriptions();
+                    BuildDisplayItems();
+
+                    if (SelectedGame != null)
+                        _gameSelectionSubject.OnNext(SelectedGame);
+                }
             }
+        }
+
+        private async Task InitializeGamesAsync(string platformId)
+        {
+            if (!AllGamesManager.Instance.IsLoaded)
+            {
+                await Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    _videoCoordinator.IsVideoContainerVisible = false;
+                    await DialogService.Instance.ShowLoading("게임 목록 로딩중...");
+                });
+
+                await Task.Run(() => AllGamesManager.Instance.GetAllGames());
+
+                await Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    await DialogService.Instance.HideLoading();
+                });
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                LoadGames(platformId);
+
+                if (Games.Count > 0)
+                {
+                    _collectionManager.LoadGenres();
+                    SetupPropertySubscriptions();
+                    BuildDisplayItems();
+
+                    if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
+                }
+            });
         }
 
         private void SetupEventHandlers()

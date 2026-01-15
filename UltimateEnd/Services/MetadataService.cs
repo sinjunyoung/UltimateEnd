@@ -19,23 +19,6 @@ namespace UltimateEnd.Services
         private static readonly ConcurrentDictionary<string, (bool hasGames, DateTime scanned)> _hasGamesCache = new();
         private static readonly TimeSpan CacheValidDuration = TimeSpan.FromMinutes(30);
 
-        public static async Task PreloadAllPlatformsAsync(IEnumerable<string> platformKeys)
-        {
-            await Task.Run(() =>
-            {
-                Parallel.ForEach(platformKeys,
-                    new ParallelOptions { MaxDegreeOfParallelism = 3 },
-                    platformKey =>
-                    {
-                        try
-                        {
-                            HasGames(platformKey);
-                        }
-                        catch { }
-                    });
-            });
-        }
-
         public static void PreloadAllPlatforms(IEnumerable<string> platformKeys)
         {
             _ = Task.Run(() =>
@@ -176,21 +159,6 @@ namespace UltimateEnd.Services
                 var addedCount = 0;
 
                 ScanFolder(platformPath, null, validExtensions, existingRomFiles, existingMetadata, ref addedCount);
-
-                try
-                {
-                    foreach (var subDir in Directory.GetDirectories(platformPath))
-                    {
-                        var subFolderName = Path.GetFileName(subDir);
-
-                        if (IsBiosFolder(subFolderName)) continue;
-
-                        if (HasMatchingRomFile(platformPath, subFolderName, validExtensions)) continue;
-
-                        ScanFolder(subDir, subFolderName, validExtensions, existingRomFiles, existingMetadata, ref addedCount);
-                    }
-                }
-                catch { }
 
                 if (addedCount > 0)
                 {
@@ -344,11 +312,9 @@ namespace UltimateEnd.Services
             }
         }
 
-        public static HashSet<GameMetadata> UpdateFromPegasusMetadata(ObservableCollection<GameMetadata> games, string platformId, string pegasusFileName, CancellationToken cancellationToken = default)
-            => UpdateFromExternalMetadata(games, platformId, pegasusFileName, PegasusMetadataParser.Parse, cancellationToken);
+        public static HashSet<GameMetadata> UpdateFromPegasusMetadata(ObservableCollection<GameMetadata> games, string platformId, string pegasusFileName, CancellationToken cancellationToken = default) => UpdateFromExternalMetadata(games, platformId, pegasusFileName, PegasusMetadataParser.Parse, cancellationToken);
 
-        public static HashSet<GameMetadata> UpdateFromEsDeMetadata(ObservableCollection<GameMetadata> games, string platformId, string esdeFileName, CancellationToken cancellationToken = default)
-            => UpdateFromExternalMetadata(games, platformId, esdeFileName, EsDeMetadataParser.Parse, cancellationToken);
+        public static HashSet<GameMetadata> UpdateFromEsDeMetadata(ObservableCollection<GameMetadata> games, string platformId, string esdeFileName, CancellationToken cancellationToken = default) => UpdateFromExternalMetadata(games, platformId, esdeFileName, EsDeMetadataParser.Parse, cancellationToken);
 
         private static HashSet<string> GetActualRomFiles(string platformPath, string platformKey)
         {
@@ -419,17 +385,16 @@ namespace UltimateEnd.Services
                 if (DateTime.UtcNow - cached.scanned < CacheValidDuration) return cached.hasGames;
             }
 
-            bool result = ScanForGames(platformKey);
-
+            bool result = ScanForGamesOptimized(platformKey);
             _hasGamesCache[platformKey] = (result, DateTime.UtcNow);
 
             return result;
         }
 
-        private static bool ScanForGames(string platformKey)
+        private static bool ScanForGamesOptimized(string platformKey)
         {
             var platformPath = SettingsService.GetPlatformPath(platformKey);
-
+            
             if (string.IsNullOrEmpty(platformPath)) return false;
 
             var realPath = GetRealPath(platformPath);
@@ -439,19 +404,19 @@ namespace UltimateEnd.Services
             string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(platformKey) ?? platformKey;
             var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
 
+            var extensionSet = new HashSet<string>(validExtensions, StringComparer.OrdinalIgnoreCase);
+
             try
             {
-                if (HasFilesInFolder(realPath, validExtensions)) return true;
+                if (HasAnyValidFile(realPath, extensionSet)) return true;
 
                 foreach (var subDir in Directory.EnumerateDirectories(realPath))
                 {
                     var subFolderName = Path.GetFileName(subDir);
 
-                    if (IsBiosFolder(subFolderName)) continue;
+                    if (!string.IsNullOrEmpty(subFolderName) && subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase)) continue;
 
-                    if (HasMatchingRomFile(platformPath, subFolderName, validExtensions)) continue;
-
-                    if (HasFilesInFolder(subDir, validExtensions)) return true;
+                    if (HasAnyValidFile(subDir, extensionSet)) return true;
                 }
             }
             catch
@@ -459,43 +424,33 @@ namespace UltimateEnd.Services
                 return false;
             }
 
-            if (CheckMetadataFile(Path.Combine(realPath, MetadataFileName), platformKey, false)) return true;
+            var metadataPath = Path.Combine(realPath, MetadataFileName);
 
-            if (CheckMetadataFile(Path.Combine(realPath, PegasusMetadataFileName), platformKey, true)) return true;
+            if (File.Exists(metadataPath) && new FileInfo(metadataPath).Length > 10) return true;
+
+            var pegasusPath = Path.Combine(realPath, PegasusMetadataFileName);
+
+            if (File.Exists(pegasusPath) && new FileInfo(pegasusPath).Length > 10) return true;
 
             return false;
         }
 
-        private static bool CheckMetadataFile(string filePath, string platformKey, bool isPegasus)
+        private static bool HasAnyValidFile(string folderPath, HashSet<string> validExtensions)
         {
-            if (!File.Exists(filePath)) return false;
-
-            var fileInfo = new FileInfo(filePath);
-
-            if (fileInfo.Length <= 10) return false;
-
             try
             {
-                var games = isPegasus ? PegasusMetadataParser.Parse(filePath) : LoadMetadata(platformKey);
+                return Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                    .Any(file =>
+                    {
+                        var ext = Path.GetExtension(file);
 
-                return games.Count > 0;
+                        return !string.IsNullOrEmpty(ext) && validExtensions.Contains(ext);
+                    });
             }
             catch
             {
                 return false;
             }
-        }
-
-        private static bool HasFilesInFolder(string folderPath, IEnumerable<string> validExtensions)
-        {
-            foreach (var ext in validExtensions)
-            {
-                var firstFile = Directory.EnumerateFiles(folderPath, $"*{ext}", SearchOption.TopDirectoryOnly)
-                    .FirstOrDefault();
-
-                if (firstFile != null) return true;
-            }
-            return false;
         }
 
         private static string GetRealPath(string platformPath)
@@ -506,8 +461,6 @@ namespace UltimateEnd.Services
         }
 
         private static bool IsBiosFolder(string folderName) => !string.IsNullOrEmpty(folderName) && folderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase);
-
-        private static bool HasMatchingRomFile(string path, string folderName, IEnumerable<string> validExtensions) => validExtensions.Any(ext => File.Exists(Path.Combine(path, folderName + ext)));
 
         private static bool IsSystemApp(string platformId) => platformId == GameMetadataManager.SteamKey || platformId == GameMetadataManager.DesktopKey || platformId == GameMetadataManager.AndroidKey;
     }
