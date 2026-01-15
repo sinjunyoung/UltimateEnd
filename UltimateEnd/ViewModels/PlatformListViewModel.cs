@@ -151,6 +151,7 @@ namespace UltimateEnd.ViewModels
         private void OnPlatformSettingsChanged()
         {
             PlatformMappingService.Instance.ClearCache();
+
             _ = LoadPlatformsAsync();
 
             _ = Task.Run(() =>
@@ -158,10 +159,11 @@ namespace UltimateEnd.ViewModels
                 AllGamesManager.Instance.Clear();
                 var settings = SettingsService.LoadSettings();
                 var platformKeys = settings.PlatformSettings?.Keys.ToList();
+
                 if (platformKeys?.Count > 0)
                 {
                     MetadataService.PreloadHasGamesCache(platformKeys);
-                    AllGamesManager.Instance.GetAllGames();
+                    AllGamesManager.Instance.StartFullLoad();
                 }
             });
         }
@@ -220,6 +222,7 @@ namespace UltimateEnd.ViewModels
                         .OrderBy(p =>
                         {
                             var index = savedSettings.PlatformOrder.IndexOf(p.Id);
+
                             return index == -1 ? int.MaxValue : index;
                         })];
                 }
@@ -252,9 +255,7 @@ namespace UltimateEnd.ViewModels
                 SelectedIndex = index >= 0 ? index : 0;
             }
             else
-            {
                 SelectedIndex = 0;
-            }
         }
 
         private static async Task<List<Platform>> LoadPlatformsInParallelAsync(List<KeyValuePair<string, PlatformSettings>> platformList, AppSettings settings, PlatformMappingConfig mappingConfig)
@@ -375,6 +376,7 @@ namespace UltimateEnd.ViewModels
                 try
                 {
                     int waitCount = 0;
+
                     while (!AllGamesManager.Instance.IsLoaded && waitCount < 300)
                     {
                         await Task.Delay(100);

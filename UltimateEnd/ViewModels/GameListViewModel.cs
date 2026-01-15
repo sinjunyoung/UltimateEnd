@@ -52,7 +52,8 @@ namespace UltimateEnd.ViewModels
 
         private string? _currentSubFolder = null;
         private ObservableCollection<FolderItem> _displayItems = [];
-        private FolderItem? _selectedItem;       
+        private FolderItem? _selectedItem;
+        private readonly Stack<int> _scrollPositionStack = new();
 
         #endregion
 
@@ -273,12 +274,9 @@ namespace UltimateEnd.ViewModels
             _persistenceService = new MetadataPersistenceService();
 
             SetupEventHandlers();
-
             InitializeCommands();
 
-            if (!AllGamesManager.Instance.IsLoaded)
-                _ = InitializeGamesAsync(platform.Id);
-            else
+            if (GameMetadataManager.IsSpecialPlatform(platform.Id))
             {
                 LoadGames(platform.Id);
 
@@ -288,29 +286,40 @@ namespace UltimateEnd.ViewModels
                     SetupPropertySubscriptions();
                     BuildDisplayItems();
 
-                    if (SelectedGame != null)
-                        _gameSelectionSubject.OnNext(SelectedGame);
+                    if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
+                }
+            }
+            else
+            {
+                if (!AllGamesManager.Instance.IsPlatformLoaded(platform.Id))
+                    _ = InitializeGamesAsync(platform.Id);
+                else
+                {
+                    LoadGames(platform.Id);
+
+                    if (Games.Count > 0)
+                    {
+                        _collectionManager.LoadGenres();
+                        SetupPropertySubscriptions();
+                        BuildDisplayItems();
+
+                        if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
+                    }
                 }
             }
         }
 
         private async Task InitializeGamesAsync(string platformId)
         {
-            if (!AllGamesManager.Instance.IsLoaded)
+            await Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                await Dispatcher.UIThread.InvokeAsync(async () =>
-                {
-                    _videoCoordinator.IsVideoContainerVisible = false;
-                    await DialogService.Instance.ShowLoading("게임 목록 로딩중...");
-                });
+                _videoCoordinator.IsVideoContainerVisible = false;
+                await DialogService.Instance.ShowLoading("게임 목록 로딩중...");
+            });
 
-                await Task.Run(() => AllGamesManager.Instance.GetAllGames());
+            await Task.Run(() => AllGamesManager.Instance.EnsurePlatformLoaded(platformId));
 
-                await Dispatcher.UIThread.InvokeAsync(async () =>
-                {
-                    await DialogService.Instance.HideLoading();
-                });
-            }
+            await Dispatcher.UIThread.InvokeAsync(async () => await DialogService.Instance.HideLoading());
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -439,9 +448,26 @@ namespace UltimateEnd.ViewModels
 
                 CurrentSubFolder = null;
                 BuildDisplayItems();
+
+                if (_scrollPositionStack.Count > 0)
+                {
+                    int savedIndex = _scrollPositionStack.Pop();
+                    if (savedIndex >= 0 && savedIndex < DisplayItems.Count)
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            SelectedItem = DisplayItems[savedIndex];
+
+                            if (SelectedItem?.IsGame == true && SelectedItem.Game != null)
+                                RequestExplicitScroll?.Invoke(this, SelectedItem.Game);
+                        }, DispatcherPriority.Background);
+                    }
+                }
             }
             else
             {
+                _scrollPositionStack.Clear();
+
                 _videoCoordinator.Stop();
                 _selectionSubscription?.Dispose();
 
@@ -454,12 +480,14 @@ namespace UltimateEnd.ViewModels
 
         public void GoToPreviousPlatform()
         {
+            _scrollPositionStack.Clear();
             _videoCoordinator.Stop();
             PreviousPlatformRequested?.Invoke();
         }
 
         public void GoToNextPlatform()
         {
+            _scrollPositionStack.Clear();
             _videoCoordinator.Stop();
             NextPlatformRequested?.Invoke();
         }
@@ -794,9 +822,7 @@ namespace UltimateEnd.ViewModels
                             addedFolders.Add(game.SubFolder);
                         }
                         else if (string.IsNullOrEmpty(game.SubFolder))
-                        {
                             items.Add(FolderItem.CreateGame(game));
-                        }
                     }
                 }
                 else
@@ -806,16 +832,14 @@ namespace UltimateEnd.ViewModels
                         .GroupBy(g => g.SubFolder)
                         .OrderBy(g => g.Key);
 
-                    foreach (var folder in folders)
-                    {
-                        items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
-                    }
+                    foreach (var folder in folders) items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
 
                     foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
                     {
                         var item = FolderItem.CreateGame(game);
-                        if (game == SelectedGame)
-                            item.IsSelected = true;
+
+                        if (game == SelectedGame) item.IsSelected = true;
+
                         items.Add(item);
                     }
                 }
@@ -825,30 +849,37 @@ namespace UltimateEnd.ViewModels
                 foreach (var game in Games.Where(g => g.SubFolder == _currentSubFolder))
                 {
                     var item = FolderItem.CreateGame(game);
-                    if (game == SelectedGame)
-                        item.IsSelected = true;
+
+                    if (game == SelectedGame) item.IsSelected = true;
+
                     items.Add(item);
                 }
             }
 
             DisplayItems = items;
             SelectedItem = DisplayItems.FirstOrDefault(i => i.IsSelected);
-            if (SelectedItem == null && DisplayItems.Count > 0)
-                SelectedItem = DisplayItems[0];
+
+            if (SelectedItem == null && DisplayItems.Count > 0) SelectedItem = DisplayItems[0];
         }
 
         public void EnterFolder(string subFolder)
         {
+            if (SelectedItem != null)
+            {
+                int currentIndex = DisplayItems.IndexOf(SelectedItem);
+                _scrollPositionStack.Push(currentIndex);
+            }
+            else
+                _scrollPositionStack.Push(0);
+
             CurrentSubFolder = subFolder;
             BuildDisplayItems();
         }
 
         public void OnItemTapped(FolderItem item)
         {
-            if (item.IsFolder)
-                EnterFolder(item.SubFolder!);
-            else if (item.IsGame)
-                SelectedItem = item;
+            if (item.IsFolder) EnterFolder(item.SubFolder!);
+            else if (item.IsGame) SelectedItem = item;
         }
 
         #endregion

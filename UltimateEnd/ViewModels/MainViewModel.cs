@@ -45,7 +45,7 @@ namespace UltimateEnd.ViewModels
                 _ = Task.Run(() =>
                 {
                     MetadataService.PreloadHasGamesCache(platformKeys);
-                    AllGamesManager.Instance.GetAllGames();
+                    AllGamesManager.Instance.StartFullLoad();
                 });
             }
 
@@ -65,8 +65,7 @@ namespace UltimateEnd.ViewModels
             ScreenSaverManager.Instance.FavoritesChanged += game => _platformListViewModel?.UpdateFavorites();
             ScreenSaverManager.Instance.LastSelectedPlatformChanged += platform => _lastSelectedPlatform = platform;
 
-            if (_platformListViewModel != null)
-                ScreenSaverManager.Instance.RegisterPlatformListViewModel(_platformListViewModel);
+            if (_platformListViewModel != null) ScreenSaverManager.Instance.RegisterPlatformListViewModel(_platformListViewModel);
         }
 
         private void OnViewChangeRequested(ViewModelBase? newView)
@@ -153,6 +152,8 @@ namespace UltimateEnd.ViewModels
 
             CurrentView = _platformListViewModel!;
 
+            AllGamesManager.Instance.ResumeFullLoad();
+
             await Task.Delay(50);
             _platformListViewModel.TriggerScrollFix = !_platformListViewModel.TriggerScrollFix;
 
@@ -199,7 +200,10 @@ namespace UltimateEnd.ViewModels
         private void OnBackFromEmulatorSetting()
         {
             InitializePlatformListVM();
+
             CurrentView = _platformListViewModel!;
+
+            AllGamesManager.Instance.ResumeFullLoad();
         }
 
         private void OnPreviousPlatformRequested()
@@ -252,11 +256,12 @@ namespace UltimateEnd.ViewModels
 
             _platformSwitchCts?.Cancel();
             _platformSwitchCts = new CancellationTokenSource();
-            var cts = _platformSwitchCts;
 
+            var cts = _platformSwitchCts;
             var oldGameListVM = CurrentView as GameListViewModel;
 
             _platformListViewModel.MoveRight();
+
             var newPlatform = _platformListViewModel.SelectedPlatform;
             _lastSelectedPlatform = newPlatform;
 
@@ -327,8 +332,11 @@ namespace UltimateEnd.ViewModels
         {
             var temp = _currentView;
             _currentView = null;
+
             this.RaisePropertyChanged(nameof(CurrentView));
+
             _currentView = temp;
+
             this.RaisePropertyChanged(nameof(CurrentView));
         }
 
