@@ -480,7 +480,8 @@
 																Background="{DynamicResource Background.Card}"
 																HorizontalAlignment="Stretch"
 																VerticalAlignment="Center">
-															<PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+															
+															<PathIcon Data="{StaticResource Icon.Folder}"
 																	  Width="40"
 																	  Height="40"
 																	  Foreground="{DynamicResource Accent.Blue}"
@@ -496,9 +497,21 @@
 																	   FontSize="{StaticResource FontSize.ListGameTitle}"
 																	   FontWeight="Bold"
 																	   Foreground="{DynamicResource Text.Primary}"/>
-															<TextBlock Text="{Binding GameCount, StringFormat='{}📁 {0}개의 게임'}"
-																	   FontSize="{StaticResource FontSize.ListTag}"
-																	   Foreground="{DynamicResource Text.Secondary}"/>
+
+															<!-- 게임 개수와 폴더 아이콘 -->
+															<StackPanel Orientation="Horizontal"
+																		Spacing="6"
+																		VerticalAlignment="Center">
+																<PathIcon Data="{StaticResource Icon.Folder}"
+																		  Width="14"
+																		  Height="14"
+																		  VerticalAlignment="Center"
+																		  Foreground="{DynamicResource Text.Secondary}"/>
+																<TextBlock Text="{Binding GameCount, StringFormat='{}{0}개의 게임'}"
+																		   FontSize="{StaticResource FontSize.ListTag}"
+																		   VerticalAlignment="Center"
+																		   Foreground="{DynamicResource Text.Secondary}"/>
+															</StackPanel>
 														</StackPanel>
 
 														<!-- 화살표 아이콘 -->														

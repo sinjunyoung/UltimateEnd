@@ -142,7 +142,21 @@ namespace UltimateEnd.Services
                 if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return;
 
                 string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? realPath;
-                var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
+
+                ScanRomsFolder(realPath, mappedId);
+            }
+            catch { }
+        }
+
+        public static void ScanRomsFolder(string realPath, string platformId)
+        {
+            try
+            {
+                var platformPath = SettingsService.GetPlatformPath(realPath);
+
+                if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return;
+
+                var validExtensions = PlatformInfoService.Instance.GetValidExtensions(platformId);
 
                 List<GameMetadata> existingMetadata;
 

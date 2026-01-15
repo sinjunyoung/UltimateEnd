@@ -76,7 +76,7 @@ namespace UltimateEnd.Managers
 
                             if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext)))) continue;
 
-                            MetadataService.ScanRomsFolder(subDir);
+                            MetadataService.ScanRomsFolder(subDir, actualPlatformId);
                             LoadGamesFromFolder(subDir, actualPlatformId, compositeKey, subFolderName);
                         }
                     }
@@ -428,6 +428,33 @@ namespace UltimateEnd.Managers
                                 game.SetBasePath(realPath);
                                 var key = GetGameKey(compositeKey, game.SubFolder, game.RomFile);
                                 _allGames[key] = game;
+                            }
+
+                            if (Directory.Exists(realPath))
+                            {
+                                foreach (var subDir in Directory.GetDirectories(realPath))
+                                {
+                                    var subFolderName = Path.GetFileName(subDir);
+
+                                    if (subFolderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase)) continue;
+
+                                    var validExtensions = PlatformInfoService.Instance.GetValidExtensions(actualPlatformId);
+
+                                    if (validExtensions.Any(ext => File.Exists(Path.Combine(realPath, subFolderName + ext)))) continue;
+
+                                    MetadataService.ScanRomsFolder(subDir, actualPlatformId);
+
+                                    var subGames = MetadataService.LoadMetadata(subDir);
+
+                                    foreach (var game in subGames)
+                                    {
+                                        game.PlatformId = actualPlatformId;
+                                        game.SubFolder = subFolderName;
+                                        game.SetBasePath(subDir);
+                                        var key = GetGameKey(compositeKey, game.SubFolder, game.RomFile);
+                                        _allGames[key] = game;
+                                    }
+                                }
                             }
                         }
                     }
