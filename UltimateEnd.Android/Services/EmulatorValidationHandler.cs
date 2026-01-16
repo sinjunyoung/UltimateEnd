@@ -31,8 +31,7 @@ namespace UltimateEnd.Android.Services
             {
                 message += "APK를 다운로드하여 설치하시겠습니까?";
 
-                if (await ShowConfirmDialog("에뮬레이터 없음", message))
-                    return await DownloadAndInstallApk(validation) ? EmulatorValidationAction.Retry : EmulatorValidationAction.Cancel;
+                if (await ShowConfirmDialog("에뮬레이터 없음", message)) return await DownloadAndInstallApk(validation) ? EmulatorValidationAction.Retry : EmulatorValidationAction.Cancel;
             }
             else
             {
@@ -48,8 +47,7 @@ namespace UltimateEnd.Android.Services
 
         private static async Task<bool> DownloadAndInstallApk(EmulatorValidationResult validation)
         {
-            if (string.IsNullOrEmpty(validation.DownloadUrl))
-                return false;
+            if (string.IsNullOrEmpty(validation.DownloadUrl)) return false;
 
             string downloadPath = string.Empty;
 
@@ -76,30 +74,21 @@ namespace UltimateEnd.Android.Services
                 }
 
                 downloadPath = cachedPath;
-                ShowProgressDialog($"{validation.EmulatorName} 다운로드 중...");
 
-                using (var client = new HttpClient())
-                {
-                    var response = await client.GetAsync(validation.DownloadUrl);
-                    response.EnsureSuccessStatusCode();
-
-                    await using var fs = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
-
-                    await response.Content.CopyToAsync(fs);
-                }
-
-                HideProgressDialog();
+                await DownloadFile(validation.DownloadUrl, downloadPath, validation.EmulatorName ?? "에뮬레이터");
 
                 string apkPath = isZip ? await ExtractApkFromZip(downloadPath, cacheDir) : downloadPath;
 
                 if (string.IsNullOrEmpty(apkPath))
                 {
+                    await DialogService.Instance.HideLoading();
                     await ShowErrorDialog("설치 실패", "ZIP 파일에서 APK를 찾을 수 없습니다.");
                     CleanupFile(downloadPath);
 
                     return false;
                 }
 
+                await DialogService.Instance.HideLoading();
                 InstallApk(apkPath);
                 await ShowSuccessDialog("다운로드 완료", "APK 설치 화면이 열립니다.\n설치 후 게임을 다시 실행해주세요.");
 
@@ -107,7 +96,7 @@ namespace UltimateEnd.Android.Services
             }
             catch (HttpRequestException)
             {
-                HideProgressDialog();
+                await DialogService.Instance.HideLoading();
                 CleanupFile(downloadPath);
                 await ShowErrorDialog("다운로드 실패", "인터넷 연결을 확인해주세요.");
 
@@ -115,7 +104,7 @@ namespace UltimateEnd.Android.Services
             }
             catch (TaskCanceledException)
             {
-                HideProgressDialog();
+                await DialogService.Instance.HideLoading();
                 CleanupFile(downloadPath);
                 await ShowErrorDialog("다운로드 실패", "다운로드 시간이 초과되었습니다.");
 
@@ -123,7 +112,7 @@ namespace UltimateEnd.Android.Services
             }
             catch (Exception ex)
             {
-                HideProgressDialog();
+                await DialogService.Instance.HideLoading();
                 CleanupFile(downloadPath);
                 await ShowErrorDialog("다운로드 실패", $"오류가 발생했습니다:\n{ex.Message}");
 
@@ -131,12 +120,46 @@ namespace UltimateEnd.Android.Services
             }
         }
 
+        private static async Task DownloadFile(string url, string destinationPath, string emulatorName)
+        {
+            await DialogService.Instance.ShowLoading($"{emulatorName} 다운로드 중 (0%)");
+
+            using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+            var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var totalBytes = response.Content.Headers.ContentLength ?? 0;
+            await using var contentStream = await response.Content.ReadAsStreamAsync();
+            await using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 262144); // 256KB
+
+            var buffer = new byte[262144]; // 256KB
+            long totalRead = 0;
+            int bytesRead;
+            int lastPercent = 0;
+
+            while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
+            {
+                await fs.WriteAsync(buffer.AsMemory(0, bytesRead));
+                totalRead += bytesRead;
+
+                if (totalBytes > 0)
+                {
+                    var percent = (int)((totalRead * 100) / totalBytes);
+
+                    if (percent != lastPercent && percent % 5 == 0)
+                    {
+                        lastPercent = percent;
+                        await DialogService.Instance.UpdateLoading($"{emulatorName} 다운로드 중 ({percent}%)");
+                    }
+                }
+            }
+        }
+
         private static async Task<string?> ExtractApkFromZip(string zipPath, string extractDir)
         {
             try
             {
-                if (!File.Exists(zipPath))
-                    return null;
+                if (!File.Exists(zipPath)) return null;
 
                 var extractSubDir = Path.Combine(extractDir, "extracted_apk");
 
@@ -145,9 +168,14 @@ namespace UltimateEnd.Android.Services
 
                 Directory.CreateDirectory(extractSubDir);
 
+                await DialogService.Instance.UpdateLoading("압축 해제 중...");
+
                 await Task.Run(() =>
                 {
                     using var archive = ZipFile.OpenRead(zipPath);
+                    var totalEntries = archive.Entries.Count;
+                    var extractedCount = 0;
+                    var lastPercent = 0;
 
                     foreach (var entry in archive.Entries)
                     {
@@ -160,6 +188,15 @@ namespace UltimateEnd.Android.Services
                                 Directory.CreateDirectory(destDir);
 
                             entry.ExtractToFile(destPath, overwrite: true);
+                        }
+
+                        extractedCount++;
+                        var percent = (extractedCount * 100) / totalEntries;
+
+                        if (percent != lastPercent && percent % 10 == 0)
+                        {
+                            lastPercent = percent;
+                            DialogService.Instance.UpdateLoading($"압축 해제 중 ({percent}%)").Wait();
                         }
                     }
                 });
@@ -203,8 +240,7 @@ namespace UltimateEnd.Android.Services
 
         private static void CleanupFile(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath))
-                return;
+            if (string.IsNullOrEmpty(filePath)) return;
 
             try { if (File.Exists(filePath)) File.Delete(filePath); } catch { }
         }
@@ -215,8 +251,7 @@ namespace UltimateEnd.Android.Services
             {
                 var cacheDir = MainActivity.Instance?.CacheDir?.AbsolutePath;
 
-                if (string.IsNullOrEmpty(cacheDir) || !Directory.Exists(cacheDir))
-                    return;
+                if (string.IsNullOrEmpty(cacheDir) || !Directory.Exists(cacheDir)) return;
 
                 var cleanupDate = DateTime.Now.AddDays(-7);
 
@@ -225,8 +260,7 @@ namespace UltimateEnd.Android.Services
 
                 var extractDir = Path.Combine(cacheDir, "extracted_apk");
 
-                if (Directory.Exists(extractDir))
-                    Directory.Delete(extractDir, recursive: true);
+                if (Directory.Exists(extractDir)) Directory.Delete(extractDir, recursive: true);
             }
             catch { }
         }
@@ -244,8 +278,5 @@ namespace UltimateEnd.Android.Services
             await ShowErrorDialog(title, message);
             return EmulatorValidationAction.Cancel;
         }
-
-        private static void ShowProgressDialog(string message) { }
-        private static void HideProgressDialog() { }
     }
 }

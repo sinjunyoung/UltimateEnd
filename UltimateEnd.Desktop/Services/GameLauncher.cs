@@ -60,6 +60,7 @@ namespace UltimateEnd.Desktop.Services
                                 EmulatorId = game.EmulatorId ?? command.Id,
                                 EmulatorName = command.Name,
                                 MissingPath = executable,
+                                CoreName = command.CoreName,
                                 ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
                                 CanInstall = !string.IsNullOrEmpty(downloadUrl),
                                 DownloadUrl = downloadUrl
@@ -79,6 +80,7 @@ namespace UltimateEnd.Desktop.Services
                             EmulatorId = game.EmulatorId ?? command.Id,
                             EmulatorName = command.Name,
                             MissingPath = executable,
+                            CoreName = command.CoreName,
                             ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
                             CanInstall = !string.IsNullOrEmpty(downloadUrl),
                             DownloadUrl = downloadUrl
