@@ -205,7 +205,7 @@ namespace UltimateEnd.Android.Services
 
             SetCommonDefaultEmulators(config);
 
-            config.DefaultEmulators["nintendods"] = "melondsdual041";
+            config.DefaultEmulators["nintendods"] = "melondsdual";
             config.DefaultEmulators["3ds"] = "azahar";
             config.DefaultEmulators["dreamcast"] = "flycast";
             config.DefaultEmulators["seganaomi"] = "flycast";

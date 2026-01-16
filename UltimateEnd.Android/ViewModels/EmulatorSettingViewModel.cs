@@ -22,7 +22,6 @@ namespace UltimateEnd.Android.ViewModels
     {
         #region Fields
 
-        private readonly InstalledAppsService _appsService;
         private string _packageName = string.Empty;
         private string _activityName = string.Empty;
         private string _selectedAction = "android.intent.action.VIEW";
@@ -201,7 +200,6 @@ namespace UltimateEnd.Android.ViewModels
 
         public EmulatorSettingViewModel()
         {
-            _appsService = new InstalledAppsService();
             Extras = [];
 
             AvailableActions =

@@ -94,9 +94,9 @@ namespace UltimateEnd.Services
             config.AddEmulator(CreateRetroArchCommand("ppsspp", "PPSSPP", "psp"));
 
             // Sega Saturn
-            config.AddEmulator(CreateRetroArchCommand("mednafen_saturn", "Beetle Saturn", "saturn"));
-            config.AddEmulator(CreateRetroArchCommand("yabasanshiro", "YabaSanshiro", "saturn"));
             config.AddEmulator(CreateRetroArchCommand("yabause", "Yabause", "saturn"));
+            config.AddEmulator(CreateRetroArchCommand("yabasanshiro", "YabaSanshiro", "saturn"));
+            config.AddEmulator(CreateRetroArchCommand("mednafen_saturn", "Beetle Saturn", "saturn"));
 
             config.AddEmulator(CreateRetroArchCommand("gearsystem", "Gearsystem", "gamegear", "mastersystem"));
 
@@ -132,7 +132,7 @@ namespace UltimateEnd.Services
             config.DefaultEmulators["nintendogamecube"] = "dolphin";
             config.DefaultEmulators["familycomputer"] = "retroarch_fceumm";
             config.DefaultEmulators["superfamicom"] = "retroarch_snes9x";
-            config.DefaultEmulators["mame"] = "retroarch_fbneo";
+            config.DefaultEmulators["mame"] = "retroarch_mame2003_plus";
             config.DefaultEmulators["fbneo"] = "retroarch_fbneo";
             config.DefaultEmulators["neogeo"] = "retroarch_fbneo";
             config.DefaultEmulators["playstation"] = "retroarch_pcsx_rearmed";

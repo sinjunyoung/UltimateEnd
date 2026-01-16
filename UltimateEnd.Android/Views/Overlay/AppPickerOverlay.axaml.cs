@@ -36,14 +36,7 @@ namespace UltimateEnd.Android.Views.Overlays
         {
             if (!this.Visible) return;
 
-            if (SearchBox.IsFocused &&
-                !InputManager.IsAnyButtonPressed(e.Key,
-                    GamepadButton.ButtonB,
-                    GamepadButton.ButtonA,
-                    GamepadButton.Start,
-                    GamepadButton.DPadUp,
-                    GamepadButton.DPadDown))
-                return;
+            if (SearchBox.IsFocused && !InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonB, GamepadButton.ButtonA, GamepadButton.Start, GamepadButton.DPadUp, GamepadButton.DPadDown)) return;
 
             base.OnKeyDown(e);
         }
@@ -118,12 +111,12 @@ namespace UltimateEnd.Android.Views.Overlays
 
                 await Task.Run(() =>
                 {
-                    var service = new InstalledAppsService();
                     var apps = InstalledAppsService.GetInstalledApps();
 
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         _apps.Clear();
+
                         foreach (var app in apps)
                         {
                             _apps.Add(new AppItemViewModel
@@ -135,12 +128,10 @@ namespace UltimateEnd.Android.Views.Overlays
                             });
                         }
 
-                        _filteredApps = _apps.ToList();
+                        _filteredApps = [.. _apps];
                         AppItemsControl.ItemsSource = _filteredApps;
-
                         LoadingPanel.IsVisible = false;
                         AppScrollViewer.IsVisible = true;
-
                         _isLoaded = true;
                     });
                 });
@@ -157,22 +148,14 @@ namespace UltimateEnd.Android.Views.Overlays
             var searchText = SearchBox.Text?.ToLower() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(searchText))
-            {
-                _filteredApps = _apps.ToList();
-            }
+                _filteredApps = [.. _apps];
             else
-            {
-                _filteredApps = _apps.Where(a =>
-                    a.DisplayName.ToLower().Contains(searchText) ||
-                    a.PackageName.ToLower().Contains(searchText) ||
-                    a.ActivityName.ToLower().Contains(searchText)).ToList();
-            }
+                _filteredApps = [.. _apps.Where(a => a.DisplayName.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) || a.PackageName.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) || a.ActivityName.Contains(searchText, StringComparison.CurrentCultureIgnoreCase))];
 
             AppItemsControl.ItemsSource = _filteredApps;
             _selectedIndex = 0;
 
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateSelection(),
-                Avalonia.Threading.DispatcherPriority.Loaded);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateSelection(), Avalonia.Threading.DispatcherPriority.Loaded);
         }
 
         public override void Show()

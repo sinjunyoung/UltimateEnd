@@ -39,7 +39,7 @@ namespace UltimateEnd.Desktop.Services
             {
                 message += "어떻게 하시겠습니까?";
 
-                var result = await ShowThreeButtonDialog("에뮬레이터 없음", message, "경로 지정", "자동 설치", "취소");
+                var result = await ShowThreeButtonDialog("에뮬레이터 없음", message, "경로 지정", "설치", "취소");
 
                 return result switch
                 {
@@ -86,7 +86,9 @@ namespace UltimateEnd.Desktop.Services
                     }
                 }
                 else
+                {
                     await ShowErrorDialog("RetroArch 없음", "RetroArch 실행 파일을 찾을 수 없습니다.");
+                }
             }
 
             return EmulatorValidationAction.Cancel;
@@ -240,7 +242,6 @@ namespace UltimateEnd.Desktop.Services
             }
 
             UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
-
             await ShowSuccessDialog("설정 완료", "기존 설치를 사용하도록 설정되었습니다.\n게임을 다시 실행해주세요.");
             return EmulatorValidationAction.Retry;
         }
@@ -251,14 +252,13 @@ namespace UltimateEnd.Desktop.Services
 
             using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
             var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? 0;
             await using var contentStream = await response.Content.ReadAsStreamAsync();
-            await using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920);
+            await using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 262144); // 256KB
 
-            var buffer = new byte[262144];
+            var buffer = new byte[262144]; // 256KB
             long totalRead = 0;
             int bytesRead;
             int lastPercent = 0;
@@ -266,7 +266,6 @@ namespace UltimateEnd.Desktop.Services
             while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
             {
                 await fs.WriteAsync(buffer.AsMemory(0, bytesRead));
-
                 totalRead += bytesRead;
 
                 if (totalBytes > 0)
@@ -291,13 +290,53 @@ namespace UltimateEnd.Desktop.Services
             var extension = Path.GetExtension(archivePath).ToLowerInvariant();
 
             if (extension == ".zip")
-                ZipFile.ExtractToDirectory(archivePath, targetDirectory, overwriteFiles: true);
+                ExtractZipWithProgress(archivePath, targetDirectory);
             else
             {
                 Initialize7ZipLibrary();
-
                 using var extractor = new SevenZipExtractor(archivePath);
+
+                int lastPercent = 0;
+                extractor.Extracting += (sender, e) =>
+                {
+                    if (e.PercentDone != lastPercent && e.PercentDone % 10 == 0)
+                    {
+                        lastPercent = e.PercentDone;
+                        DialogService.Instance.UpdateLoading($"압축 해제 중 ({e.PercentDone}%)").Wait();
+                    }
+                };
+
                 extractor.ExtractArchive(targetDirectory);
+            }
+        }
+
+        private static void ExtractZipWithProgress(string zipPath, string targetDirectory)
+        {
+            using var archive = ZipFile.OpenRead(zipPath);
+            var totalEntries = archive.Entries.Count;
+            var extractedCount = 0;
+            var lastPercent = 0;
+
+            foreach (var entry in archive.Entries)
+            {
+                if (!string.IsNullOrEmpty(entry.Name))
+                {
+                    var destPath = Path.Combine(targetDirectory, entry.FullName);
+                    var destDir = Path.GetDirectoryName(destPath);
+
+                    if (!string.IsNullOrEmpty(destDir)) Directory.CreateDirectory(destDir);
+
+                    entry.ExtractToFile(destPath, overwrite: true);
+                }
+
+                extractedCount++;
+                var percent = (extractedCount * 100) / totalEntries;
+
+                if (percent != lastPercent && percent % 10 == 0)
+                {
+                    lastPercent = percent;
+                    DialogService.Instance.UpdateLoading($"압축 해제 중 ({percent}%)").Wait();
+                }
             }
         }
 
@@ -317,6 +356,7 @@ namespace UltimateEnd.Desktop.Services
                 if (!File.Exists(dllPath)) throw new FileNotFoundException("7za.dll을 찾을 수 없습니다. 프로젝트 루트에 7za.dll을 포함시켜주세요.");
 
                 SevenZipBase.SetLibraryPath(dllPath);
+
                 _sevenZipInitialized = true;
             }
         }
@@ -332,6 +372,7 @@ namespace UltimateEnd.Desktop.Services
             if (configService == null) return;
 
             var config = configService.LoadConfig();
+
             bool isRetroArch = !string.IsNullOrEmpty(installFolderName) && installFolderName.Equals("retroarch", StringComparison.OrdinalIgnoreCase);
 
             foreach (var kvp in config.Emulators)
@@ -434,7 +475,8 @@ namespace UltimateEnd.Desktop.Services
 
             try
             {
-                if (File.Exists(filePath)) File.Delete(filePath);
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
             }
             catch { }
         }

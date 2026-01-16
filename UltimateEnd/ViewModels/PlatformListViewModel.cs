@@ -368,36 +368,15 @@ namespace UltimateEnd.ViewModels
 
         public async Task LaunchRandomGame()
         {
-            if (!AllGamesManager.Instance.IsLoaded)
-            {
-                var cts = new CancellationTokenSource();
-                await DialogService.Instance.ShowLoading("게임 목록을 불러오는 중 입니다...", cts);
-
-                try
-                {
-                    int waitCount = 0;
-
-                    while (!AllGamesManager.Instance.IsLoaded && waitCount < 300)
-                    {
-                        await Task.Delay(100);
-                        waitCount++;
-                    }
-                }
-                finally
-                {
-                    await DialogService.Instance.HideLoading();
-                }
-
-                if (!AllGamesManager.Instance.IsLoaded)
-                {
-                    await DialogService.Instance.ShowMessage("알림", "게임 목록 로딩이 완료되지 않았습니다.", MessageType.Warning);
-                    return;
-                }
-            }
-
             var allGames = AllGamesManager.Instance.GetAllGames()
                 .Where(g => !g.Ignore)
                 .ToList();
+
+            if (allGames.Count == 0)
+            {
+                await DialogService.Instance.ShowMessage("알림", "실행 가능한 게임이 없습니다.", MessageType.Warning);
+                return;
+            }
 
             var favorites = allGames.Where(g => g.IsFavorite).ToList();
             var nonFavorites = allGames.Where(g => !g.IsFavorite).ToList();
@@ -416,10 +395,12 @@ namespace UltimateEnd.ViewModels
             else if (nonFavorites.Count > 0)
                 selectedGame = nonFavorites[_random.Next(nonFavorites.Count)];
             else
+            {
+                await DialogService.Instance.ShowMessage("알림", "실행 가능한 게임이 없습니다.", MessageType.Warning);
                 return;
+            }
 
             var orchestrator = new GameLaunchOrchestrator(null);
-
             await orchestrator.LaunchAsync(selectedGame);
         }
 

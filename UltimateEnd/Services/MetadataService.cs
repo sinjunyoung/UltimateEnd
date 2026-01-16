@@ -13,7 +13,7 @@ namespace UltimateEnd.Services
 {
     public class MetadataService
     {
-        private const string MetadataFileName = "metadata.txt";
+        public const string MetadataFileName = "metadata.txt";
         private const string PegasusMetadataFileName = "metadata.pegasus.txt";
 
         private static readonly ConcurrentDictionary<string, (bool hasGames, DateTime scanned)> _hasGamesCache = new();

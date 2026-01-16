@@ -333,7 +333,18 @@ namespace UltimateEnd.ViewModels
 
                     if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
                 }
+
+                if (ViewMode == GameViewMode.List) _videoCoordinator.IsVideoContainerVisible = true;
             });
+
+            if (Games.Count > 0 && SelectedGame != null)
+            {
+                await Task.Delay(50);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    RequestExplicitScroll?.Invoke(this, SelectedGame);
+                }, DispatcherPriority.Background);
+            }
         }
 
         private void SetupEventHandlers()

@@ -131,8 +131,7 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         base.OnWindowFocusChanged(hasFocus);
 
-        if (hasFocus)
-            Window?.DecorView?.PostDelayed(() => SetImmersiveFullScreen(), 100);
+        if (hasFocus) Window?.DecorView?.PostDelayed(() => SetImmersiveFullScreen(), 100);
     }
 
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
@@ -150,21 +149,16 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
         else if (requestCode == MANAGE_ALL_FILES_REQUEST_CODE)
         {
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.R &&
-                !global::Android.OS.Environment.IsExternalStorageManager)
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.R && !global::Android.OS.Environment.IsExternalStorageManager)
             {
                 if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
                 {
                     var permissionsNeeded = new List<string>();
-                    if (CheckSelfPermission(Manifest.Permission.ReadMediaImages) != Permission.Granted)
-                        permissionsNeeded.Add(Manifest.Permission.ReadMediaImages);
-                    if (CheckSelfPermission(Manifest.Permission.ReadMediaVideo) != Permission.Granted)
-                        permissionsNeeded.Add(Manifest.Permission.ReadMediaVideo);
-                    if (CheckSelfPermission(Manifest.Permission.ReadMediaAudio) != Permission.Granted)
-                        permissionsNeeded.Add(Manifest.Permission.ReadMediaAudio);
 
-                    if (permissionsNeeded.Count > 0)
-                        RequestPermissions([.. permissionsNeeded], STORAGE_PERMISSION_CODE);
+                    if (CheckSelfPermission(Manifest.Permission.ReadMediaImages) != Permission.Granted) permissionsNeeded.Add(Manifest.Permission.ReadMediaImages);
+                    if (CheckSelfPermission(Manifest.Permission.ReadMediaVideo) != Permission.Granted) permissionsNeeded.Add(Manifest.Permission.ReadMediaVideo);
+                    if (CheckSelfPermission(Manifest.Permission.ReadMediaAudio) != Permission.Granted) permissionsNeeded.Add(Manifest.Permission.ReadMediaAudio);
+                    if (permissionsNeeded.Count > 0) RequestPermissions([.. permissionsNeeded], STORAGE_PERMISSION_CODE);
                 }
             }
         }
@@ -180,8 +174,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             ScreenSaverManager.Instance.OnAppPaused();
 
-            if (mainVm.CurrentView is GameListViewModel gameListVm)
-                gameListVm.StopVideo();
+            if (mainVm.CurrentView is GameListViewModel gameListVm) gameListVm.StopVideo();
         }
     }
 
@@ -194,6 +187,8 @@ public class MainActivity : AvaloniaMainActivity<App>
         await PlayTimeHistoryFactory.Instance.RecoverUnfinishedSessions();
         await PlayTimeHistoryFactory.Instance.StopAllActiveSessions();
 
+        if (!AllGamesManager.Instance.IsLoaded) AllGamesManager.Instance.ResumeFullLoad();
+
         var app = Avalonia.Application.Current?.ApplicationLifetime as ISingleViewApplicationLifetime;
 
         if (app?.MainView?.DataContext is MainViewModel mainVm)
@@ -202,8 +197,7 @@ public class MainActivity : AvaloniaMainActivity<App>
             {
                 await Dispatcher.UIThread.InvokeAsync(() => gameListVm.RefreshCurrentGamePlayHistory());
 
-                if (FilePickerDialog.IsOpen || OverlayHelper.IsAnyOverlayVisible(app.MainView))
-                    return;
+                if (FilePickerDialog.IsOpen || OverlayHelper.IsAnyOverlayVisible(app.MainView)) return;
 
                 await Task.Delay(500);
                 gameListVm.StopVideo();
@@ -268,12 +262,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
         else
         {
-            var uiOptions = (int)SystemUiFlags.HideNavigation
-                            | (int)SystemUiFlags.Fullscreen
-                            | (int)SystemUiFlags.ImmersiveSticky
-                            | (int)SystemUiFlags.LayoutStable
-                            | (int)SystemUiFlags.LayoutHideNavigation
-                            | (int)SystemUiFlags.LayoutFullscreen;
+            var uiOptions = (int)SystemUiFlags.HideNavigation | (int)SystemUiFlags.Fullscreen | (int)SystemUiFlags.ImmersiveSticky | (int)SystemUiFlags.LayoutStable | (int)SystemUiFlags.LayoutHideNavigation | (int)SystemUiFlags.LayoutFullscreen;
 
             decorView.SystemUiVisibility = (StatusBarVisibility)uiOptions;
         }
@@ -405,8 +394,7 @@ public class MainActivity : AvaloniaMainActivity<App>
 
             var uri = Intent?.Data;
 
-            if (uri != null)
-                MainActivity.Instance?.HandleOAuthRedirect(uri);
+            if (uri != null) MainActivity.Instance?.HandleOAuthRedirect(uri);
 
             Finish();
         }
