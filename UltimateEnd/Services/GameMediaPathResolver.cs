@@ -12,24 +12,24 @@ namespace UltimateEnd.Services
 
         public static string GetCoverPath(GameMetadata game, string basePath)
         {
-            string[] folderCandidates = { "covers", "cover", "boxart", "boxfront", "3dboxes" };
-            string[] pegasusFileNames = { "boxFront.png", "boxFront.jpg" };
+            string[] folderCandidates = ["covers", "cover", "boxart", "boxfront", "3dboxes"];
+            string[] pegasusFileNames = ["boxFront.png", "boxFront.jpg"];
 
             return GetMediaPath(game.CoverImagePath, game.RomFile, basePath, "Covers", folderCandidates, ".png", pegasusFileNames);
         }
 
         public static string GetLogoPath(GameMetadata game, string basePath)
         {
-            string[] folderCandidates = { "logos", "logo", "marquee", "marquees", "wheel" };
-            string[] pegasusFileNames = { "logo.png", "logo.jpg" };
+            string[] folderCandidates = ["logos", "logo", "marquee", "marquees", "wheel"];
+            string[] pegasusFileNames = ["logo.png", "logo.jpg"];
 
             return GetMediaPath(game.LogoImagePath, game.RomFile, basePath, "Logos", folderCandidates, ".png", pegasusFileNames);
         }
 
         public static string GetVideoPath(GameMetadata game, string basePath)
         {
-            string[] folderCandidates = { "videos", "video", "snap" };
-            string[] pegasusFileNames = { "video.mp4", "video.mkv" };
+            string[] folderCandidates = ["videos", "video", "snap"];
+            string[] pegasusFileNames = ["video.mp4", "video.mkv"];
 
             return GetMediaPath(game.VideoPath, game.RomFile, basePath, "Videos", folderCandidates, ".mp4", pegasusFileNames);
         }
@@ -61,7 +61,7 @@ namespace UltimateEnd.Services
                 if (retrobatPath != null) return retrobatPath;
             }
 
-            var actualDirs = _directoryCache.GetOrAdd(basePath, path => Directory.Exists(path) ? Directory.GetDirectories(path) : Array.Empty<string>());
+            var actualDirs = _directoryCache.GetOrAdd(basePath, path => Directory.Exists(path) ? Directory.GetDirectories(path) : []);
 
             foreach (var candidate in folderCandidates)
             {

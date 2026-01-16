@@ -15,6 +15,6 @@
         LeftTrigger,
         RightTrigger,
         Start,
-        Select
+        Select,
     }
 }

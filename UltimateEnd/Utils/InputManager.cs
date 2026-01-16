@@ -24,7 +24,7 @@ namespace UltimateEnd.Utils
                 _keyMappings[GamepadButton.DPadDown] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadDown", "Down"));
                 _keyMappings[GamepadButton.DPadLeft] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left"));
                 _keyMappings[GamepadButton.DPadRight] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadRight", "Right"));
-                _keyMappings[GamepadButton.ButtonA] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonA", "Enter"));
+                _keyMappings[GamepadButton.ButtonA] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonA", "Return"));
                 _keyMappings[GamepadButton.ButtonB] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape"));
                 _keyMappings[GamepadButton.ButtonX] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonX", "X"));
                 _keyMappings[GamepadButton.ButtonY] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonY", "F"));
@@ -32,7 +32,7 @@ namespace UltimateEnd.Utils
                 _keyMappings[GamepadButton.RightBumper] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown"));
                 _keyMappings[GamepadButton.LeftTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl"));
                 _keyMappings[GamepadButton.RightTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt"));
-                _keyMappings[GamepadButton.Start] = ParseKey(settings.KeyBindings.GetValueOrDefault("Start", "Enter"));
+                _keyMappings[GamepadButton.Start] = ParseKey(settings.KeyBindings.GetValueOrDefault("Start", "Return"));
                 _keyMappings[GamepadButton.Select] = ParseKey(settings.KeyBindings.GetValueOrDefault("Select", "Escape"));
             }
             else
@@ -45,7 +45,7 @@ namespace UltimateEnd.Utils
             _keyMappings[GamepadButton.DPadDown] = Key.Down;
             _keyMappings[GamepadButton.DPadLeft] = Key.Left;
             _keyMappings[GamepadButton.DPadRight] = Key.Right;
-            _keyMappings[GamepadButton.ButtonA] = Key.Enter;
+            _keyMappings[GamepadButton.ButtonA] = Key.Return;
             _keyMappings[GamepadButton.ButtonB] = Key.Escape;
             _keyMappings[GamepadButton.ButtonX] = Key.X;
             _keyMappings[GamepadButton.ButtonY] = Key.F;
@@ -53,7 +53,7 @@ namespace UltimateEnd.Utils
             _keyMappings[GamepadButton.RightBumper] = Key.PageDown;
             _keyMappings[GamepadButton.LeftTrigger] = Key.LeftCtrl;
             _keyMappings[GamepadButton.RightTrigger] = Key.LeftAlt;
-            _keyMappings[GamepadButton.Start] = Key.Enter;
+            _keyMappings[GamepadButton.Start] = Key.Return;
             _keyMappings[GamepadButton.Select] = Key.Escape;
         }
 

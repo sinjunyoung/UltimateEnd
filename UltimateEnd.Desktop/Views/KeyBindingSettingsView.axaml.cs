@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using UltimateEnd.Desktop.Models;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.Enums;
 using UltimateEnd.Utils;
@@ -89,9 +90,7 @@ namespace UltimateEnd.Desktop.Views
                     .Where(g => g.Tag != null && g.Name?.StartsWith("Btn") == true)
                     .Cast<Control>();
 
-                _buttonBorders = borders.Concat(grids)
-                    .OrderBy(b => b.Name)
-                    .ToList();
+                _buttonBorders = [.. borders.Concat(grids).OrderBy(b => b.Name)];
 
                 if (_coordsDisplay != null && !canvas.Children.Contains(_coordsDisplay))
                 {
@@ -127,9 +126,15 @@ namespace UltimateEnd.Desktop.Views
 
             if (ViewModel.IsBinding)
             {
-                ViewModel.HandleKeyPress(e.Key);
-                e.Handled = true;
+                if (e is GamepadKeyEventArgs gpe && gpe.IsFromGamepad && gpe.OriginalButton.HasValue)
+                {
+                    string buttonName = gpe.OriginalButton.Value.ToString();
+                    ViewModel.HandleKeyPress(ParseGamepadButtonToKey(buttonName));
+                }
+                else
+                    ViewModel.HandleKeyPress(e.Key);
 
+                e.Handled = true;
                 return;
             }
 
@@ -163,6 +168,26 @@ namespace UltimateEnd.Desktop.Views
                 e.Handled = true;
                 SelectCurrent();
             }
+        }
+
+        private static Key ParseGamepadButtonToKey(string buttonName)
+        {
+            return buttonName switch
+            {
+                "ButtonA" => Key.A,
+                "ButtonB" => Key.B,
+                "ButtonX" => Key.X,
+                "ButtonY" => Key.Y,
+                "LeftBumper" => Key.L,
+                "RightBumper" => Key.R,
+                "DPadUp" => Key.Up,
+                "DPadDown" => Key.Down,
+                "DPadLeft" => Key.Left,
+                "DPadRight" => Key.Right,
+                "Start" => Key.S,
+                "Select" => Key.C,
+                _ => Key.None
+            };
         }
 
         private async void MovePrevious()

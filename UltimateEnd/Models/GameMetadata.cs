@@ -415,7 +415,7 @@ namespace UltimateEnd.Models
         {
             if (_cache.LogoPath != null) return _cache.LogoPath;
 
-            if (!string.IsNullOrEmpty(_logoImagePath))
+            if (!string.IsNullOrEmpty(_logoImagePath) && File.Exists(_logoImagePath))
             {
                 _cache.LogoPath = _logoImagePath;
 
@@ -431,7 +431,7 @@ namespace UltimateEnd.Models
         {
             if (_cache.CoverPath != null) return _cache.CoverPath;
 
-            if (!string.IsNullOrEmpty(_coverImagePath))
+            if (!string.IsNullOrEmpty(_coverImagePath) && File.Exists(_coverImagePath))
             {
                 _cache.CoverPath = _coverImagePath;
 
@@ -447,7 +447,7 @@ namespace UltimateEnd.Models
         {
             if (_cache.VideoPath != null) return _cache.VideoPath;
 
-            if (!string.IsNullOrEmpty(_videoPath))
+            if (!string.IsNullOrEmpty(_videoPath) && File.Exists(_videoPath))
             {
                 _cache.VideoPath = _videoPath;
 

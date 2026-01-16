@@ -97,42 +97,18 @@ namespace UltimateEnd.Android.Services
             config.AddEmulator(new Command
             { 
                 Id = "flycast", Name = "Flycast", IsRetroArch = false, SupportedPlatforms = ["naomi", "naomi2", "dc"],
-                // SAF URI version
-                // LaunchCommand = "am start -n com.flycast.emulator/.MainActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
                 LaunchCommand = "am start -n com.flycast.emulator/.MainActivity -a android.intent.action.VIEW -d \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
                 Id = "drastic", Name = "DRASTIC", IsRetroArch = false, SupportedPlatforms = ["nds"],
-                // SAF URI version
-                // LaunchCommand = "am start -n com.dsemu.drastic/.DraSticActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
                 LaunchCommand = "am start -n com.dsemu.drastic/.DraSticActivity -a android.intent.action.VIEW -d \"{fileUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
-            config.AddEmulator(new Command // 실행 불가 방법 못 찾음;;
-            {
-                Id = "melonds", Name = "MELONDS (미지원)", IsRetroArch = false, SupportedPlatforms = ["nds"],
-                // SAF URI version
-                // LaunchCommand = "am start -n me.magnum.melonds/.ui.emulator.EmulatorActivity -a me.magnum.melonds.LAUNCH_ROM -e uri \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"                
-                LaunchCommand = "am start -n me.magnum.melonds/me.magnum.melonds.ui.emulator.EmulatorActivity -a me.magnum.melonds.LAUNCH_ROM -d \"{safUriRomPath}\" --grant-read-uri-permission --activity-clear-task --activity-clear-top --activity-no-history"
-            });
-
-            //config.AddEmulator(new Command
-            //{
-            //    Id = "melonds.nightly", Name = "MELONDS-NIGHTLY", IsRetroArch = false, SupportedPlatforms = ["nds"],
-            //    LaunchCommand = "am start -n me.magnum.melonds.nightly/me.magnum.melonds.ui.emulator.EmulatorActivity -a me.magnum.melonds.LAUNCH_ROM -d \"{safUriRomPath}\" --grant-read-uri-permission --activity-clear-task --activity-clear-top --activity-no-history"
-            //});
-
             config.AddEmulator(new Command
             {
-                Id = "melondsdual022", Name = "MELONDS Dual 0.2.2", IsRetroArch = false, SupportedPlatforms = ["nds"],                
-                 LaunchCommand = "am start -n me.magnum.melonds/.ui.emulator.EmulatorActivity -a me.magnum.melonds.LAUNCH_ROM -e PATH \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
-            });
-
-            config.AddEmulator(new Command
-            {
-                Id = "melondsdual041", Name = "MELONDS Dual 0.4.1", IsRetroArch = false, SupportedPlatforms = ["nds"],
+                Id = "melondsdual", Name = "MELONDS Dual", IsRetroArch = false, SupportedPlatforms = ["nds"],
                 LaunchCommand = "am start -n me.magnum.melonds/me.magnum.melonds.ui.emulator.EmulatorActivity -a me.magnum.melonds.LAUNCH_ROM -d \"{safUriRomPath}\" --grant-read-uri-permission --activity-clear-task --activity-clear-top --activity-no-history"
             });
 

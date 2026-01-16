@@ -6,7 +6,6 @@ using System.Reactive;
 using System.Threading.Tasks;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
-using UltimateEnd.Views.Overlays;
 
 namespace UltimateEnd.ViewModels
 {
@@ -274,8 +273,7 @@ namespace UltimateEnd.ViewModels
 
             var settings = SettingsService.LoadSettings();
 
-            if (settings.KeyBindings == null)
-                settings.KeyBindings = new Dictionary<string, string>();
+            settings.KeyBindings ??= [];
 
             settings.KeyBindings["DPadUp"] = DPadUp;
             settings.KeyBindings["DPadDown"] = DPadDown;
