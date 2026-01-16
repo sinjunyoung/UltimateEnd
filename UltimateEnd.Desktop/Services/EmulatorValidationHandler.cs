@@ -192,7 +192,6 @@ namespace UltimateEnd.Desktop.Services
                 }
 
                 UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
-
                 await ShowSuccessDialog("설치 완료", $"{validation.EmulatorName} 설치가 완료되었습니다.\n게임을 다시 실행해주세요.");
 
                 return EmulatorValidationAction.Retry;
@@ -243,6 +242,7 @@ namespace UltimateEnd.Desktop.Services
 
             UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
             await ShowSuccessDialog("설정 완료", "기존 설치를 사용하도록 설정되었습니다.\n게임을 다시 실행해주세요.");
+
             return EmulatorValidationAction.Retry;
         }
 
@@ -475,8 +475,7 @@ namespace UltimateEnd.Desktop.Services
 
             try
             {
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
+                if (File.Exists(filePath)) File.Delete(filePath);
             }
             catch { }
         }

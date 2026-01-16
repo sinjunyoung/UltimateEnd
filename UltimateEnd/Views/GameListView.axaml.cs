@@ -256,27 +256,20 @@ namespace UltimateEnd.Views
 
         protected override void ScrollToItem(GameMetadata game)
         {
-            Border? border = GameItemsRepeater.GetVisualDescendants()
-                                    .OfType<Border>()
-                                    .FirstOrDefault(b => b.Name == "GameItemBorder" && b.DataContext == game);
+            if (ViewModel == null) return;
 
-            border?.BringIntoView();
+            int index = ViewModel.DisplayItems
+                .Select((item, idx) => new { item, idx })
+                .FirstOrDefault(x => x.item.IsGame && x.item.Game == game)
+                ?.idx ?? -1;
+
+            if (index >= 0)
+                ScrollToIndex(index);
         }
 
         protected override void ScrollToIndex(int index)
         {
-            if (ViewModel?.Games.Count == 0) return;
-
-            if (index == 0)
-            {
-                GameScrollViewer.Offset = new Vector(0, 0);
-                return;
-            }
-            else if (index == ViewModel?.Games.Count - 1)
-            {
-                GameScrollViewer.Offset = new Vector(0, GameScrollViewer.ScrollBarMaximum.Y);
-                return;
-            }
+            if (ViewModel?.DisplayItems.Count == 0) return;
 
             var firstBorder = GameItemsRepeater.GetVisualDescendants()
                                           .OfType<Border>()
@@ -288,8 +281,21 @@ namespace UltimateEnd.Views
             var margin = firstBorder.Margin;
             itemHeight += margin.Top + margin.Bottom;
 
-            double targetOffset = index * itemHeight;
-            GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, targetOffset);
+            double itemTop = index * itemHeight;
+            double itemBottom = itemTop + itemHeight;
+
+            double viewportTop = GameScrollViewer.Offset.Y;
+            double viewportBottom = viewportTop + GameScrollViewer.Viewport.Height;
+
+            if (itemTop >= viewportTop && itemBottom <= viewportBottom) return;
+
+            if (itemTop < viewportTop)
+                GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, itemTop);
+            else if (itemBottom > viewportBottom)
+            {
+                double newOffset = itemBottom - GameScrollViewer.Viewport.Height;
+                GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, newOffset);
+            }
         }
 
         protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
