@@ -459,7 +459,6 @@
 													Cursor="Hand"
 													BorderThickness="0"
 													Padding="{StaticResource Padding.ListItem}"
-													Margin="{StaticResource Margin.ListItem}"
 													Name="GameItemBorder"
 													Tapped="OnDisplayItemTapped"
 													behaviors:LongPressBehavior.IsEnabled="True"

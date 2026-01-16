@@ -279,7 +279,8 @@ namespace UltimateEnd.Views
 
             double itemHeight = firstBorder.Bounds.Height;
             var margin = firstBorder.Margin;
-            itemHeight += margin.Top + margin.Bottom;
+            var padding = firstBorder.Padding;
+            itemHeight += margin.Top + margin.Bottom + padding.Top + padding.Bottom;
 
             double itemTop = index * itemHeight;
             double itemBottom = itemTop + itemHeight;
