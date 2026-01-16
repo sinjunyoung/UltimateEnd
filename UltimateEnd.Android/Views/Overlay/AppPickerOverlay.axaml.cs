@@ -119,7 +119,7 @@ namespace UltimateEnd.Android.Views.Overlays
                 await Task.Run(() =>
                 {
                     var service = new InstalledAppsService();
-                    var apps = service.GetInstalledApps();
+                    var apps = InstalledAppsService.GetInstalledApps();
 
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {

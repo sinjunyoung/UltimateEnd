@@ -11,11 +11,11 @@ using ActivityInfo = UltimateEnd.Android.Models.ActivityInfo;
 
 namespace UltimateEnd.Android.Services
 {
-    public class InstalledAppsService
+    public static class InstalledAppsService
     {
         #region Public Methods - App List
 
-        public List<InstalledAppInfo> GetInstalledApps()
+        public static List<InstalledAppInfo> GetInstalledApps()
         {
             var apps = new List<InstalledAppInfo>();
 
@@ -58,7 +58,7 @@ namespace UltimateEnd.Android.Services
                     catch { }
                 }
 
-                return apps.OrderBy(a => a.DisplayName).ToList();
+                return [.. apps.OrderBy(a => a.DisplayName)];
             }
             catch
             {
@@ -70,7 +70,7 @@ namespace UltimateEnd.Android.Services
 
         #region Public Methods - App Info
 
-        public (Avalonia.Media.Imaging.Bitmap? Icon, string AppName) GetAppIconAndName(string packageName)
+        public static (Avalonia.Media.Imaging.Bitmap? Icon, string AppName) GetAppIconAndName(string packageName)
         {
             if (string.IsNullOrEmpty(packageName))
                 return (null, string.Empty);
@@ -102,7 +102,7 @@ namespace UltimateEnd.Android.Services
 
         #region Public Methods - Activity List
 
-        public List<ActivityInfo> GetPackageActivities(string packageName)
+        public static List<ActivityInfo> GetPackageActivities(string packageName)
         {
             var activities = new List<ActivityInfo>();
 
@@ -131,9 +131,7 @@ namespace UltimateEnd.Android.Services
                     }
                 }
 
-                return activities.OrderByDescending(a => a.IsLauncher)
-                                .ThenByDescending(a => a.SupportsView)
-                                .ToList();
+                return [.. activities.OrderByDescending(a => a.IsLauncher).ThenByDescending(a => a.SupportsView)];
             }
             catch
             {
@@ -141,7 +139,7 @@ namespace UltimateEnd.Android.Services
             }
         }
 
-        public (List<ActivityInfo> Activities, ActivityInfo? Selected) GetPackageActivitiesWithAutoSelect(string packageName)
+        public static (List<ActivityInfo> Activities, ActivityInfo? Selected) GetPackageActivitiesWithAutoSelect(string packageName)
         {
             var activities = GetPackageActivities(packageName);
 
@@ -164,7 +162,7 @@ namespace UltimateEnd.Android.Services
 
         #region Private Methods - Activity Validation
 
-        private bool IsLauncherActivity(PackageManager pm, string packageName, string activityName)
+        private static bool IsLauncherActivity(PackageManager pm, string packageName, string activityName)
         {
             try
             {
@@ -181,7 +179,7 @@ namespace UltimateEnd.Android.Services
             }
         }
 
-        private bool SupportsViewAction(PackageManager pm, string packageName, string activityName)
+        private static bool SupportsViewAction(PackageManager pm, string packageName, string activityName)
         {
             try
             {
@@ -224,7 +222,7 @@ namespace UltimateEnd.Android.Services
 
         #region Private Methods - Conversion
 
-        private Avalonia.Media.Imaging.Bitmap? ConvertDrawableToAvaloniaBitmap(Drawable drawable, global::Android.Content.Context context)
+        private static Avalonia.Media.Imaging.Bitmap? ConvertDrawableToAvaloniaBitmap(Drawable drawable, global::Android.Content.Context context)
         {
             try
             {
@@ -239,17 +237,16 @@ namespace UltimateEnd.Android.Services
                 }
 
                 Bitmap androidBitmap = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888);
-                Canvas canvas = new Canvas(androidBitmap);
+                Canvas canvas = new(androidBitmap);
                 drawable.SetBounds(0, 0, width, height);
                 drawable.Draw(canvas);
 
-                using (var ms = new MemoryStream())
-                {
-                    androidBitmap.Compress(Bitmap.CompressFormat.Png, 100, ms);
-                    ms.Seek(0, SeekOrigin.Begin);
-                    androidBitmap.Recycle();
-                    return new Avalonia.Media.Imaging.Bitmap(ms);
-                }
+                using var ms = new MemoryStream();
+                androidBitmap.Compress(Bitmap.CompressFormat.Png, 100, ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                androidBitmap.Recycle();
+
+                return new Avalonia.Media.Imaging.Bitmap(ms);
             }
             catch
             {

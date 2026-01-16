@@ -16,8 +16,6 @@ namespace UltimateEnd.Android.Services
 {
     public class AppProvider : IAppProvider
     {
-        private readonly InstalledAppsService _appsService = new();
-
         public string PlatformId => "android";
 
         public string PlatformName => "Android";

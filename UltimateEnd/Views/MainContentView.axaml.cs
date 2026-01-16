@@ -19,7 +19,23 @@ namespace UltimateEnd.Views
             DialogService.Instance.RegisterMessageOverlay((title, message, type) => MessageOverlay.ShowMessage(title, message, type));
             DialogService.Instance.RegisterConfirmOverlay((title, message) => MessageOverlay.ShowConfirm(title, message));
             DialogService.Instance.RegisterThreeButtonOverlay((title, message, btn1, btn2, btn3) => MessageOverlay.ShowThreeButton(title, message, btn1, btn2, btn3));
-            DialogService.Instance.RegisterLoadingOverlay((message, cts) => { Dispatcher.UIThread.Post(() => LoadingOverlay.Show(message, cts)); return Task.CompletedTask; }, () => { Dispatcher.UIThread.Post(() => LoadingOverlay.Hide()); return Task.CompletedTask; });
+            DialogService.Instance.RegisterLoadingOverlay(
+                showLoading: (message, cts) =>
+                {
+                    Dispatcher.UIThread.Post(() => LoadingOverlay.Show(message, cts));
+                    return Task.CompletedTask;
+                },
+                hideLoading: () =>
+                {
+                    Dispatcher.UIThread.Post(() => LoadingOverlay.Hide());
+                    return Task.CompletedTask;
+                },
+                updateLoading: (message) =>
+                {
+                    Dispatcher.UIThread.Post(() => LoadingOverlay.UpdateMessage(message));
+                    return Task.CompletedTask;
+                }
+            );
 
             this.AddHandler(KeyDownEvent, OnInputDetected, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
             this.AddHandler(PointerPressedEvent, OnInputDetected, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);

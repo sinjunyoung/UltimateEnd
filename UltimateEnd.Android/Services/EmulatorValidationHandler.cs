@@ -23,7 +23,7 @@ namespace UltimateEnd.Android.Services
             };
         }
 
-        private async Task<EmulatorValidationAction> HandleAppNotInstalled(EmulatorValidationResult validation)
+        private static async Task<EmulatorValidationAction> HandleAppNotInstalled(EmulatorValidationResult validation)
         {
             string message = $"{validation.EmulatorName} 앱이 설치되어 있지 않습니다.\n\n";
 
@@ -44,9 +44,9 @@ namespace UltimateEnd.Android.Services
             return EmulatorValidationAction.Cancel;
         }
 
-        private async Task<EmulatorValidationAction> HandleNoSupportedEmulator(EmulatorValidationResult validation) => await ShowErrorAndCancel("지원하지 않는 플랫폼", $"{validation.PlatformId} 플랫폼을 지원하는 에뮬레이터가 없습니다.");
+        private static async Task<EmulatorValidationAction> HandleNoSupportedEmulator(EmulatorValidationResult validation) => await ShowErrorAndCancel("지원하지 않는 플랫폼", $"{validation.PlatformId} 플랫폼을 지원하는 에뮬레이터가 없습니다.");
 
-        private async Task<bool> DownloadAndInstallApk(EmulatorValidationResult validation)
+        private static async Task<bool> DownloadAndInstallApk(EmulatorValidationResult validation)
         {
             if (string.IsNullOrEmpty(validation.DownloadUrl))
                 return false;
@@ -131,7 +131,7 @@ namespace UltimateEnd.Android.Services
             }
         }
 
-        private async Task<string?> ExtractApkFromZip(string zipPath, string extractDir)
+        private static async Task<string?> ExtractApkFromZip(string zipPath, string extractDir)
         {
             try
             {
@@ -174,7 +174,7 @@ namespace UltimateEnd.Android.Services
             }
         }
 
-        private void InstallApk(string apkPath)
+        private static void InstallApk(string apkPath)
         {
             var activity = GetMainActivity();
             var file = new Java.IO.File(apkPath);
@@ -231,7 +231,7 @@ namespace UltimateEnd.Android.Services
             catch { }
         }
 
-        private global::Android.App.Activity GetMainActivity() => MainActivity.Instance ?? throw new InvalidOperationException("MainActivity를 찾을 수 없습니다.");
+        private static MainActivity GetMainActivity() => MainActivity.Instance ?? throw new InvalidOperationException("MainActivity를 찾을 수 없습니다.");
 
         private static Task<bool> ShowConfirmDialog(string title, string message) => DialogService.Instance.ShowConfirm(title, message);
 
@@ -239,7 +239,7 @@ namespace UltimateEnd.Android.Services
 
         private static Task ShowSuccessDialog(string title, string message) => DialogService.Instance.ShowMessage(title, message, MessageType.Success);
 
-        private async Task<EmulatorValidationAction> ShowErrorAndCancel(string title, string message)
+        private static async Task<EmulatorValidationAction> ShowErrorAndCancel(string title, string message)
         {
             await ShowErrorDialog(title, message);
             return EmulatorValidationAction.Cancel;

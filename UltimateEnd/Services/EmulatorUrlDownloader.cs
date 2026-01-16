@@ -7,12 +7,12 @@ using UltimateEnd.Models;
 
 namespace UltimateEnd.Services
 {
-    public class EmulatorUrlDownloader
+    public static class EmulatorUrlDownloader
     {
         private const int TIMEOUT_SECONDS = 10;
         private static readonly HttpClient _httpClient = new();
 
-        public async Task<Dictionary<string, EmulatorUrlInfo>> DownloadEmulatorUrlsAsync(string documentId, CancellationToken cancellationToken = default)
+        public static async Task<Dictionary<string, EmulatorUrlInfo>> DownloadEmulatorUrlsAsync(string documentId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(documentId))
                 throw new ArgumentException("문서 ID가 비어있습니다.", nameof(documentId));
@@ -36,7 +36,7 @@ namespace UltimateEnd.Services
             }
         }
 
-        public async Task<Dictionary<string, string>> DownloadCoreUrlsAsync(string documentId, CancellationToken cancellationToken = default)
+        public static async Task<Dictionary<string, string>> DownloadCoreUrlsAsync(string documentId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(documentId))
                 throw new ArgumentException("문서 ID가 비어있습니다.", nameof(documentId));
@@ -61,7 +61,7 @@ namespace UltimateEnd.Services
             }
         }
 
-        private Dictionary<string, EmulatorUrlInfo> ParseEmulatorUrlsFromCsv(string csvContent)
+        private static Dictionary<string, EmulatorUrlInfo> ParseEmulatorUrlsFromCsv(string csvContent)
         {
             var urlDict = new Dictionary<string, EmulatorUrlInfo>(StringComparer.OrdinalIgnoreCase);
             var lines = csvContent.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
@@ -96,7 +96,7 @@ namespace UltimateEnd.Services
             return urlDict;
         }
 
-        private Dictionary<string, string> ParseCoreUrlsFromCsv(string csvContent)
+        private static Dictionary<string, string> ParseCoreUrlsFromCsv(string csvContent)
         {
             var coreDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var lines = csvContent.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);

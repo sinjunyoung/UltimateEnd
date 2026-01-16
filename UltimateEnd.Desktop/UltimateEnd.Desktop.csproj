@@ -44,6 +44,7 @@
     </PackageReference><PackageReference Include="DirectShowLib" /><PackageReference Include="NAudio" />
     <PackageReference Include="SharpDX" />
     <PackageReference Include="SharpDX.DirectInput" />
+    <PackageReference Include="Squid-Box.SevenZipSharp" />
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Windows.Extensions" />
   </ItemGroup>
@@ -57,6 +58,9 @@
       <DependentUpon>EmulatorSettingView.axaml</DependentUpon>
     </Compile>
   </ItemGroup><ItemGroup>
+  <None Update="7za.dll">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
   <None Update="chdr.dll">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>

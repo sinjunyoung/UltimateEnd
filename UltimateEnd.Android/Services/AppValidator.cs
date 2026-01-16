@@ -22,7 +22,7 @@ namespace UltimateEnd.Android.Services
                 {
                     var component = parts[i + 1];
                     var slashIndex = component.IndexOf('/');
-                    return slashIndex > 0 ? component.Substring(0, slashIndex) : component;
+                    return slashIndex > 0 ? component[..slashIndex] : component;
                 }
             }
             return null;

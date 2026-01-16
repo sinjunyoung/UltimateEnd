@@ -73,8 +73,7 @@ public partial class LoadingOverlay : BaseOverlay, INotifyPropertyChanged
 
     private async void Cancel()
     {
-        if (_cts == null || _cts.IsCancellationRequested)
-            return;
+        if (_cts == null || _cts.IsCancellationRequested) return;
 
         await WavSounds.Cancel();
         _cts.Cancel();
@@ -124,4 +123,6 @@ public partial class LoadingOverlay : BaseOverlay, INotifyPropertyChanged
     }
 
     public override void Show() => Show("·Îµù Áß...");
+
+    public void UpdateMessage(string message) => Message = message;
 }

@@ -12,7 +12,6 @@ namespace UltimateEnd.Services
 
         public static EmulatorUrlProvider Instance => _instance ??= new EmulatorUrlProvider();
 
-        private readonly EmulatorUrlDownloader _downloader = new();
         private Dictionary<string, EmulatorUrlInfo>? _emulatorUrls;
         private Dictionary<string, string>? _coreUrls;
         private DateTime _lastFetchTime = DateTime.MinValue;
@@ -58,10 +57,10 @@ namespace UltimateEnd.Services
             try
             {
                 if (!string.IsNullOrEmpty(EmulatorDocumentId))
-                    _emulatorUrls = await _downloader.DownloadEmulatorUrlsAsync(EmulatorDocumentId);
+                    _emulatorUrls = await EmulatorUrlDownloader.DownloadEmulatorUrlsAsync(EmulatorDocumentId);
 
                 if (!string.IsNullOrEmpty(CoreDocumentId))
-                    _coreUrls = await _downloader.DownloadCoreUrlsAsync(CoreDocumentId);
+                    _coreUrls = await EmulatorUrlDownloader.DownloadCoreUrlsAsync(CoreDocumentId);
 
                 _lastFetchTime = DateTime.Now;
             }

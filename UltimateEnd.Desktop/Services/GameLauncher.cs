@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Enums;
@@ -27,26 +28,62 @@ namespace UltimateEnd.Desktop.Services
 
                 if (UriHelper.IsUriScheme(command.Executable)) return new EmulatorValidationResult { IsValid = true };
 
-                string executable = Path.IsPathRooted(command.Executable)
-                    ? command.Executable
-                    : Path.Combine(AppContext.BaseDirectory, command.Executable);
+                string executablePath = command.Executable;
+
+                if (command.IsRetroArch)
+                    executablePath = Regex.Replace(executablePath, @"retroarch_[^\\\/]+", "retroarch", RegexOptions.IgnoreCase);
+
+                string executable = Path.IsPathRooted(executablePath) ? executablePath : Path.Combine(AppContext.BaseDirectory, executablePath);
 
                 if (!File.Exists(executable))
                 {
-                    var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(command.Id);
+                    var fileName = Path.GetFileName(executable);
+                    var directory = Path.GetDirectoryName(executable);
 
-                    return new EmulatorValidationResult
+                    if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
                     {
-                        IsValid = false,
-                        ErrorType = EmulatorErrorType.ExecutableNotFound,
-                        PlatformId = game.PlatformId,
-                        EmulatorId = game.EmulatorId ?? command.Id,
-                        EmulatorName = command.Name,
-                        MissingPath = executable,
-                        ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
-                        CanInstall = !string.IsNullOrEmpty(downloadUrl),
-                        DownloadUrl = downloadUrl
-                    };
+                        var found = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories).FirstOrDefault();
+                        if (!string.IsNullOrEmpty(found))
+                        {
+                            executable = found;
+                        }
+                        else
+                        {
+                            var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
+                            var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+
+                            return new EmulatorValidationResult
+                            {
+                                IsValid = false,
+                                ErrorType = EmulatorErrorType.ExecutableNotFound,
+                                PlatformId = game.PlatformId,
+                                EmulatorId = game.EmulatorId ?? command.Id,
+                                EmulatorName = command.Name,
+                                MissingPath = executable,
+                                ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
+                                CanInstall = !string.IsNullOrEmpty(downloadUrl),
+                                DownloadUrl = downloadUrl
+                            };
+                        }
+                    }
+                    else
+                    {
+                        var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
+                        var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+
+                        return new EmulatorValidationResult
+                        {
+                            IsValid = false,
+                            ErrorType = EmulatorErrorType.ExecutableNotFound,
+                            PlatformId = game.PlatformId,
+                            EmulatorId = game.EmulatorId ?? command.Id,
+                            EmulatorName = command.Name,
+                            MissingPath = executable,
+                            ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
+                            CanInstall = !string.IsNullOrEmpty(downloadUrl),
+                            DownloadUrl = downloadUrl
+                        };
+                    }
                 }
 
                 if (command.IsRetroArch)
@@ -241,7 +278,31 @@ namespace UltimateEnd.Desktop.Services
         private async Task LaunchProcessAsync(Command command, string romPath)
         {
             bool isUriScheme = UriHelper.IsUriScheme(command.Executable);
-            string executable = isUriScheme ? command.Executable : (Path.IsPathRooted(command.Executable) ? command.Executable : Path.Combine(AppContext.BaseDirectory, command.Executable));
+            string executablePath = command.Executable;
+
+            if (command.IsRetroArch)
+                executablePath = Regex.Replace(executablePath, @"retroarch_[^\\\/]+", "retroarch", RegexOptions.IgnoreCase);
+
+            string executable = isUriScheme ? executablePath : (Path.IsPathRooted(executablePath) ? executablePath : Path.Combine(AppContext.BaseDirectory, executablePath));
+
+            if (!isUriScheme && !File.Exists(executable))
+            {
+                var fileName = Path.GetFileName(executable);
+                var directory = Path.GetDirectoryName(executable);
+
+                if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
+                {
+                    var found = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(found))
+                        executable = found;
+                    else
+                        throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
+                }
+                else
+                {
+                    throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
+                }
+            }
 
             if (!isUriScheme && !File.Exists(executable)) throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
 

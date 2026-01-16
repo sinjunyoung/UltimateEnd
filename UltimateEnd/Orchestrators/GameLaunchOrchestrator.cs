@@ -25,6 +25,7 @@ namespace UltimateEnd.Orchestrators
         {
             PrepareForLaunch();
             IdleDetectionEnabled?.Invoke(false);
+
             if (!OperatingSystem.IsAndroid()) ScreenSaverManager.Instance.PauseScreenSaver();
 
             try
@@ -68,8 +69,10 @@ namespace UltimateEnd.Orchestrators
             ActivateApp();
             game.RefreshPlayHistory();
             await Task.Delay(500);
+
             IdleDetectionEnabled?.Invoke(true);
             LaunchCompleted?.Invoke();
+
             if (!OperatingSystem.IsAndroid()) ScreenSaverManager.Instance.ResumeScreenSaver();
         }
 
@@ -81,9 +84,7 @@ namespace UltimateEnd.Orchestrators
             VideoContainerVisibilityRequested?.Invoke(false);
 
             var handler = EmulatorValidationHandlerFactory.Create?.Invoke();
-            var action = handler != null
-                ? await handler.HandleValidationFailedAsync(validation)
-                : EmulatorValidationAction.Cancel;
+            var action = handler != null ? await handler.HandleValidationFailedAsync(validation) : EmulatorValidationAction.Cancel;
 
             VideoContainerVisibilityRequested?.Invoke(true);
 
@@ -101,20 +102,17 @@ namespace UltimateEnd.Orchestrators
         {
             ActivateApp();
             await Task.Delay(200);
+
             VideoContainerVisibilityRequested?.Invoke(false);
 
-            await DialogService.Instance.ShowMessage(
-                "게임 실행 오류 ❌",
-                $"게임 실행 중 오류가 발생했습니다:\n{ex.Message}",
-                MessageType.Error);
+            await DialogService.Instance.ShowMessage("게임 실행 오류", $"게임 실행 중 오류가 발생했습니다:\n{ex.Message}", MessageType.Error);
 
             VideoContainerVisibilityRequested?.Invoke(true);
         }
 
         private static void DeactivateApp()
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                desktop.MainWindow?.Hide();
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) desktop.MainWindow?.Hide();
         }
 
         private void ActivateApp()
@@ -122,6 +120,7 @@ namespace UltimateEnd.Orchestrators
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 var mainWindow = desktop.MainWindow;
+
                 if (mainWindow != null)
                 {
                     mainWindow.Show();

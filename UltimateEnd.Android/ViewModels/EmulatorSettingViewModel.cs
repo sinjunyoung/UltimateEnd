@@ -349,7 +349,7 @@ namespace UltimateEnd.Android.ViewModels
 
                 if (autoSelect)
                 {
-                    var (activities, selected) = _appsService.GetPackageActivitiesWithAutoSelect(packageName);
+                    var (activities, selected) = InstalledAppsService.GetPackageActivitiesWithAutoSelect(packageName);
 
                     foreach (var activity in activities)
                         AvailableActivities.Add(activity);
@@ -359,7 +359,7 @@ namespace UltimateEnd.Android.ViewModels
                 }
                 else
                 {
-                    var activities = _appsService.GetPackageActivities(packageName);
+                    var activities = InstalledAppsService.GetPackageActivities(packageName);
 
                     foreach (var activity in activities)
                         AvailableActivities.Add(activity);
@@ -373,7 +373,7 @@ namespace UltimateEnd.Android.ViewModels
 
         private void LoadAppIconAndName(string packageName)
         {
-            var (icon, appName) = _appsService.GetAppIconAndName(packageName);
+            var (icon, appName) = InstalledAppsService.GetAppIconAndName(packageName);
             SelectedAppIcon = icon;
             SelectedAppName = appName;
         }
