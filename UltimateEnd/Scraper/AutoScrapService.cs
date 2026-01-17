@@ -104,17 +104,20 @@ namespace UltimateEnd.Scraper
                     _isPaused = false;
                 }
 
-                _pausedGames = await GetGamesNeedingMediaAsync(gameList);
-
-                if (_pausedGames.Count == 0)
-                {
-                    IsRunning = false;
-                    return;
-                }
-
                 _cts?.Dispose();
                 _cts = new CancellationTokenSource();
-                _currentTask = Task.Run(() => ProcessGameListAsync(_pausedGames, _cts.Token), _cts.Token);
+                _currentTask = Task.Run(async () =>
+                {
+                    var filteredGames = GetGamesNeedingMedia(gameList);
+
+                    if (filteredGames.Count == 0)
+                    {
+                        IsRunning = false;
+                        return;
+                    }
+
+                    await ProcessGameListAsync(filteredGames, _cts.Token);
+                }, _cts.Token);
             }
             finally
             {
@@ -169,6 +172,9 @@ namespace UltimateEnd.Scraper
                 int successCount = 0;
                 int failedCount = 0;
 
+                var changedPlatforms = new HashSet<string>();
+
+
                 for (int i = 0; i < filteredGames.Count; i++)
                 {
                     if (ct.IsCancellationRequested)
@@ -201,7 +207,8 @@ namespace UltimateEnd.Scraper
                         {
                             successCount++;
                             AllGamesManager.Instance.UpdateGame(game);
-                            AllGamesManager.Instance.SavePlatformGames(game.PlatformId);
+
+                            changedPlatforms.Add(game.PlatformId);
 
                             ScrapCompleted?.Invoke(this, new AutoScrapCompletedEventArgs
                             {
@@ -258,6 +265,11 @@ namespace UltimateEnd.Scraper
                     }
                 }
 
+                foreach (var platformId in changedPlatforms)
+                    AllGamesManager.Instance.SavePlatformGames(platformId);
+
+                await ScreenScraperCache.FlushAsync();
+
                 ReportProgress(filteredGames.Count, filteredGames.Count,
                     $"완료 (성공: {successCount}, 실패: {failedCount})", null);
             }
@@ -274,7 +286,7 @@ namespace UltimateEnd.Scraper
             }
         }
 
-        private static async Task<List<GameMetadata>> GetGamesNeedingMediaAsync(List<GameMetadata> games)
+        private static List<GameMetadata> GetGamesNeedingMedia(List<GameMetadata> games)
         {
             var condition = ScreenScraperConfig.Instance.ScrapConditionType;
 
@@ -293,7 +305,7 @@ namespace UltimateEnd.Scraper
                     var isArcade = ScreenScraperSystemClassifier.IsArcadeSystem(screenScraperSystemId);
                     var cacheKey = CacheKeyBuilder.Build(screenScraperSystemId, romPath, isArcade, null);
 
-                    if (await ScreenScraperCache.IsFailedResultAsync(cacheKey)) continue;
+                    if (ScreenScraperCache.IsFailedResult(cacheKey)) continue;
                 }
 
                 if (condition == ScrapCondition.None)

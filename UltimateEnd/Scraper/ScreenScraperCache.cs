@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
@@ -13,155 +12,206 @@ namespace UltimateEnd.Scraper
 {
     public class ScreenScraperCache
     {
-        private const string ScreenScraperCacheDirectory = "ScreenScraperCache";
+        private const string CACHE_FILE_NAME = "screenscraper_cache.json";
         private const string FAILED_MARKER = "__SCRAPER_FAILED__";
         private static readonly SemaphoreSlim _fileLock = new(1, 1);
 
         private const int SuccessCacheExpiryDays = 30;
         private const int FailedCacheExpiryDays = 90;
 
+        private static Dictionary<string, CachedEntry> _cache = [];
+        private static bool _isLoaded = false;
+        private static bool _isDirty = false;
+        private static readonly Timer? _autoSaveTimer;
+
+        private class CachedEntry
+        {
+            public GameResult Result { get; set; } = null!;
+            public DateTime CachedAt { get; set; }
+        }
+
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            WriteIndented = true,
+            WriteIndented = false,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        private static string CacheDirectory
+        private static string CacheFilePath
         {
             get
             {
                 var provider = AppBaseFolderProviderFactory.Create?.Invoke();
-
-                if (provider != null)
-                    return Path.Combine(provider.GetAppBaseFolder(), ScreenScraperCacheDirectory);
-
-                return Path.Combine(AppContext.BaseDirectory, ScreenScraperCacheDirectory);
+                var baseFolder = provider?.GetAppBaseFolder() ?? AppContext.BaseDirectory;
+                return Path.Combine(baseFolder, CACHE_FILE_NAME);
             }
         }
 
-        static ScreenScraperCache() => Directory.CreateDirectory(CacheDirectory);
+        static ScreenScraperCache()
+        {
+            _ = LoadCacheAsync();
+
+            _autoSaveTimer = new Timer(async _ => await AutoSaveAsync(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+        }
+
+        private static async Task LoadCacheAsync()
+        {
+            if (_isLoaded) return;
+
+            await _fileLock.WaitAsync();
+            try
+            {
+                if (_isLoaded) return;
+
+                if (File.Exists(CacheFilePath))
+                {
+                    var json = await File.ReadAllTextAsync(CacheFilePath);
+                    var loadedCache = JsonSerializer.Deserialize<Dictionary<string, CachedEntry>>(json);
+
+                    if (loadedCache != null)
+                    {
+                        var now = DateTime.Now;
+                        foreach (var kvp in loadedCache)
+                        {
+                            var isFailed = kvp.Value.Result?.Title == FAILED_MARKER;
+                            var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
+
+                            if ((now - kvp.Value.CachedAt).TotalDays <= expiryDays)
+                            {
+                                _cache[kvp.Key] = kvp.Value;
+                            }
+                        }
+                    }
+                }
+
+                _isLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Cache] 로드 실패: {ex.Message}");
+                _cache = [];
+                _isLoaded = true;
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
 
         public static async Task<GameResult?> GetCachedResultAsync(string cacheKey)
         {
-            try
+            await EnsureLoadedAsync();
+
+            if (_cache.TryGetValue(cacheKey, out var entry))
             {
-                var cacheFile = GetCacheFilePath(cacheKey);
+                var isFailed = entry.Result?.Title == FAILED_MARKER;
+                var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
 
-                if (!File.Exists(cacheFile))
-                    return null;
+                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays) return entry.Result;
 
-                await _fileLock.WaitAsync();
-
-                try
-                {
-                    var json = await File.ReadAllTextAsync(cacheFile);
-                    var result = JsonSerializer.Deserialize<GameResult>(json);
-
-                    var isFailed = result?.Title == FAILED_MARKER;
-                    var fileInfo = new FileInfo(cacheFile);
-                    var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
-
-                    if ((DateTime.Now - fileInfo.LastWriteTime).TotalDays > expiryDays)
-                    {
-                        try
-                        {
-                            File.Delete(cacheFile);
-                        }
-                        catch { }
-
-                        return null;
-                    }
-
-                    return result;
-                }
-                finally
-                {
-                    _fileLock.Release();
-                }
+                _cache.Remove(cacheKey);
+                _isDirty = true;
             }
-            catch
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public static async Task SaveCachedResultAsync(string cacheKey, GameResult game)
         {
-            try
+            await EnsureLoadedAsync();
+
+            _cache[cacheKey] = new CachedEntry
             {
-                var cacheFile = GetCacheFilePath(cacheKey);
-                var json = JsonSerializer.Serialize(game, JsonOptions);
+                Result = game,
+                CachedAt = DateTime.Now
+            };
 
-                await _fileLock.WaitAsync();
-
-                try
-                {
-                    await File.WriteAllTextAsync(cacheFile, json);
-                }
-                finally
-                {
-                    _fileLock.Release();
-                }
-            }
-            catch { }
+            _isDirty = true;
         }
 
         public static async Task SaveFailedResultAsync(string cacheKey)
         {
-            try
+            var failedMarker = new GameResult
             {
-                var failedMarker = new GameResult
-                {
-                    Title = FAILED_MARKER,
-                    Description = "이전에 검색 실패한 항목입니다."
-                };
+                Title = FAILED_MARKER,
+                Description = "이전에 검색 실패한 항목입니다."
+            };
 
-                await SaveCachedResultAsync(cacheKey, failedMarker);
-            }
-            catch { }
+            await SaveCachedResultAsync(cacheKey, failedMarker);
         }
 
-        public static async Task<bool> IsFailedResultAsync(string cacheKey)
+        public static bool IsFailedResult(string cacheKey)
         {
+            EnsureLoaded();
+
+            if (_cache.TryGetValue(cacheKey, out var entry))
+            {
+                var isFailed = entry.Result?.Title == FAILED_MARKER;
+                var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
+
+                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays)
+                {
+                    return isFailed;
+                }
+
+                _cache.Remove(cacheKey);
+                _isDirty = true;
+            }
+
+            return false;
+        }
+
+        public static async Task FlushAsync()
+        {
+            if (!_isDirty) return;
+
+            await _fileLock.WaitAsync();
             try
             {
-                var cached = await GetCachedResultAsync(cacheKey);
-                return cached?.Title == FAILED_MARKER;
+                var json = JsonSerializer.Serialize(_cache, JsonOptions);
+                await File.WriteAllTextAsync(CacheFilePath, json);
+                _isDirty = false;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                System.Diagnostics.Debug.WriteLine($"[Cache] 저장 실패: {ex.Message}");
             }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
+        private static async Task AutoSaveAsync()
+        {
+            if (_isDirty) await FlushAsync();
         }
 
         public static void ClearCache()
         {
             try
             {
-                if (Directory.Exists(CacheDirectory))
-                {
-                    Directory.Delete(CacheDirectory, true);
-                    Directory.CreateDirectory(CacheDirectory);
-                }
+                _cache.Clear();
+                _isDirty = true;
+
+                if (File.Exists(CacheFilePath)) File.Delete(CacheFilePath);
             }
             catch { }
         }
 
-        private static string GetCacheFilePath(string cacheKey)
+        private static async Task EnsureLoadedAsync()
         {
-            var sanitizedKey = SanitizeCacheKey(cacheKey);
-            return Path.Combine(CacheDirectory, $"{sanitizedKey}.json");
+            if (!_isLoaded) await LoadCacheAsync();
         }
 
-        private static string SanitizeCacheKey(string cacheKey)
+        private static void EnsureLoaded()
         {
-            var invalidChars = Path.GetInvalidFileNameChars();
-            var sanitized = string.Join("_", cacheKey.Split(invalidChars));
+            if (!_isLoaded) LoadCacheAsync().Wait();
+        }
 
-            if (sanitized.Length > 200)
-                sanitized = sanitized.Substring(0, 200);
-
-            return sanitized;
+        public static void Shutdown()
+        {
+            _autoSaveTimer?.Dispose();
+            FlushAsync().Wait();
         }
     }
 }

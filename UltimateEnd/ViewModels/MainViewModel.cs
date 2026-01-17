@@ -346,8 +346,10 @@ namespace UltimateEnd.ViewModels
         }
 
         public void Dispose()
-        {
+        {   
             _platformSwitchCts?.Cancel();
+
+            ScreenScraperCache.Shutdown();
 
             ScreenSaverManager.Instance.ViewChangeRequested -= OnViewChangeRequested;
             ScreenSaverManager.Instance.BackToPlatformListRequested -= OnBackToPlatformListAsync;
