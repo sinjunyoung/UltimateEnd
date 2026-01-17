@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:vm="using:UltimateEnd.Desktop.ViewModels"
              xmlns:views="using:UltimateEnd.Desktop.Views"
+			 xmlns:utils="using:UltimateEnd.Desktop.Utils"
              x:Class="UltimateEnd.Desktop.App">
 
 	<Application.DataTemplates>
@@ -136,6 +137,9 @@
 
 	<Application.Styles>
 		<FluentTheme />
+		<Style Selector="TextBox">
+			<Setter Property="(utils:TouchKeyboardBehavior.Enable)" Value="True" />
+		</Style>
 		<StyleInclude Source="avares://UltimateEnd/Styles/Common.axaml"/>
 	</Application.Styles>
 </Application>

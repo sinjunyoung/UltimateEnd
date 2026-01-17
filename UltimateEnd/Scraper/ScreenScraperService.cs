@@ -65,8 +65,8 @@ namespace UltimateEnd.Scraper
 
                     if (fileInfo.Length <= maxBytes)
                     {
-                        progressCallback?.Invoke("CRC 계산 중...");
-                        var zipInfo = await ZipFileHelper.GetZipFileInfoAsync(romPath, isArcade, ct);
+                        progressCallback?.Invoke("CRC 계산 중... 0%");
+                        var zipInfo = await ZipFileHelper.GetZipFileInfoAsync(romPath, isArcade, ct, percentage => progressCallback?.Invoke($"CRC 계산 중... {percentage}%"));
                         crc = zipInfo.Crc;
                         fileSize = zipInfo.FileSize;
                         progressCallback?.Invoke("스크린 스크래퍼 검색 중...");
