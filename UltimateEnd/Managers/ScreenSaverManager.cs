@@ -147,9 +147,9 @@ namespace UltimateEnd.Managers
             CleanupScreensaver();
 
             ViewChangeRequested?.Invoke(null);
-            await Task.Delay(300);
+            await Task.Delay(100);
 
-            var gameListViewModel = new GameListViewModel(platform)
+            var gameListViewModel = new GameListViewModel(platform, game)
             {
                 ViewMode = SettingsService.LoadSettings().GameViewMode
             };
@@ -166,37 +166,28 @@ namespace UltimateEnd.Managers
 
             LastSelectedPlatformChanged?.Invoke(platform);
 
-            var targetGame = gameListViewModel.Games.FirstOrDefault(g => g.RomFile == game.RomFile);
-            gameListViewModel.SelectedGame = targetGame;
-
-            if (targetGame != null)
-                await gameListViewModel.LaunchGameAsync(targetGame);
+            await gameListViewModel.LaunchGameAsync(game);
 
             ViewChangeRequested?.Invoke(gameListViewModel);
 
-            Dispatcher.UIThread.Post(async () =>
+            Dispatcher.UIThread.Post(() =>
             {
-                await Task.Delay(500);
+                if (GetCurrentView() == gameListViewModel && game != null)
+                    gameListViewModel.ScrollToGame(game);
+            }, DispatcherPriority.ApplicationIdle);
 
-                if (GetCurrentView() == gameListViewModel && targetGame != null)
+            if (OperatingSystem.IsWindows())
+            {
+                Dispatcher.UIThread.Post(async () =>
                 {
-                    gameListViewModel.ScrollToGame(targetGame);
-                    await Task.Delay(400);
+                    gameListViewModel.StopVideo();
+                    await Task.Delay(50);
+                    await gameListViewModel.ResumeVideoAsync();
 
-                    if (OperatingSystem.IsWindows())
-                    {
-                        gameListViewModel.StopVideo();
-                        await Task.Delay(50);
-                        await gameListViewModel.ResumeVideoAsync();
-                    }
-                }
-
-                if (OperatingSystem.IsWindows())
-                {
                     _idleDetectionService?.ResetIdleTimer();
                     _idleDetectionService?.Enable();
-                }
-            }, DispatcherPriority.Loaded);
+                }, DispatcherPriority.Background);
+            }
         }
 
         private async void RestoreFromScreensaver()

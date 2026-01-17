@@ -306,7 +306,8 @@ namespace UltimateEnd.Desktop.Services
                 }
             }
 
-            if (!isUriScheme && !File.Exists(executable)) throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
+            if (!isUriScheme && !File.Exists(executable))
+                throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
 
             string arguments = BuildArguments(command, romPath, executable);
             string workingDir = !string.IsNullOrEmpty(command.WorkingDirectory) ? command.WorkingDirectory : Path.GetDirectoryName(executable) ?? string.Empty;
@@ -326,9 +327,15 @@ namespace UltimateEnd.Desktop.Services
             {
                 _onDeactivate?.Invoke();
 
+                if (!string.IsNullOrEmpty(command.PrelaunchScript))
+                {
+                    await ExecuteScriptAsync(command.PrelaunchScript, romPath, workingDir);
+                }
+
                 process = Process.Start(psi);
 
-                if (process == null) throw new InvalidOperationException("프로세스를 시작할 수 없습니다.");
+                if (process == null)
+                    throw new InvalidOperationException("프로세스를 시작할 수 없습니다.");
 
                 await process.WaitForExitAsync();
             }
@@ -339,7 +346,50 @@ namespace UltimateEnd.Desktop.Services
             finally
             {
                 process?.Dispose();
+
+                if (!string.IsNullOrEmpty(command.PostlaunchScript))
+                {
+                    try
+                    {
+                        await ExecuteScriptAsync(command.PostlaunchScript, romPath, workingDir);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Post-launch script 실행 실패: {ex.Message}");
+                    }
+                }
+
                 _onActivate?.Invoke();
+            }
+        }
+
+        private static async Task ExecuteScriptAsync(string script, string romPath, string workingDir)
+        {
+            string processedScript = TemplateVariableManager.ReplaceTokens(script, romPath, null, null);
+
+            var (scriptExe, scriptArgs) = Utils.CommandParser.ParseCommand(processedScript);
+
+            if (!Path.IsPathRooted(scriptExe) && !UriHelper.IsUriScheme(scriptExe))
+                scriptExe = Path.Combine(AppContext.BaseDirectory, scriptExe);
+
+            var scriptPsi = new ProcessStartInfo
+            {
+                FileName = scriptExe,
+                Arguments = scriptArgs,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WorkingDirectory = workingDir,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using var scriptProcess = Process.Start(scriptPsi) ?? throw new InvalidOperationException($"스크립트 실행 실패: {processedScript}");
+            await scriptProcess.WaitForExitAsync();
+
+            if (scriptProcess.ExitCode != 0)
+            {
+                var error = await scriptProcess.StandardError.ReadToEndAsync();
+                throw new InvalidOperationException($"스크립트 실행 오류 (종료 코드: {scriptProcess.ExitCode}): {error}");
             }
         }
 

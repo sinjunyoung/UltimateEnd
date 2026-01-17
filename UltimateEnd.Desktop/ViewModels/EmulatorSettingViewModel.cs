@@ -19,6 +19,8 @@ namespace UltimateEnd.Desktop.ViewModels
 
         public ICommand BrowseExecutableCommand { get; }
         public ICommand BrowseWorkingDirCommand { get; }
+        public ICommand BrowsePrelaunchScriptCommand { get; }
+        public ICommand BrowsePostlaunchScriptCommand { get; }
         public ICommand GoBackCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand ClearSearchCommand { get; }
@@ -27,6 +29,8 @@ namespace UltimateEnd.Desktop.ViewModels
         {
             BrowseExecutableCommand = ReactiveCommand.CreateFromTask(BrowseExecutableAsync);
             BrowseWorkingDirCommand = ReactiveCommand.CreateFromTask(BrowseWorkingDirAsync);
+            BrowsePrelaunchScriptCommand = ReactiveCommand.CreateFromTask(BrowsePrelaunchScriptAsync);
+            BrowsePostlaunchScriptCommand = ReactiveCommand.CreateFromTask(BrowsePostlaunchScriptAsync);
             SaveCommand = ReactiveCommand.CreateFromTask(async () =>
             {
                 Save();
@@ -62,12 +66,14 @@ namespace UltimateEnd.Desktop.ViewModels
             return new Command
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = original.Name + " (복사본)",                
+                Name = original.Name + " (복사본)",
                 IsRetroArch = original.IsRetroArch,
                 CoreName = original.CoreName,
                 SupportedPlatforms = new(original.SupportedPlatforms),
                 LaunchCommand = original.LaunchCommand,
-                WorkingDirectory = (original as Command)?.WorkingDirectory
+                WorkingDirectory = (original as Command)?.WorkingDirectory,
+                PrelaunchScript = (original as Command)?.PrelaunchScript,
+                PostlaunchScript = (original as Command)?.PostlaunchScript
             };
         }
 
@@ -130,6 +136,58 @@ namespace UltimateEnd.Desktop.ViewModels
 
             if (folders.Count > 0 && SelectedCommand is Command cmd)
                 cmd.WorkingDirectory = folders[0].Path.LocalPath;
+        }
+
+        private async Task BrowsePrelaunchScriptAsync()
+        {
+            if (_storageProvider == null || SelectedCommand == null)
+                return;
+
+            var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Pre-launch 스크립트 선택",
+                AllowMultiple = false,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("스크립트 파일")
+                    {
+                        Patterns = ["*.bat", "*.cmd", "*.ps1", "*.exe", "*.vbs"]
+                    },
+                    new FilePickerFileType("모든 파일")
+                    {
+                        Patterns = ["*.*"]
+                    }
+                ]
+            });
+
+            if (files.Count > 0 && SelectedCommand is Command cmd)
+                cmd.PrelaunchScript = files[0].Path.LocalPath;
+        }
+
+        private async Task BrowsePostlaunchScriptAsync()
+        {
+            if (_storageProvider == null || SelectedCommand == null)
+                return;
+
+            var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Post-launch 스크립트 선택",
+                AllowMultiple = false,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("스크립트 파일")
+                    {
+                        Patterns = ["*.bat", "*.cmd", "*.ps1", "*.exe", "*.vbs"]
+                    },
+                    new FilePickerFileType("모든 파일")
+                    {
+                        Patterns = ["*.*"]
+                    }
+                ]
+            });
+
+            if (files.Count > 0 && SelectedCommand is Command cmd)
+                cmd.PostlaunchScript = files[0].Path.LocalPath;
         }
     }
 }

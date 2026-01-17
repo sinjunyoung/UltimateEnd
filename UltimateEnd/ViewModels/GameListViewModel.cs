@@ -251,7 +251,7 @@ namespace UltimateEnd.ViewModels
 
         #region Constructor
 
-        public GameListViewModel(Platform platform)
+        public GameListViewModel(Platform platform, GameMetadata? initialGame = null)
         {
             _platform = platform;
 
@@ -279,37 +279,51 @@ namespace UltimateEnd.ViewModels
             if (GameMetadataManager.IsSpecialPlatform(platform.Id))
             {
                 LoadGames(platform.Id);
-
-                if (Games.Count > 0)
-                {
-                    _collectionManager.LoadGenres();
-                    SetupPropertySubscriptions();
-                    BuildDisplayItems();
-
-                    if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
-                }
+                FinalizeGameListInitialization(initialGame);
             }
             else
             {
                 if (!AllGamesManager.Instance.IsPlatformLoaded(platform.Id))
-                    _ = InitializeGamesAsync(platform.Id);
+                    _ = InitializeGamesAsync(platform.Id, initialGame);
                 else
                 {
                     LoadGames(platform.Id);
-
-                    if (Games.Count > 0)
-                    {
-                        _collectionManager.LoadGenres();
-                        SetupPropertySubscriptions();
-                        BuildDisplayItems();
-
-                        if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
-                    }
+                    FinalizeGameListInitialization(initialGame);
                 }
             }
         }
 
-        private async Task InitializeGamesAsync(string platformId)
+        private void FinalizeGameListInitialization(GameMetadata? initialGame)
+        {
+            if (Games.Count == 0) return;
+
+            _collectionManager.LoadGenres();
+            SetupPropertySubscriptions();
+            BuildDisplayItems();
+
+            if (initialGame != null)
+                SelectInitialGame(initialGame);
+            else if (SelectedGame != null)
+                _gameSelectionSubject.OnNext(SelectedGame);
+        }
+
+        private void SelectInitialGame(GameMetadata initialGame)
+        {
+            var targetGame = Games.FirstOrDefault(g => g.RomFile == initialGame.RomFile);
+            
+            if (targetGame != null)
+            {
+                _collectionManager.SelectedGame = targetGame;
+
+                var targetItem = DisplayItems.FirstOrDefault(i => i.IsGame && i.Game == targetGame);
+
+                if (targetItem != null) SelectedItem = targetItem;
+
+                _gameSelectionSubject.OnNext(targetGame);
+            }
+        }
+
+        private async Task InitializeGamesAsync(string platformId, GameMetadata? initialGame = null)
         {
             await Dispatcher.UIThread.InvokeAsync(async () =>
             {
@@ -324,15 +338,7 @@ namespace UltimateEnd.ViewModels
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 LoadGames(platformId);
-
-                if (Games.Count > 0)
-                {
-                    _collectionManager.LoadGenres();
-                    SetupPropertySubscriptions();
-                    BuildDisplayItems();
-
-                    if (SelectedGame != null) _gameSelectionSubject.OnNext(SelectedGame);
-                }
+                FinalizeGameListInitialization(initialGame);
 
                 if (ViewMode == GameViewMode.List) _videoCoordinator.IsVideoContainerVisible = true;
             });
@@ -340,10 +346,7 @@ namespace UltimateEnd.ViewModels
             if (Games.Count > 0 && SelectedGame != null)
             {
                 await Task.Delay(50);
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    RequestExplicitScroll?.Invoke(this, SelectedGame);
-                }, DispatcherPriority.Background);
+                await Dispatcher.UIThread.InvokeAsync(() =>  RequestExplicitScroll?.Invoke(this, SelectedGame), DispatcherPriority.Background);
             }
         }
 
@@ -851,8 +854,12 @@ namespace UltimateEnd.ViewModels
                         if (!string.IsNullOrEmpty(game.SubFolder) && !addedFolders.Contains(game.SubFolder))
                         {
                             var folderGames = Games.Where(g => g.SubFolder == game.SubFolder).ToList();
-                            items.Add(FolderItem.CreateFolder(game.SubFolder, folderGames.Count));
-                            addedFolders.Add(game.SubFolder);
+
+                            if (folderGames.Count > 0)
+                            {
+                                items.Add(FolderItem.CreateFolder(game.SubFolder, folderGames.Count));
+                                addedFolders.Add(game.SubFolder);
+                            }
                         }
                         else if (string.IsNullOrEmpty(game.SubFolder))
                             items.Add(FolderItem.CreateGame(game));
@@ -864,8 +871,11 @@ namespace UltimateEnd.ViewModels
                         .Where(g => !string.IsNullOrEmpty(g.SubFolder))
                         .GroupBy(g => g.SubFolder)
                         .OrderBy(g => g.Key);
-
-                    foreach (var folder in folders) items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
+                    
+                    foreach (var folder in folders)
+                    {
+                        if (folder.Any()) items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
+                    }
 
                     foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
                     {

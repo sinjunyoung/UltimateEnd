@@ -12,6 +12,7 @@ namespace UltimateEnd.Desktop.Views
     public partial class EmulatorSettingView : UserControl
     {
         private EmulatorSettingViewModel? ViewModel => DataContext as EmulatorSettingViewModel;
+        private TextBox? _currentScriptTextBox;
 
         public EmulatorSettingView()
         {
@@ -108,20 +109,35 @@ namespace UltimateEnd.Desktop.Views
 
         private void OnInsertVariableClicked(object? sender, RoutedEventArgs e)
         {
+            _currentScriptTextBox = ArgumentsTextBox;
+            TemplateVariablePickerOverlay.Show();
+            e.Handled = true;
+        }
+
+        private void OnInsertPrelaunchVariableClicked(object? sender, RoutedEventArgs e)
+        {
+            _currentScriptTextBox = PrelaunchScriptTextBox;
+            TemplateVariablePickerOverlay.Show();
+            e.Handled = true;
+        }
+
+        private void OnInsertPostlaunchVariableClicked(object? sender, RoutedEventArgs e)
+        {
+            _currentScriptTextBox = PostlaunchScriptTextBox;
             TemplateVariablePickerOverlay.Show();
             e.Handled = true;
         }
 
         private void OnTemplateVariableSelected(object? sender, string variable)
         {
-            if (ArgumentsTextBox != null)
+            if (_currentScriptTextBox != null)
             {
-                int caretIndex = ArgumentsTextBox.CaretIndex;
-                string currentText = ArgumentsTextBox.Text ?? string.Empty;
+                int caretIndex = _currentScriptTextBox.CaretIndex;
+                string currentText = _currentScriptTextBox.Text ?? string.Empty;
                 string newText = currentText.Insert(caretIndex, variable);
-                ArgumentsTextBox.Text = newText;
-                ArgumentsTextBox.CaretIndex = caretIndex + variable.Length;
-                ArgumentsTextBox.Focus();
+                _currentScriptTextBox.Text = newText;
+                _currentScriptTextBox.CaretIndex = caretIndex + variable.Length;
+                _currentScriptTextBox.Focus();
             }
         }
     }
