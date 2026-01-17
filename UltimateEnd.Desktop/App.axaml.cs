@@ -24,12 +24,6 @@ namespace UltimateEnd.Desktop
 
         public override void OnFrameworkInitializationCompleted()
         {
-            try
-            {
-                _gamepadManager = new GamepadManager();
-            }
-            catch { }
-
             AppBaseFolderProviderFactory.Create = () => new AppBaseFolderProvider();            
             AppIconProviderFactory.Create = () => new AppIconProvider();
             AppLifetimeFactory.Create = () => new AppLifetime();
@@ -72,6 +66,14 @@ namespace UltimateEnd.Desktop
             ThemeService.Initialize();
 
             ScreenSaverBlocker.BlockWindowsScreenSaver();
+
+            InputManager.LoadKeyBindings();
+
+            try
+            {
+                _gamepadManager = new GamepadManager();
+            }
+            catch { }
 
             base.OnFrameworkInitializationCompleted();
         }

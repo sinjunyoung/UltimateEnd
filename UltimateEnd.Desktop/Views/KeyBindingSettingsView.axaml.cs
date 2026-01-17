@@ -51,15 +51,6 @@ namespace UltimateEnd.Desktop.Views
 
             InitializeButtons();
             FocusView();
-
-            GamepadManager.IsBindingActive = () => ViewModel?.IsBinding ?? false;
-        }
-
-        protected override void OnUnloaded(RoutedEventArgs e)
-        {
-            base.OnUnloaded(e);
-
-            GamepadManager.IsBindingActive = null;
         }
 
         protected override void OnPointerPressed(PointerPressedEventArgs e)

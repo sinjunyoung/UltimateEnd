@@ -10,14 +10,7 @@ namespace UltimateEnd.Utils
 {
     public static class InputManager
     {
-        private static readonly Lazy<Dictionary<GamepadButton, Key>> _keyMappings =
-            new(() =>
-            {
-                var mappings = new Dictionary<GamepadButton, Key>();
-                SetDefaultKeyBindings(mappings);
-
-                return mappings;
-            });
+        private static readonly Dictionary<GamepadButton, Key> _keyMappings = [];
 
         public static event EventHandler? KeyMappingsChanged;
 
@@ -25,25 +18,27 @@ namespace UltimateEnd.Utils
         {
             var settings = SettingsService.LoadSettings();
 
+            _keyMappings.Clear();
+
             if (settings.KeyBindings != null && settings.KeyBindings.Count > 0)
             {
-                _keyMappings.Value[GamepadButton.DPadUp] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadUp", "Up"));
-                _keyMappings.Value[GamepadButton.DPadDown] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadDown", "Down"));
-                _keyMappings.Value[GamepadButton.DPadLeft] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left"));
-                _keyMappings.Value[GamepadButton.DPadRight] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadRight", "Right"));
-                _keyMappings.Value[GamepadButton.ButtonA] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonA", "Return"));
-                _keyMappings.Value[GamepadButton.ButtonB] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape"));
-                _keyMappings.Value[GamepadButton.ButtonX] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonX", "X"));
-                _keyMappings.Value[GamepadButton.ButtonY] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonY", "F"));
-                _keyMappings.Value[GamepadButton.LeftBumper] = ParseKey(settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp"));
-                _keyMappings.Value[GamepadButton.RightBumper] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown"));
-                _keyMappings.Value[GamepadButton.LeftTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl"));
-                _keyMappings.Value[GamepadButton.RightTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt"));
-                _keyMappings.Value[GamepadButton.Start] = ParseKey(settings.KeyBindings.GetValueOrDefault("Start", "Return"));
-                _keyMappings.Value[GamepadButton.Select] = ParseKey(settings.KeyBindings.GetValueOrDefault("Select", "Escape"));
+                _keyMappings[GamepadButton.DPadUp] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadUp", "Up"));
+                _keyMappings[GamepadButton.DPadDown] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadDown", "Down"));
+                _keyMappings[GamepadButton.DPadLeft] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left"));
+                _keyMappings[GamepadButton.DPadRight] = ParseKey(settings.KeyBindings.GetValueOrDefault("DPadRight", "Right"));
+                _keyMappings[GamepadButton.ButtonA] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonA", "Return"));
+                _keyMappings[GamepadButton.ButtonB] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape"));
+                _keyMappings[GamepadButton.ButtonX] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonX", "X"));
+                _keyMappings[GamepadButton.ButtonY] = ParseKey(settings.KeyBindings.GetValueOrDefault("ButtonY", "F"));
+                _keyMappings[GamepadButton.LeftBumper] = ParseKey(settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp"));
+                _keyMappings[GamepadButton.RightBumper] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown"));
+                _keyMappings[GamepadButton.LeftTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl"));
+                _keyMappings[GamepadButton.RightTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt"));
+                _keyMappings[GamepadButton.Start] = ParseKey(settings.KeyBindings.GetValueOrDefault("Start", "Return"));
+                _keyMappings[GamepadButton.Select] = ParseKey(settings.KeyBindings.GetValueOrDefault("Select", "Escape"));
             }
             else
-                SetDefaultKeyBindings(_keyMappings.Value);
+                SetDefaultKeyBindings(_keyMappings);
 
             KeyMappingsChanged?.Invoke(null, EventArgs.Empty);
         }
@@ -75,7 +70,7 @@ namespace UltimateEnd.Utils
 
         public static bool IsButtonPressed(Key key, GamepadButton button)
         {
-            if (!_keyMappings.Value.TryGetValue(button, out var mappedKey)) return false;
+            if (!_keyMappings.TryGetValue(button, out var mappedKey)) return false;
 
             if (mappedKey != key) return false;
 
@@ -101,7 +96,7 @@ namespace UltimateEnd.Utils
 
         public static GamepadButton? GetMappedButton(Key key)
         {
-            foreach (var kvp in _keyMappings.Value)
+            foreach (var kvp in _keyMappings)
             {
                 if (kvp.Value == key) return kvp.Key;
             }
@@ -109,7 +104,7 @@ namespace UltimateEnd.Utils
             return null;
         }
 
-        public static Key GetMappedKey(GamepadButton button) => _keyMappings.Value.TryGetValue(button, out var key) ? key : Key.None;
+        public static Key GetMappedKey(GamepadButton button) => _keyMappings.TryGetValue(button, out var key) ? key : Key.None;
 
         private static bool IsTextInputFocused()
         {

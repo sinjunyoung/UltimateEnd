@@ -55,8 +55,6 @@ namespace UltimateEnd.Desktop.Services
         private AKey _cachedStart;
         private AKey _cachedSelect;
 
-        public static Func<bool>? IsBindingActive { get; set; }
-
         public GamepadManager()
         {
             InitializeDevices();
@@ -110,8 +108,6 @@ namespace UltimateEnd.Desktop.Services
         private void PollInput()
         {
             if (_gamepads.Count == 0 || _isProcessing) return;
-
-            if (IsBindingActive?.Invoke() == true) return;
 
             try
             {
