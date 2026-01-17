@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
@@ -17,7 +16,6 @@ namespace UltimateEnd.Managers
 {
     public class GameCollectionManager : IDisposable
     {
-        private const int SearchThrottleMs = 300;
         private readonly GameFilterService _filterService;
         private readonly GameMetadataManager _metadataManager;
         private readonly ObservableCollection<GameMetadata> _allGames = [];
@@ -30,10 +28,6 @@ namespace UltimateEnd.Managers
         private GameMetadata? _selectedGame;
         private bool _disposed;
         private bool _isShowingDeletedGames = false;
-
-        private readonly IDisposable? _searchTextSubscription;
-        private readonly Subject<string> _searchTextSubject = new();
-
 
         public ObservableCollection<GameMetadata> Games { get; }
 
@@ -66,14 +60,14 @@ namespace UltimateEnd.Managers
             }
         }
 
-        public string SearchText
+        public string CommittedSearchText
         {
             get => _searchText;
             set
             {
                 _searchText = value;
                 SearchTextChanged?.Invoke(value);
-                _searchTextSubject.OnNext(value);
+                FilterGames();
             }
         }
 
@@ -102,11 +96,6 @@ namespace UltimateEnd.Managers
             Games = [];
             _filterService = new GameFilterService();
             _metadataManager = new GameMetadataManager();
-
-            _searchTextSubscription = _searchTextSubject
-                .Throttle(TimeSpan.FromMilliseconds(SearchThrottleMs))
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(_ => FilterGames());
         }
 
         public void LoadGames(string platformId)
@@ -182,7 +171,7 @@ namespace UltimateEnd.Managers
             IEnumerable<GameMetadata> source;
 
             source = _allGames.Where(g => _isShowingDeletedGames ? g.Ignore : !g.Ignore);
-            var filtered = _filterService.Filter(source, SelectedGenre, SearchText);
+            var filtered = _filterService.Filter(source, SelectedGenre, _searchText);
             var currentSelection = SelectedGame;
 
             if (Games.Count == 0) UpdateFilteredGames(filtered, currentSelection);
@@ -295,9 +284,6 @@ namespace UltimateEnd.Managers
             _disposed = true;
 
             UnsubscribeAllGames();
-            _searchTextSubscription?.Dispose();
-            _searchTextSubject?.OnCompleted();
-            _searchTextSubject?.Dispose();
             _filterService.ClearCache();
 
             foreach (var game in _allGames) game.Dispose();

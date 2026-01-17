@@ -258,15 +258,23 @@ namespace UltimateEnd.Views
                 if (InputManager.IsButtonPressed(args.Key, GamepadButton.ButtonB))
                 {
                     SearchBoxBase.Text = string.Empty;
+                    ViewModel?.CommitSearch();
                     GameScrollViewerBase.Focus();
                     args.Handled = true;
                 }
                 else if (InputManager.IsAnyButtonPressed(args.Key, GamepadButton.ButtonA, GamepadButton.Start))
                 {
+                    ViewModel?.CommitSearch();
                     GameScrollViewerBase.Focus();
                     args.Handled = true;
                 }
             };
+
+            SearchBoxBase.LostFocus += (s, args) =>
+            {
+                ViewModel?.CommitSearch();
+            };
+
             SearchBoxBase.GotFocus += async (s, args) =>
             {
                 await Task.Delay(100);

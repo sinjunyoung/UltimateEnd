@@ -55,6 +55,8 @@ namespace UltimateEnd.ViewModels
         private FolderItem? _selectedItem;
         private readonly Stack<int> _scrollPositionStack = new();
 
+        private string _searchText = string.Empty;
+
         #endregion
 
         #region Properties
@@ -103,12 +105,6 @@ namespace UltimateEnd.ViewModels
         }
 
         public object? MediaPlayer => _videoCoordinator.MediaPlayer;
-
-        public string SearchText
-        {
-            get => _collectionManager.SearchText;
-            set => _collectionManager.SearchText = value;
-        }
 
         public string ErrorMessage
         {
@@ -200,6 +196,12 @@ namespace UltimateEnd.ViewModels
                          _videoCoordinator.ReleaseMedia();
                 }
             }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set => this.RaiseAndSetIfChanged(ref _searchText, value);
         }
 
         #endregion
@@ -383,11 +385,7 @@ namespace UltimateEnd.ViewModels
             };
             _collectionManager.SearchTextChanged += text => Dispatcher.UIThread.Post(() =>
             {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    this.RaisePropertyChanged(nameof(SearchText));
-                    BuildDisplayItems();
-                });
+                BuildDisplayItems();
             });
             _collectionManager.ShowingDeletedGamesChanged += value =>
             {
@@ -816,7 +814,7 @@ namespace UltimateEnd.ViewModels
 
                     if (Games.Count > 0)
                     {
-                        var lastGame = Games[Games.Count - 1];
+                        var lastGame = Games[^1];
                         SelectedGame = lastGame;
 
                         var newItem = DisplayItems.FirstOrDefault(i => i.IsGame && i.Game == lastGame);
@@ -926,5 +924,10 @@ namespace UltimateEnd.ViewModels
         }
 
         #endregion
+
+        public void CommitSearch()
+        {
+            _collectionManager.CommittedSearchText = SearchText;
+        }
     }
 }
