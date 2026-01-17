@@ -42,15 +42,15 @@ namespace UltimateEnd.Coordinators
                 _ = _videoManager.PlayWithDelayAsync(game);
         }
 
-        public void HandleSelectedGameChanged(GameMetadata? game, int delaySeconds = 5)
+        public void HandleSelectedGameChanged(GameMetadata? game)
         {
             if (game?.HasVideo == true)
-                Dispatcher.UIThread.Post(() => _ = _videoManager.PlayWithDelayAsync(game, delaySeconds), DispatcherPriority.Background);
+                Dispatcher.UIThread.Post(() => _ = _videoManager.PlayWithDelayAsync(game), DispatcherPriority.Background);
             else
                 _videoManager.Stop();
 
             if (game?.HasVideo == true)
-                Dispatcher.UIThread.Post(() => _ = _videoManager.PlayWithDelayAsync(game, delaySeconds), DispatcherPriority.Background);
+                Dispatcher.UIThread.Post(() => _ = _videoManager.PlayWithDelayAsync(game), DispatcherPriority.Background);
             else
                 _videoManager.Stop();
         }

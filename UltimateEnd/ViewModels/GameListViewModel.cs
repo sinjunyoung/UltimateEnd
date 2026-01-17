@@ -437,7 +437,7 @@ namespace UltimateEnd.ViewModels
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(game =>
             {
-                if (ViewMode == GameViewMode.List && !IsLaunchingGame) _videoCoordinator.HandleSelectedGameChanged(game, 5);
+                if (ViewMode == GameViewMode.List && !IsLaunchingGame) _videoCoordinator.HandleSelectedGameChanged(game);
             });
         }
 
@@ -730,7 +730,7 @@ namespace UltimateEnd.ViewModels
                 {
                     Dispatcher.UIThread.Post(() =>
                     {
-                        if (ViewMode == GameViewMode.List && !IsLaunchingGame) _videoCoordinator.HandleSelectedGameChanged(SelectedGame, 5);
+                        if (ViewMode == GameViewMode.List && !IsLaunchingGame) _videoCoordinator.HandleSelectedGameChanged(SelectedGame);
                     }, DispatcherPriority.Background);
                 }
             }

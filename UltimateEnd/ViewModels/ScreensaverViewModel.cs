@@ -272,7 +272,7 @@ namespace UltimateEnd.ViewModels
             _videoChangeTimer?.Start();
 
             if (CurrentGame?.HasVideo == true)
-                await VideoPlayerManager.Instance.PlayWithDelayAsync(CurrentGame, 100);
+                await VideoPlayerManager.Instance.PlayWithDelayAsync(CurrentGame);
         }
 
         public void Dispose()

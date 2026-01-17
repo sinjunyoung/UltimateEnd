@@ -267,35 +267,44 @@ namespace UltimateEnd.Views
                 ScrollToIndex(index);
         }
 
+        private double _cachedHeight = 0;
+
         protected override void ScrollToIndex(int index)
         {
-            if (ViewModel?.DisplayItems.Count == 0) return;
+            if (ViewModel?.DisplayItems.Count == 0 || index < 0) return;
 
             var firstBorder = GameItemsRepeater.GetVisualDescendants()
-                                          .OfType<Border>()
-                                          .FirstOrDefault(b => b.Name == "GameItemBorder");
+                                .OfType<Border>()
+                                .FirstOrDefault(b => b.Name == "GameItemBorder");
 
-            if (firstBorder == null) return;
+            if (firstBorder != null && firstBorder.Bounds.Height > 0)
+                _cachedHeight = firstBorder.Bounds.Height + firstBorder.Margin.Top + firstBorder.Margin.Bottom;
 
-            double itemHeight = firstBorder.Bounds.Height;
-            var margin = firstBorder.Margin;
-            var padding = firstBorder.Padding;
-            itemHeight += margin.Top + margin.Bottom + padding.Top + padding.Bottom;
+            if (_cachedHeight <= 0) return;
 
+            double itemHeight = Math.Ceiling(_cachedHeight);
             double itemTop = index * itemHeight;
             double itemBottom = itemTop + itemHeight;
 
             double viewportTop = GameScrollViewer.Offset.Y;
             double viewportBottom = viewportTop + GameScrollViewer.Viewport.Height;
 
-            if (itemTop >= viewportTop && itemBottom <= viewportBottom) return;
+            const double buffer = 1.0;
+
+            if (itemTop >= (viewportTop) && itemBottom <= (viewportBottom)) return;
+
+            double targetY = GameScrollViewer.Offset.Y;
 
             if (itemTop < viewportTop)
-                GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, itemTop);
+                targetY = itemTop - buffer;
             else if (itemBottom > viewportBottom)
+                targetY = itemBottom - GameScrollViewer.Viewport.Height + buffer;
+
+            targetY = Math.Max(0, targetY);
+            if (Math.Abs(GameScrollViewer.Offset.Y - targetY) > 0.5)
             {
-                double newOffset = itemBottom - GameScrollViewer.Viewport.Height;
-                GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, newOffset);
+                GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, targetY);
+                GameItemsRepeater.TryGetElement(index);
             }
         }
 

@@ -138,7 +138,7 @@ namespace UltimateEnd.Views
 
                 if (ViewModel?.CurrentGame?.HasVideo == true)
                 {
-                    await VideoPlayerManager.Instance.PlayWithDelayAsync(ViewModel.CurrentGame, 100);
+                    await VideoPlayerManager.Instance.PlayWithDelayAsync(ViewModel.CurrentGame);
                     await Task.Delay(500);
 
                     Dispatcher.UIThread.Post(() =>
@@ -183,7 +183,7 @@ namespace UltimateEnd.Views
             {
                 if (ViewModel?.CurrentGame?.HasVideo == true)
                 {
-                    await VideoPlayerManager.Instance.PlayWithDelayAsync(ViewModel.CurrentGame, 100);
+                    await VideoPlayerManager.Instance.PlayWithDelayAsync(ViewModel.CurrentGame);
                     await Task.Delay(500);
                     Dispatcher.UIThread.Post(() => UpdateVideoSize(), DispatcherPriority.Background);
                 }
