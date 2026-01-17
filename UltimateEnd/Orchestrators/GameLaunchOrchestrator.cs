@@ -55,7 +55,7 @@ namespace UltimateEnd.Orchestrators
                     }
                 }
 
-                DeactivateApp();
+                await DeactivateApp();
                 await launcher.LaunchGameAsync(game);
             }
             catch (Exception ex)
@@ -68,7 +68,7 @@ namespace UltimateEnd.Orchestrators
 
             ActivateApp();
             game.RefreshPlayHistory();
-            await Task.Delay(500);
+            await Task.Delay(100);
 
             IdleDetectionEnabled?.Invoke(true);
             LaunchCompleted?.Invoke();
@@ -79,7 +79,7 @@ namespace UltimateEnd.Orchestrators
         private async Task<EmulatorValidationAction> HandleValidationFailure(EmulatorValidationResult validation)
         {
             ActivateApp();
-            await Task.Delay(200);
+            await Task.Delay(100);
 
             VideoContainerVisibilityRequested?.Invoke(false);
 
@@ -95,7 +95,7 @@ namespace UltimateEnd.Orchestrators
         {
             _videoCoordinator?.CancelDelay();
             _videoCoordinator?.Stop();
-            Task.Delay(LaunchDelayMs).Wait();
+            //Task.Delay(LaunchDelayMs).Wait();
         }
 
         private async Task HandleError(Exception ex)
@@ -110,9 +110,13 @@ namespace UltimateEnd.Orchestrators
             VideoContainerVisibilityRequested?.Invoke(true);
         }
 
-        private static void DeactivateApp()
+        private async static Task DeactivateApp()
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) desktop.MainWindow?.Hide();
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow?.Hide();
+                await Task.Delay(100);
+            }
         }
 
         private void ActivateApp()

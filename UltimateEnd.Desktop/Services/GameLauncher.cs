@@ -43,9 +43,11 @@ namespace UltimateEnd.Desktop.Services
                     if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
                     {
                         var found = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories).FirstOrDefault();
+
                         if (!string.IsNullOrEmpty(found))
                         {
                             executable = found;
+                            UpdateEmulatorExecutablePath(command.Id, found);
                         }
                         else
                         {
@@ -295,8 +297,12 @@ namespace UltimateEnd.Desktop.Services
                 if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
                 {
                     var found = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories).FirstOrDefault();
+
                     if (!string.IsNullOrEmpty(found))
+                    {
                         executable = found;
+                        UpdateEmulatorExecutablePath(command.Id, found);
+                    }
                     else
                         throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
                 }
@@ -406,6 +412,22 @@ namespace UltimateEnd.Desktop.Services
             }
 
             return TemplateVariableManager.ReplaceTokens(command.Arguments, romPath, command.CoreName, corePath);
+        }
+
+        private static void UpdateEmulatorExecutablePath(string emulatorId, string executablePath)
+        {
+            var configService = CommandConfigServiceFactory.Create?.Invoke();
+
+            if (configService == null) return;
+
+            var config = configService.LoadConfig();
+
+            if (config.Emulators.TryGetValue(emulatorId, out var emulator) && emulator is Command cmd)
+            {
+                cmd.Executable = executablePath;
+                cmd.WorkingDirectory = Path.GetDirectoryName(executablePath) ?? string.Empty;
+                configService.SaveConfig(config);
+            }
         }
     }
 }

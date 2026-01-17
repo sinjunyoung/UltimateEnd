@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using UltimateEnd.Desktop.Models;
+using UltimateEnd.Desktop.Services;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.Enums;
 using UltimateEnd.Utils;
@@ -50,6 +51,15 @@ namespace UltimateEnd.Desktop.Views
 
             InitializeButtons();
             FocusView();
+
+            GamepadManager.IsBindingActive = () => ViewModel?.IsBinding ?? false;
+        }
+
+        protected override void OnUnloaded(RoutedEventArgs e)
+        {
+            base.OnUnloaded(e);
+
+            GamepadManager.IsBindingActive = null;
         }
 
         protected override void OnPointerPressed(PointerPressedEventArgs e)

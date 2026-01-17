@@ -99,6 +99,24 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
+                Id = "azahar",
+                Name = "Azahar",
+                IsRetroArch = false,
+                LaunchCommand = @"Emulators\azahar\azahar.exe {romPath}",
+                SupportedPlatforms = ["3ds"]
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "azahar plus",
+                Name = "Azahar Plus",
+                IsRetroArch = false,
+                LaunchCommand = @"Emulators\azaharplus\azahar.exe {romPath}",
+                SupportedPlatforms = ["3ds"]
+            });
+
+            config.AddEmulator(new Command
+            {
                 Id = "ppsspp",
                 Name = "PPSSPP",
                 IsRetroArch = false,
@@ -181,6 +199,7 @@ namespace UltimateEnd.Desktop.Services
             SetCommonDefaultEmulators(config);
 
             config.DefaultEmulators["nintendods"] = "desmume";
+            config.DefaultEmulators["3ds"] = "azahar plus";
             config.DefaultEmulators["nintendogamecube"] = "dolphin";
             config.DefaultEmulators["wii"] = "dolphin";
 
