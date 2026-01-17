@@ -225,7 +225,7 @@ namespace UltimateEnd.Views
 
             OnScrapStarting();
 
-            using ScreenScraperService scraperService = new();
+            ScreenScraperService scraperService = new();
 
             var batchOverlay = this.FindAncestorOfType<MainContentView>()?.BatchScrapOverlay;
 
@@ -559,6 +559,7 @@ namespace UltimateEnd.Views
             if (ViewModel?.ContextMenuTargetGame != null)
             {
                 ViewModel.RequestSave();
+                GameContextMenuOverlayBase.Hide(HiddenState.Close);
 
                 Dispatcher.UIThread.Post(() =>
                 {

@@ -14,19 +14,16 @@ using UltimateEnd.Utils;
 
 namespace UltimateEnd.Scraper
 {
-    public class ScreenScraperService : IDisposable
+    public class ScreenScraperService
     {
         #region Constants
-
         const string PreviouslyFailedSearchMessage = "이전에 검색 실패한 항목입니다";
-
         #endregion
 
-        private readonly ScreenScraperHttpClient _httpClient = new();
+        private readonly ScreenScraperHttpClient _httpClient = ScreenScraperHttpClient.Instance;
         private readonly MediaDownloader _mediaDownloader;
         private readonly GameDataFetcher _gameDataFetcher;
         private readonly string _timeoutMessage;
-        private bool _disposed = false;
 
         public ScreenScraperService()
         {
@@ -36,7 +33,6 @@ namespace UltimateEnd.Scraper
         }
 
         #region Public Methods
-
         public async Task<ScrapResult> ScrapGameAsync(GameMetadata game, ScreenScraperSystemId systemId, Action<string> progressCallback = null, CancellationToken ct = default)
         {
             var sw = Stopwatch.StartNew();
@@ -290,28 +286,9 @@ namespace UltimateEnd.Scraper
             return batchResult;
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _httpClient?.Dispose();
-                }
-                _disposed = true;
-            }
-        }
-
         #endregion
 
         #region Private Helper Methods
-
         private static Dictionary<string, ScreenScraperSystemId> BuildSystemIdCache(List<GameMetadata> games)
         {
             var systemIdCache = new Dictionary<string, ScreenScraperSystemId>();
@@ -351,7 +328,6 @@ namespace UltimateEnd.Scraper
                 _ => $"예기치 않은 오류: {ex.Message}"
             };
         }
-
         #endregion
     }
 }

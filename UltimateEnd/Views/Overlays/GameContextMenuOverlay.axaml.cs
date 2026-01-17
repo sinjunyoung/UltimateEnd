@@ -336,7 +336,7 @@ namespace UltimateEnd.Views.Overlays
 
             try
             {
-                using ScreenScraperService service = new();
+                ScreenScraperService service = new();
 
                 var screenScraperSystemId = PlatformInfoService.Instance.GetScreenScraperSystemId(SelectedGame.PlatformId);
 

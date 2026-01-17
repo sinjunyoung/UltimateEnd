@@ -133,8 +133,8 @@ namespace UltimateEnd.Services
             config.DefaultEmulators["familycomputer"] = "retroarch_fceumm";
             config.DefaultEmulators["superfamicom"] = "retroarch_snes9x";
             config.DefaultEmulators["mame"] = "retroarch_mame2003_plus";
-            config.DefaultEmulators["fbneo"] = "retroarch_fbneo";
-            config.DefaultEmulators["neogeo"] = "retroarch_fbneo";
+            config.DefaultEmulators["fbneo"] = "retroarch_fbneo_crcskip";
+            config.DefaultEmulators["neogeo"] = "retroarch_fbneo_crcskip";
             config.DefaultEmulators["playstation"] = "retroarch_pcsx_rearmed";
             config.DefaultEmulators["playstationportable"] = "ppsspp";
         }

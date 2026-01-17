@@ -157,35 +157,30 @@ namespace UltimateEnd.Scraper
         {
             try
             {
-                var filteredGames = gamesToScrap;
-
-                if (filteredGames.Count == 0)
+                if (gamesToScrap.Count == 0)
                 {
                     IsRunning = false;
                     return;
                 }
 
-                ReportProgress(0, filteredGames.Count, "자동 스크래핑 시작...", null);
+                ReportProgress(0, gamesToScrap.Count, "자동 스크래핑 시작...", null);
 
-                using var service = new ScreenScraperService();
+                var service = new ScreenScraperService();
 
                 int successCount = 0;
                 int failedCount = 0;
-
                 var changedPlatforms = new HashSet<string>();
 
-
-                for (int i = 0; i < filteredGames.Count; i++)
+                for (int i = 0; i < gamesToScrap.Count; i++)
                 {
                     if (ct.IsCancellationRequested)
                     {
                         lock (_runningLock)
-                            if (_isPaused) _pausedGames = [.. filteredGames.Skip(i)];
-
+                            if (_isPaused) _pausedGames = [.. gamesToScrap.Skip(i)];
                         break;
                     }
 
-                    var game = filteredGames[i];
+                    var game = gamesToScrap[i];
 
                     try
                     {
@@ -194,12 +189,11 @@ namespace UltimateEnd.Scraper
                         if (screenScraperSystemId == ScreenScraperSystemId.NotSupported)
                         {
                             failedCount++;
-                            ReportProgress(i + 1, filteredGames.Count, $"건너뜀: {game.DisplayTitle}", game);
-
+                            ReportProgress(i + 1, gamesToScrap.Count, $"건너뜀: {game.DisplayTitle}", game);
                             continue;
                         }
 
-                        ReportProgress(i + 1, filteredGames.Count, $"자동 스크래핑 중: {game.DisplayTitle}", game);
+                        ReportProgress(i + 1, gamesToScrap.Count, $"자동 스크래핑 중: {game.DisplayTitle}", game);
 
                         var result = await service.ScrapGameAsync(game, screenScraperSystemId, null, ct);
 
@@ -207,7 +201,6 @@ namespace UltimateEnd.Scraper
                         {
                             successCount++;
                             AllGamesManager.Instance.UpdateGame(game);
-
                             changedPlatforms.Add(game.PlatformId);
 
                             ScrapCompleted?.Invoke(this, new AutoScrapCompletedEventArgs
@@ -234,8 +227,7 @@ namespace UltimateEnd.Scraper
                     catch (OperationCanceledException)
                     {
                         lock (_runningLock)
-                            if (_isPaused) _pausedGames = [.. filteredGames.Skip(i)];
-
+                            if (_isPaused) _pausedGames = [.. gamesToScrap.Skip(i)];
                         throw;
                     }
                     catch (Exception ex)
@@ -249,7 +241,7 @@ namespace UltimateEnd.Scraper
                         });
                     }
 
-                    if (i < filteredGames.Count - 1 && !ct.IsCancellationRequested)
+                    if (i < gamesToScrap.Count - 1 && !ct.IsCancellationRequested)
                     {
                         try
                         {
@@ -258,8 +250,7 @@ namespace UltimateEnd.Scraper
                         catch (OperationCanceledException)
                         {
                             lock (_runningLock)
-                                if (_isPaused) _pausedGames = [.. filteredGames.Skip(i + 1)];
-
+                                if (_isPaused) _pausedGames = [.. gamesToScrap.Skip(i + 1)];
                             break;
                         }
                     }
@@ -270,12 +261,10 @@ namespace UltimateEnd.Scraper
 
                 await ScreenScraperCache.FlushAsync();
 
-                ReportProgress(filteredGames.Count, filteredGames.Count,
+                ReportProgress(gamesToScrap.Count, gamesToScrap.Count,
                     $"완료 (성공: {successCount}, 실패: {failedCount})", null);
             }
-            catch (OperationCanceledException)
-            {
-            }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[AutoScrap] 예외: {ex.Message}");

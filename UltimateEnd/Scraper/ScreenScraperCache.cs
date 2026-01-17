@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -24,6 +25,8 @@ namespace UltimateEnd.Scraper
         private static bool _isDirty = false;
         private static readonly Timer? _autoSaveTimer;
 
+        private static readonly TaskCompletionSource<bool> _loadCompletionSource = new();
+
         private class CachedEntry
         {
             public GameResult Result { get; set; } = null!;
@@ -42,13 +45,24 @@ namespace UltimateEnd.Scraper
             {
                 var provider = AppBaseFolderProviderFactory.Create?.Invoke();
                 var baseFolder = provider?.GetAppBaseFolder() ?? AppContext.BaseDirectory;
+
                 return Path.Combine(baseFolder, CACHE_FILE_NAME);
             }
         }
 
         static ScreenScraperCache()
         {
-            _ = LoadCacheAsync();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await LoadCacheAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[Cache] 초기 로드 실패: {ex.Message}");
+                }
+            });
 
             _autoSaveTimer = new Timer(async _ => await AutoSaveAsync(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
         }
@@ -58,6 +72,7 @@ namespace UltimateEnd.Scraper
             if (_isLoaded) return;
 
             await _fileLock.WaitAsync();
+
             try
             {
                 if (_isLoaded) return;
@@ -70,26 +85,26 @@ namespace UltimateEnd.Scraper
                     if (loadedCache != null)
                     {
                         var now = DateTime.Now;
+
                         foreach (var kvp in loadedCache)
                         {
                             var isFailed = kvp.Value.Result?.Title == FAILED_MARKER;
                             var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
 
-                            if ((now - kvp.Value.CachedAt).TotalDays <= expiryDays)
-                            {
-                                _cache[kvp.Key] = kvp.Value;
-                            }
+                            if ((now - kvp.Value.CachedAt).TotalDays <= expiryDays) _cache[kvp.Key] = kvp.Value;
                         }
                     }
                 }
 
                 _isLoaded = true;
+                _loadCompletionSource.TrySetResult(true);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Cache] 로드 실패: {ex.Message}");
+                Debug.WriteLine($"[Cache] 로드 실패: {ex.Message}");
                 _cache = [];
                 _isLoaded = true;
+                _loadCompletionSource.TrySetResult(false);
             }
             finally
             {
@@ -97,19 +112,34 @@ namespace UltimateEnd.Scraper
             }
         }
 
-        public static GameResult? GetCachedResult(string cacheKey)
+        public static async Task<GameResult?> GetCachedResultAsync(string cacheKey)
         {
-            EnsureLoaded();
+            await EnsureLoadedAsync();
 
             if (_cache.TryGetValue(cacheKey, out var entry))
             {
                 var isFailed = entry.Result?.Title == FAILED_MARKER;
                 var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
 
-                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays)
-                {
-                    return entry.Result;
-                }
+                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays) return entry.Result;
+
+                _cache.Remove(cacheKey);
+                _isDirty = true;
+            }
+
+            return null;
+        }
+
+        public static GameResult? GetCachedResult(string cacheKey)
+        {
+            if (!_isLoaded) return null;
+
+            if (_cache.TryGetValue(cacheKey, out var entry))
+            {
+                var isFailed = entry.Result?.Title == FAILED_MARKER;
+                var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
+
+                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays) return entry.Result;
 
                 _cache.Remove(cacheKey);
                 _isDirty = true;
@@ -144,17 +174,14 @@ namespace UltimateEnd.Scraper
 
         public static bool IsFailedResult(string cacheKey)
         {
-            EnsureLoaded();
+            if (!_isLoaded) return false;
 
             if (_cache.TryGetValue(cacheKey, out var entry))
             {
                 var isFailed = entry.Result?.Title == FAILED_MARKER;
                 var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
 
-                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays)
-                {
-                    return isFailed;
-                }
+                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays) return isFailed;
 
                 _cache.Remove(cacheKey);
                 _isDirty = true;
@@ -176,7 +203,7 @@ namespace UltimateEnd.Scraper
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Cache] 저장 실패: {ex.Message}");
+                Debug.WriteLine($"[Cache] 저장 실패: {ex.Message}");
             }
             finally
             {
@@ -203,18 +230,26 @@ namespace UltimateEnd.Scraper
 
         private static async Task EnsureLoadedAsync()
         {
-            if (!_isLoaded) await LoadCacheAsync();
-        }
+            if (_isLoaded) return;
 
-        private static void EnsureLoaded()
-        {
-            if (!_isLoaded) LoadCacheAsync().Wait();
+            await _loadCompletionSource.Task;
         }
 
         public static void Shutdown()
         {
             _autoSaveTimer?.Dispose();
-            FlushAsync().Wait();
+
+            if (_isDirty)
+            {
+                try
+                {
+                    FlushAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[Cache] Shutdown 저장 실패: {ex.Message}");
+                }
+            }
         }
     }
 }
