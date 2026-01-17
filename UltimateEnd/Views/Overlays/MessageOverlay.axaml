@@ -2,6 +2,14 @@
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:overlays="using:UltimateEnd.Views.Overlays"
                       x:Class="UltimateEnd.Views.Overlays.MessageOverlay">
+
+	<overlays:BaseOverlay.Styles>
+		<Style Selector="Border:focus">
+			<Setter Property="BorderBrush" Value="{DynamicResource Accent.Yellow}"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+	</overlays:BaseOverlay.Styles>
+	
 	<Grid Name="MainGrid" IsVisible="False">
 		<!-- 배경 딤 -->
 		<Border Background="#80000000"
@@ -62,6 +70,7 @@
 				<Grid Grid.Row="3">
 					<!-- 단일 확인 버튼 (일반 메시지용) -->
 					<Border x:Name="OkButton"
+							Focusable="True"
 					        Height="52"
 					        CornerRadius="10"
 					        Background="{DynamicResource Background.Secondary}"
@@ -84,6 +93,7 @@
 					<!-- 확인/취소 버튼 (Confirm용) -->
 					<Grid x:Name="ConfirmButtons" ColumnDefinitions="*,12,*">
 						<Border x:Name="CancelButton"
+								Focusable="True"
 						        Grid.Column="0"
 						        Height="52"
 						        CornerRadius="10"
@@ -105,6 +115,7 @@
 						</Border>
 
 						<Border x:Name="ConfirmButton"
+								Focusable="True"
 						        Grid.Column="2"
 						        Height="52"
 						        CornerRadius="10"
@@ -131,6 +142,7 @@
 					      ColumnDefinitions="*,8,*,8,*"
 					      IsVisible="False">
 						<Border x:Name="Button1"
+								Focusable="True"
 						        Grid.Column="0"
 						        Height="52"
 						        CornerRadius="10"
@@ -152,6 +164,7 @@
 						</Border>
 
 						<Border x:Name="Button2"
+								Focusable="True"
 						        Grid.Column="2"
 						        Height="52"
 						        CornerRadius="10"
@@ -173,6 +186,7 @@
 						</Border>
 
 						<Border x:Name="Button3"
+								Focusable="True"
 						        Grid.Column="4"
 						        Height="52"
 						        CornerRadius="10"

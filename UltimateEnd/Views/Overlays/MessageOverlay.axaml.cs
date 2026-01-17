@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using System;
@@ -16,6 +17,9 @@ namespace UltimateEnd.Views.Overlays
         private bool _isConfirmMode = false;
         private bool _isThreeButtonMode = false;
         private readonly Stack<FocusSnapshot?> _focusStack = new();
+
+        private int _currentButtonIndex = 0;
+        private List<Border> _currentButtons = [];
 
         public override bool Visible => MainGrid.IsVisible;
 
@@ -41,7 +45,12 @@ namespace UltimateEnd.Views.Overlays
             ThreeButtonPanel.IsVisible = false;
 
             _ = UpdateMessageStyle(type);
+
+            _currentButtons = [OkButton];
+            _currentButtonIndex = 0;
+
             Show();
+            OkButton.Focus();
 
             return _tcs.Task;
         }
@@ -63,7 +72,12 @@ namespace UltimateEnd.Views.Overlays
             ThreeButtonPanel.IsVisible = false;
 
             _ = UpdateConfirmStyle();
+
+            _currentButtons = [ ConfirmButton, CancelButton ];
+            _currentButtonIndex = 0;
+
             Show();
+            ConfirmButton.Focus();
 
             return _tcs.Task;
         }
@@ -89,9 +103,28 @@ namespace UltimateEnd.Views.Overlays
             Button3Text.Text = button3Text;
 
             _ = UpdateThreeButtonStyle();
+
+            _currentButtons = [ Button1, Button2, Button3 ];
+            _currentButtonIndex = 1;
+
             Show();
+            Button2.Focus();
 
             return _tcsThreeButton.Task;
+        }
+
+        protected override void MovePrevious()
+        {
+            if (_currentButtons.Count == 0) return;
+            _currentButtonIndex = (_currentButtonIndex - 1 + _currentButtons.Count) % _currentButtons.Count;
+            _currentButtons[_currentButtonIndex]?.Focus();
+        }
+
+        protected override void MoveNext()
+        {
+            if (_currentButtons.Count == 0) return;
+            _currentButtonIndex = (_currentButtonIndex + 1) % _currentButtons.Count;
+            _currentButtons[_currentButtonIndex]?.Focus();
         }
 
         private async Task UpdateMessageStyle(MessageType type)
@@ -183,10 +216,17 @@ namespace UltimateEnd.Views.Overlays
 
         protected override void SelectCurrent()
         {
-            if (_isConfirmMode)
-                OnConfirmClick(null, null);
-            else if (_isThreeButtonMode)
-                OnButton3Click(null, null);
+            if (_isThreeButtonMode)
+            {
+                if (_currentButtonIndex == 0) OnButton1Click(null, null);
+                else if (_currentButtonIndex == 1) OnButton2Click(null, null);
+                else OnButton3Click(null, null);
+            }
+            else if (_isConfirmMode)
+            {
+                if (_currentButtonIndex == 0) OnConfirmClick(null, null);
+                else OnCancelClick(null, null);
+            }
             else
                 Hide(HiddenState.Confirm);
         }
@@ -209,7 +249,7 @@ namespace UltimateEnd.Views.Overlays
         {
             await WavSounds.Cancel();
             Hide(HiddenState.Cancel);
-            e.Handled = true;
+            if (e != null) e.Handled = true;
         }
 
         private async void OnButton1Click(object? sender, PointerPressedEventArgs? e)

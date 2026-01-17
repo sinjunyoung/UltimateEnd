@@ -84,7 +84,6 @@ namespace UltimateEnd.Desktop.Services
                 if (string.IsNullOrEmpty(selectedPath)) return EmulatorValidationAction.Cancel;
 
                 UpdateEmulatorConfig(validation.EmulatorId, selectedPath);
-                await ShowSuccessDialog("경로 설정 완료", "에뮬레이터 경로가 저장되었습니다.\n게임을 다시 실행해주세요.");
 
                 return EmulatorValidationAction.Retry;
             }
@@ -125,11 +124,8 @@ namespace UltimateEnd.Desktop.Services
                         }
                     }
                 },
-                async () =>
-                {
-                    await ShowSuccessDialog("코어 설치 완료", $"{validation.CoreName} 코어가 설치되었습니다.\n게임을 다시 실행해주세요.");
-                    return EmulatorValidationAction.Retry;
-                }
+                () => Task.FromResult(EmulatorValidationAction.Retry)
+
             );
         }
 
@@ -204,7 +200,6 @@ namespace UltimateEnd.Desktop.Services
             }
 
             UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
-            await ShowSuccessDialog("설정 완료", "기존 설치를 사용하도록 설정되었습니다.\n게임을 다시 실행해주세요.");
 
             return EmulatorValidationAction.Retry;
         }
@@ -237,7 +232,6 @@ namespace UltimateEnd.Desktop.Services
             }
 
             UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
-            await ShowSuccessDialog("설치 완료", $"{validation.EmulatorName} 설치가 완료되었습니다.\n게임을 다시 실행해주세요.");
 
             return EmulatorValidationAction.Retry;
         }

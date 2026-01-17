@@ -73,6 +73,20 @@ namespace UltimateEnd.Views.Overlays
                 MoveNext();
                 return;
             }
+            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            {
+                await WavSounds.Click();
+                e.Handled = true;
+                MovePrevious();
+                return;
+            }
+            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            {
+                await WavSounds.Click();
+                e.Handled = true;
+                MoveNext();
+                return;
+            }
             if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
