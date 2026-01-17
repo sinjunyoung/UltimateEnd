@@ -75,14 +75,14 @@ namespace UltimateEnd.Scraper
 
                 var cacheKey = CacheKeyBuilder.Build(systemId, romPath, isArcade, crc);
 
-                if (await ScreenScraperCache.IsFailedResultAsync(cacheKey))
+                if (ScreenScraperCache.IsFailedResult(cacheKey))
                 {
                     result.ResultType = ScrapResultType.NotFound;
                     result.Message = PreviouslyFailedSearchMessage;
                     return result;
                 }
 
-                var cachedGame = await ScreenScraperCache.GetCachedResultAsync(cacheKey);
+                var cachedGame = ScreenScraperCache.GetCachedResult(cacheKey);
                 GameResult scrapedGame;
 
                 if (cachedGame != null)

@@ -97,16 +97,19 @@ namespace UltimateEnd.Scraper
             }
         }
 
-        public static async Task<GameResult?> GetCachedResultAsync(string cacheKey)
+        public static GameResult? GetCachedResult(string cacheKey)
         {
-            await EnsureLoadedAsync();
+            EnsureLoaded();
 
             if (_cache.TryGetValue(cacheKey, out var entry))
             {
                 var isFailed = entry.Result?.Title == FAILED_MARKER;
                 var expiryDays = isFailed ? FailedCacheExpiryDays : SuccessCacheExpiryDays;
 
-                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays) return entry.Result;
+                if ((DateTime.Now - entry.CachedAt).TotalDays <= expiryDays)
+                {
+                    return entry.Result;
+                }
 
                 _cache.Remove(cacheKey);
                 _isDirty = true;

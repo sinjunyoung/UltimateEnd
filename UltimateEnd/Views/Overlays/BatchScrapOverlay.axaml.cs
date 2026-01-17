@@ -235,8 +235,11 @@ namespace UltimateEnd.Views.Overlays
                     }
                 });
 
-                AutoScrapService.Instance.Stop();
-                var result = await service.BatchScrapGamesAsync(games, progress, _cts.Token);
+                var result = await Task.Run(async () =>
+                {
+                    AutoScrapService.Instance.Stop();
+                    return await service.BatchScrapGamesAsync(games, progress, _cts.Token);
+                });
 
                 foreach (var (romPath, error) in result.Failures)
                 {
@@ -276,15 +279,7 @@ namespace UltimateEnd.Views.Overlays
                     CurrentStatus = $"작업 완료 (성공: {result.SuccessCount}, 건너뜀: {result.SkippedCount}, 실패: {result.FailedCount})";
 
                 if (hasAnySuccess)
-                {
-                    int duration = WavSounds.Durations.Complete;
-
-                    if (hasAnySuccess)
-                    {
-                        await WavSounds.Complete();
-                        await Task.Delay(WavSounds.Durations.Complete);
-                    }
-                }
+                    _= WavSounds.Complete();
 
                 return hasAnySuccess;
             }
@@ -333,6 +328,10 @@ namespace UltimateEnd.Views.Overlays
             {
                 CurrentGameTitle = game.DisplayTitle;
                 CurrentGameDescription = game.DisplayDescription;
+
+                var oldImage = CurrentCoverImage;
+                CurrentCoverImage = null;
+                oldImage?.Dispose();
 
                 var coverPath = game.GetCoverPath();
 
@@ -493,6 +492,9 @@ namespace UltimateEnd.Views.Overlays
             StopElapsedTimer();
             _cts?.Dispose();
             _cts = null;
+
+            CurrentCoverImage?.Dispose();
+            CurrentCoverImage = null;
         }
 
         #endregion
