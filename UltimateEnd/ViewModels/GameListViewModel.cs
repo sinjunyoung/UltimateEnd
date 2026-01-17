@@ -748,13 +748,11 @@ namespace UltimateEnd.ViewModels
             try
             {
                 var focusSnapshot = FocusHelper.CreateSnapshot();
-
                 var appProvider = AppProviderFactory.Create?.Invoke();
 
                 if (appProvider == null)
                 {
-                    focusSnapshot.Restore();
-                    return;
+                    focusSnapshot.Restore(); return;
                 }
 
                 var apps = await appProvider.BrowseAppsAsync();
@@ -782,6 +780,8 @@ namespace UltimateEnd.ViewModels
                         EmulatorId = app.ActivityName
                     };
 
+                    game.SetBasePath(platformPath);
+
                     if (app.Icon != null)
                     {
                         var safeFileName = string.Join("_", app.DisplayName.Split(Path.GetInvalidFileNameChars()));
@@ -791,16 +791,38 @@ namespace UltimateEnd.ViewModels
 
                         var logoPath = Path.Combine(mediaPath, "logo.png");
                         app.Icon.Save(logoPath);
-                        game.LogoImagePath = PathHelper.ToRelativePath(logoPath);
+
+                        var friendlyPath = converter?.RealPathToFriendlyPath(logoPath) ?? logoPath;
+                        game.LogoImagePath = PathHelper.ToRelativePath(friendlyPath);
                     }
 
-                    game.SetBasePath(platformPath);
                     AllGamesManager.Instance.AddGame(game);
-                    Games.Add(game);
+
+                    await Dispatcher.UIThread.InvokeAsync(() => Games.Add(game));
+
                     _persistenceService.MarkGameAsChanged(game);
                 }
 
                 AllGamesManager.Instance.SavePlatformGames(appProvider.PlatformId);
+                
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _collectionManager.LoadGenres();
+                    
+                    BuildDisplayItems();
+
+                    if (Games.Count > 0)
+                    {
+                        var lastGame = Games[Games.Count - 1];
+                        SelectedGame = lastGame;
+
+                        var newItem = DisplayItems.FirstOrDefault(i => i.IsGame && i.Game == lastGame);
+
+                        if (newItem != null) SelectedItem = newItem;
+
+                        RequestExplicitScroll?.Invoke(this, lastGame);
+                    }
+                });
 
                 focusSnapshot.Restore();
             }

@@ -31,29 +31,57 @@ namespace UltimateEnd.Desktop.Services
                 filters
             );
 
-            if (string.IsNullOrEmpty(filePath))
-                return [];
+            if (string.IsNullOrEmpty(filePath)) return [];
 
             var displayName = Path.GetFileNameWithoutExtension(filePath);
             var icon = _iconProvider.GetAppIcon(filePath);
 
+            var systemAppsPath = AppSettings.SystemAppsPath;
+            var converter = PathConverterFactory.Create?.Invoke();
+            var realSystemAppsPath = converter?.FriendlyPathToRealPath(systemAppsPath) ?? systemAppsPath;
+            var platformPath = Path.Combine(realSystemAppsPath, PlatformId);
+
+            Directory.CreateDirectory(platformPath);
+
+            var safeFileName = string.Join("_", displayName.Split(Path.GetInvalidFileNameChars()));
+            var dummyFileName = $"{safeFileName}.desktop";
+            var dummyFilePath = Path.Combine(platformPath, dummyFileName);
+
+            File.WriteAllText(dummyFilePath, filePath);
+
+            string? savedIconPath = null;
+            if (icon != null)
+            {
+                var mediaPath = Path.Combine(platformPath, "media", safeFileName);
+                Directory.CreateDirectory(mediaPath);
+
+                var logoPath = Path.Combine(mediaPath, "logo.png");
+
+                await Task.Run(() => icon.Save(logoPath));
+
+                savedIconPath = logoPath;
+            }
+
             return
             [
                 new() {
-                    Identifier = filePath,
+                    Identifier = dummyFileName,
                     DisplayName = displayName,
                     Icon = icon,
-                    ActivityName = string.Empty
+                    ActivityName = savedIconPath
                 }
             ];
         }
 
         public void LaunchApp(GameMetadata game)
         {
-            var exePath = game.GetRomFullPath();
+            var dummyPath = game.GetRomFullPath();
 
-            if (!File.Exists(exePath))
-                throw new FileNotFoundException($"실행 파일을 찾을 수 없습니다: {exePath}");
+            if (!File.Exists(dummyPath)) throw new FileNotFoundException($"앱 정보 파일을 찾을 수 없습니다: {dummyPath}");
+
+            var exePath = File.ReadAllText(dummyPath).Trim();
+
+            if (!File.Exists(exePath)) throw new FileNotFoundException($"실행 파일을 찾을 수 없습니다: {exePath}");
 
             var startInfo = new ProcessStartInfo
             {
