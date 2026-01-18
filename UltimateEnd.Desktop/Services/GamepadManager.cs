@@ -18,6 +18,7 @@ namespace UltimateEnd.Desktop.Services
 
         private static GamepadManager? _instance;
         private static string _detectedControllerType = "Xbox";
+        private static string _detectedControllerName = "Xbox Controller";
 
         private readonly DirectInput _directInput = new();
         private readonly List<Joystick> _gamepads = [];
@@ -71,6 +72,8 @@ namespace UltimateEnd.Desktop.Services
         public static bool IsGamepadConnected() => _instance != null && _instance._gamepads.Count > 0;
 
         public static string GetDetectedControllerType() => _detectedControllerType;
+
+        public static string GetDetectedControllerName() => _detectedControllerName;
 
         public static void SetBindingMode(bool isBinding)
         {
@@ -148,25 +151,26 @@ namespace UltimateEnd.Desktop.Services
 
         private static ButtonMapping DetectControllerType(Joystick joystick)
         {
-            var name = joystick.Information.ProductName.ToLower();
+            var name = joystick.Information.ProductName;
+            var nameLower = name.ToLower();
 
-            if (name.Contains("dualsense") || name.Contains("dualshock") ||
-                name.Contains("wireless controller") || name.Contains("ps4") || name.Contains("ps5"))
+            if (nameLower.Contains("dualsense") || nameLower.Contains("dualshock") ||
+                nameLower.Contains("wireless controller") || nameLower.Contains("ps4") || nameLower.Contains("ps5"))
             {
                 _detectedControllerType = "PlayStation";
-
+                _detectedControllerName = name;
                 return ButtonMapping.PlayStationStyle();
             }
 
-            if (name.Contains("pro controller") || name.Contains("switch"))
+            if (nameLower.Contains("pro controller") || nameLower.Contains("switch"))
             {
                 _detectedControllerType = "Switch";
-
+                _detectedControllerName = name;
                 return ButtonMapping.SwitchStyle();
             }
 
             _detectedControllerType = "Xbox";
-
+            _detectedControllerName = name;
             return ButtonMapping.XboxStyle();
         }
 

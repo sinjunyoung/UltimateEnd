@@ -126,19 +126,7 @@ namespace UltimateEnd.Desktop.ViewModels
             set => this.RaiseAndSetIfChanged(ref _gamepadStart, value);
         }
 
-        public string GamepadButtonText
-        {
-            get
-            {
-                var controllerName = DetectedControllerType switch
-                {
-                    "PlayStation" => "듀얼센스",
-                    "Switch" => "스위치 프로",
-                    _ => "Xbox"
-                };
-                return $"게임패드 ({controllerName})";
-            }
-        }
+        public string GamepadButtonText => $"게임패드 ({GamepadManager.GetDetectedControllerName()})";
 
         #endregion
 

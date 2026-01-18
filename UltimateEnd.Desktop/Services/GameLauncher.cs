@@ -315,8 +315,14 @@ namespace UltimateEnd.Desktop.Services
             if (!isUriScheme && !File.Exists(executable))
                 throw new FileNotFoundException($"에뮬레이터 실행 파일을 찾을 수 없습니다: {executable}");
 
-            string arguments = BuildArguments(command, romPath, executable);
             string workingDir = !string.IsNullOrEmpty(command.WorkingDirectory) ? command.WorkingDirectory : Path.GetDirectoryName(executable) ?? string.Empty;
+
+            string? preScriptResult = null;
+
+            if (!string.IsNullOrEmpty(command.PrelaunchScript))
+                preScriptResult = await ExecuteScriptAsync(command.PrelaunchScript, romPath, workingDir);
+
+            string arguments = BuildArguments(command, romPath, executable, preScriptResult);
 
             var psi = new ProcessStartInfo
             {
@@ -332,11 +338,6 @@ namespace UltimateEnd.Desktop.Services
             try
             {
                 _onDeactivate?.Invoke();
-
-                if (!string.IsNullOrEmpty(command.PrelaunchScript))
-                {
-                    await ExecuteScriptAsync(command.PrelaunchScript, romPath, workingDir);
-                }
 
                 process = Process.Start(psi);
 
@@ -369,14 +370,22 @@ namespace UltimateEnd.Desktop.Services
             }
         }
 
-        private static async Task ExecuteScriptAsync(string script, string romPath, string workingDir)
+        private static async Task<string?> ExecuteScriptAsync(string script, string romPath, string workingDir)
         {
-            string processedScript = TemplateVariableManager.ReplaceTokens(script, romPath, null, null);
+            string processedScript = script
+        .Replace("{romPath}", romPath)
+        .Replace("{romDir}", Path.GetDirectoryName(romPath) ?? "")
+        .Replace("{romName}", Path.GetFileNameWithoutExtension(romPath));
 
             var (scriptExe, scriptArgs) = Utils.CommandParser.ParseCommand(processedScript);
 
-            if (!Path.IsPathRooted(scriptExe) && !UriHelper.IsUriScheme(scriptExe))
+            if (!Path.IsPathRooted(scriptExe) &&
+                !UriHelper.IsUriScheme(scriptExe) &&
+                !scriptExe.Equals("powershell", StringComparison.OrdinalIgnoreCase) &&
+                !scriptExe.Equals("cmd", StringComparison.OrdinalIgnoreCase))
+            {
                 scriptExe = Path.Combine(AppContext.BaseDirectory, scriptExe);
+            }
 
             var scriptPsi = new ProcessStartInfo
             {
@@ -390,6 +399,7 @@ namespace UltimateEnd.Desktop.Services
             };
 
             using var scriptProcess = Process.Start(scriptPsi) ?? throw new InvalidOperationException($"스크립트 실행 실패: {processedScript}");
+            var output = await scriptProcess.StandardOutput.ReadToEndAsync();
             await scriptProcess.WaitForExitAsync();
 
             if (scriptProcess.ExitCode != 0)
@@ -397,9 +407,11 @@ namespace UltimateEnd.Desktop.Services
                 var error = await scriptProcess.StandardError.ReadToEndAsync();
                 throw new InvalidOperationException($"스크립트 실행 오류 (종료 코드: {scriptProcess.ExitCode}): {error}");
             }
+
+            return output.Trim();
         }
 
-        private static string BuildArguments(Command command, string romPath, string executable)
+        private static string BuildArguments(Command command, string romPath, string executable, string? preScriptResult)
         {
             string? corePath = null;
 
@@ -411,7 +423,7 @@ namespace UltimateEnd.Desktop.Services
                 if (!File.Exists(corePath)) throw new FileNotFoundException($"RetroArch {command.Name} 코어를 찾을 수 없습니다.", corePath);
             }
 
-            return TemplateVariableManager.ReplaceTokens(command.Arguments, romPath, command.CoreName, corePath);
+            return TemplateVariableManager.ReplaceTokens(command.Arguments, romPath, command.CoreName, corePath, preScriptResult);
         }
 
         private static void UpdateEmulatorExecutablePath(string emulatorId, string executablePath)

@@ -38,6 +38,11 @@ namespace UltimateEnd.Desktop.Services
             {
                 Variable = "{corePath}",
                 Description = "코어 파일 경로 (RetroArch)"
+            },
+            new TemplateVariable
+            {
+                Variable = "{preScriptResult}",
+                Description = "PrelaunchScript의 출력 결과"
             }
         ];
 
@@ -55,7 +60,7 @@ namespace UltimateEnd.Desktop.Services
             return path;
         }
 
-        public static string ReplaceTokens(string template, string romPath, string? coreName = null, string? corePath = null)
+        public static string ReplaceTokens(string template, string romPath, string? coreName = null, string? corePath = null, string? preScriptResult = null)
         {
             if (string.IsNullOrEmpty(template))
                 return string.Empty;
@@ -74,6 +79,9 @@ namespace UltimateEnd.Desktop.Services
 
             if (!string.IsNullOrEmpty(corePath))
                 result = result.Replace("{corePath}", FormatPath(corePath));
+
+            if (!string.IsNullOrEmpty(preScriptResult))
+                result = result.Replace("{preScriptResult}", preScriptResult);
 
             return result;
         }

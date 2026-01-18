@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.VisualTree;
 using System;
 using UltimateEnd.Enums;
 using UltimateEnd.Managers;

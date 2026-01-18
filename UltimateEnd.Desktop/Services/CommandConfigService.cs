@@ -133,14 +133,16 @@ namespace UltimateEnd.Desktop.Services
                 SupportedPlatforms = ["ps2"]
             });
 
-            //config.AddEmulator(new Command
-            //{
-            //    Id = "rpcs3",
-            //    Name = "RPCS3",
-            //    IsRetroArch = false,
-            //    LaunchCommand = @"Emulators\rpcs3\rpcs3_launcher.bat {romPath}",
-            //    SupportedPlatforms = ["ps3"]
-            //});
+            config.AddEmulator(new Command
+            {
+                Id = "rpcs3",
+                Name = "RPCS3",
+                IsRetroArch = false,
+                LaunchCommand = @"Emulators\rpcs3\rpcs3.exe {preScriptResult} --no-gui",
+                SupportedPlatforms = ["ps3"],
+                PrelaunchScript = @"powershell -Command ""$img = Mount-DiskImage -ImagePath '{romPath}' -PassThru; '{romPath}' | Out-File (Join-Path $env:TEMP 'rpcs3_iso.txt'); $drive = ($img | Get-Volume).DriveLetter + ':'; $eboot = (Get-ChildItem -Path $drive -Recurse -Filter 'EBOOT.BIN' | Select-Object -First 1).FullName; Write-Output $eboot""",
+                PostlaunchScript = @"powershell -Command ""$f = Join-Path $env:TEMP 'rpcs3_iso.txt'; if (Test-Path $f) { Dismount-DiskImage -ImagePath (Get-Content $f); Remove-Item $f }"""
+            });
 
             config.AddEmulator(new Command
             {

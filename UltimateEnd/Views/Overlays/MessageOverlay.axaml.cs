@@ -3,7 +3,6 @@ using Avalonia.Input;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
 using UltimateEnd.Utils;
