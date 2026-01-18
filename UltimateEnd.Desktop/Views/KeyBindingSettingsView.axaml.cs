@@ -10,9 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
-using UltimateEnd.Desktop.Models;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.Enums;
+using UltimateEnd.Models;
 using UltimateEnd.Utils;
 
 namespace UltimateEnd.Desktop.Views
@@ -39,10 +39,7 @@ namespace UltimateEnd.Desktop.Views
             CreateCoordsDisplay();
         }
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+        private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
         protected override void OnLoaded(RoutedEventArgs e)
         {
@@ -56,6 +53,13 @@ namespace UltimateEnd.Desktop.Views
         {
             base.OnPointerPressed(e);
             this.Focus();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+
+            if (DataContext is KeyBindingSettingsViewModel vm) vm.UpdateGamepadConnectionStatus();
         }
 
         private void CreateCoordsDisplay()
@@ -110,31 +114,39 @@ namespace UltimateEnd.Desktop.Views
             if (e.Key == Key.F12)
             {
                 _isDesignMode = !_isDesignMode;
-                if (_coordsDisplay != null) _coordsDisplay.IsVisible = _isDesignMode;
-                e.Handled = true;
 
+                if (_coordsDisplay != null) _coordsDisplay.IsVisible = _isDesignMode;
+
+                e.Handled = true;
                 return;
             }
 
             if (_isDesignMode)
             {
                 e.Handled = true;
-
                 return;
             }
 
             if (ViewModel.IsBinding)
             {
-                if (e is GamepadKeyEventArgs gpe && gpe.IsFromGamepad && gpe.OriginalButton.HasValue)
-                {
-                    string buttonName = gpe.OriginalButton.Value.ToString();
-                    ViewModel.HandleKeyPress(ParseGamepadButtonToKey(buttonName));
-                }
-                else
-                    ViewModel.HandleKeyPress(e.Key);
-
                 e.Handled = true;
 
+                if (ViewModel.IsGamepadMode)
+                {
+                    if (e is GamepadKeyEventArgs gpe && gpe.IsFromGamepad && gpe.OriginalButton.HasValue)
+                    {
+                        int buttonIndex = GetPhysicalButtonIndex(gpe);
+
+                        if (buttonIndex >= 0) ViewModel.HandleGamepadButtonPress(buttonIndex);
+                    }
+                }
+                else
+                {
+                    if (e is GamepadKeyEventArgs gpe && gpe.IsFromGamepad && gpe.OriginalButton.HasValue)
+                        return;
+                    else
+                        ViewModel.HandleKeyPress(e.Key);
+                }
                 return;
             }
 
@@ -170,25 +182,7 @@ namespace UltimateEnd.Desktop.Views
             }
         }
 
-        private static Key ParseGamepadButtonToKey(string buttonName)
-        {
-            return buttonName switch
-            {
-                "ButtonA" => Key.A,
-                "ButtonB" => Key.B,
-                "ButtonX" => Key.X,
-                "ButtonY" => Key.Y,
-                "LeftBumper" => Key.L,
-                "RightBumper" => Key.R,
-                "DPadUp" => Key.Up,
-                "DPadDown" => Key.Down,
-                "DPadLeft" => Key.Left,
-                "DPadRight" => Key.Right,
-                "Start" => Key.S,
-                "Select" => Key.C,
-                _ => Key.None
-            };
-        }
+        private static int GetPhysicalButtonIndex(GamepadKeyEventArgs gpe) => gpe.PhysicalButtonIndex;
 
         private async void MovePrevious()
         {

@@ -117,7 +117,9 @@ namespace UltimateEnd.Models
 
         public Dictionary<string, string> KeyBindings { get; set; } = [];
 
-        public string ControllerType { get; set; } = "Auto";
+        public Dictionary<string, int> GamepadButtonMapping { get; set; } = [];
+
+        public string? LastDetectedControllerType { get; set; }
 
         private double _gameListSplitterPosition = DefaultGameListSplitterPosition;
 
@@ -205,6 +207,6 @@ namespace UltimateEnd.Models
             GameListVerticalSplitterPosition = DefaultGameListVerticalSplitterPosition;
         }
 
-        public SaveBackupMode SaveBackupMode { get; set; } = SaveBackupMode.NormalSave;      
+        public SaveBackupMode SaveBackupMode { get; set; } = SaveBackupMode.NormalSave;
     }
 }

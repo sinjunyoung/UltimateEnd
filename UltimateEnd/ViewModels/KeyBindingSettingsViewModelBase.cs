@@ -34,7 +34,7 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
-        #region Properties - 키 바인딩
+        #region Properties - Keyboard Bindings
 
         public string DPadUp
         {
@@ -122,8 +122,7 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
-        #region Properties - 바인딩 상태
-
+        #region Properties - UI State
         public bool IsBinding
         {
             get => _isBinding;
@@ -141,7 +140,9 @@ namespace UltimateEnd.ViewModels
         #region Commands
 
         public ReactiveCommand<Unit, Unit> ResetToDefaultCommand { get; }
+
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+
         public ReactiveCommand<Unit, Unit> GoBackCommand { get; }
 
         #endregion
@@ -167,7 +168,7 @@ namespace UltimateEnd.ViewModels
 
         #region Public Methods
 
-        public void StartBinding(string buttonName)
+        public virtual void StartBinding(string buttonName)
         {
             _currentBindingKey = buttonName;
             BindingButtonName = GetButtonDisplayName(buttonName);
@@ -177,11 +178,9 @@ namespace UltimateEnd.ViewModels
         public async void HandleKeyPress(Key key)
         {
             if (!IsBinding || string.IsNullOrEmpty(_currentBindingKey)) return;
-
             if (key == Key.None) return;
 
             string keyName = NormalizeKeyName(key);
-
             AssignKeyToButton(_currentBindingKey, keyName);
 
             await WavSounds.OK();
@@ -194,24 +193,15 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
-        #region Protected Virtual Methods - 플랫폼별 확장 포인트
+        #region Protected Virtual Methods
 
-        protected virtual void LoadPlatformSpecificSettings(Models.AppSettings settings)
-        {
-        }
+        protected virtual void LoadPlatformSpecificSettings(Models.AppSettings settings) { }
 
-        protected virtual void SavePlatformSpecificSettings(Models.AppSettings settings)
-        {
-        }
+        protected virtual void SavePlatformSpecificSettings(Models.AppSettings settings) { }
 
-        protected virtual void ResetPlatformSpecificDefaults()
-        {
-        }
+        protected virtual void ResetPlatformSpecificDefaults() { }
 
-        protected virtual async Task ShowSaveCompletionMessage()
-        {
-            await Task.CompletedTask;
-        }
+        protected virtual async Task ShowSaveCompletionMessage() => await Task.CompletedTask;
 
         protected virtual string GetButtonDisplayName(string buttonName)
         {
@@ -233,35 +223,6 @@ namespace UltimateEnd.ViewModels
                 "Select" => "Select",
                 _ => buttonName
             };
-        }
-
-        #endregion
-
-        #region Private Methods - 설정 관리
-
-        private void LoadSettings()
-        {
-            var settings = SettingsService.LoadSettings();
-
-            if (settings.KeyBindings != null && settings.KeyBindings.Count > 0)
-            {
-                DPadUp = settings.KeyBindings.GetValueOrDefault("DPadUp", "Up");
-                DPadDown = settings.KeyBindings.GetValueOrDefault("DPadDown", "Down");
-                DPadLeft = settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left");
-                DPadRight = settings.KeyBindings.GetValueOrDefault("DPadRight", "Right");
-                ButtonA = settings.KeyBindings.GetValueOrDefault("ButtonA", "Return");
-                ButtonB = settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape");
-                ButtonX = settings.KeyBindings.GetValueOrDefault("ButtonX", "X");
-                ButtonY = settings.KeyBindings.GetValueOrDefault("ButtonY", "F");
-                LeftBumper = settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp");
-                RightBumper = settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown");
-                LeftTrigger = settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl");
-                RightTrigger = settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt");
-                Start = settings.KeyBindings.GetValueOrDefault("Start", "Return");
-                Select = settings.KeyBindings.GetValueOrDefault("Select", "Escape");
-            }
-
-            LoadPlatformSpecificSettings(settings);
         }
 
         protected virtual async Task ResetToDefault()
@@ -290,15 +251,45 @@ namespace UltimateEnd.ViewModels
             snap.Restore();
         }
 
+        protected virtual bool HasDuplicateGamepadButtons() => false;
+
+        #endregion
+
+        #region Private Methods
+
+        private void LoadSettings()
+        {
+            var settings = SettingsService.LoadSettings();
+
+            if (settings.KeyBindings != null && settings.KeyBindings.Count > 0)
+            {
+                DPadUp = settings.KeyBindings.GetValueOrDefault("DPadUp", "Up");
+                DPadDown = settings.KeyBindings.GetValueOrDefault("DPadDown", "Down");
+                DPadLeft = settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left");
+                DPadRight = settings.KeyBindings.GetValueOrDefault("DPadRight", "Right");
+                ButtonA = settings.KeyBindings.GetValueOrDefault("ButtonA", "Return");
+                ButtonB = settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape");
+                ButtonX = settings.KeyBindings.GetValueOrDefault("ButtonX", "X");
+                ButtonY = settings.KeyBindings.GetValueOrDefault("ButtonY", "F");
+                LeftBumper = settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp");
+                RightBumper = settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown");
+                LeftTrigger = settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl");
+                RightTrigger = settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt");
+                Start = settings.KeyBindings.GetValueOrDefault("Start", "Return");
+                Select = settings.KeyBindings.GetValueOrDefault("Select", "Escape");
+            }
+
+            LoadPlatformSpecificSettings(settings);
+        }
+
         private async Task SaveAndGoBack()
         {
             var snap = FocusHelper.CreateSnapshot();
 
-            if (HasDuplicateKeys())
+            if (HasDuplicateKeys() || HasDuplicateGamepadButtons())
             {
                 await WavSounds.Cancel();
                 await DialogService.Instance.ShowWarning("중복된 키가 있습니다.\n다른 키를 할당해주세요.");
-
                 snap.Restore();
 
                 return;
@@ -337,35 +328,15 @@ namespace UltimateEnd.ViewModels
         private async Task GoBackAsync()
         {
             await WavSounds.Cancel();
-
             GoBack();
-        }
-
-        #endregion
-
-        #region Private Methods - 키 처리
-
-        private static string NormalizeKeyName(Key key)
-        {
-            return key.ToString() switch
-            {
-                "LeftCtrl" => "LeftCtrl",
-                "RightCtrl" => "RightCtrl",
-                "LeftShift" => "LeftShift",
-                "RightShift" => "RightShift",
-                "LeftAlt" => "LeftAlt",
-                "RightAlt" => "RightAlt",
-                _ => key.ToString()
-            };
         }
 
         private bool HasDuplicateKeys()
         {
-            List<string> allKeys =  [
+            List<string> allKeys = [
                 DPadUp, DPadDown, DPadLeft, DPadRight,
                 ButtonA, ButtonB, ButtonX, ButtonY,
-                LeftBumper, RightBumper,
-                LeftTrigger, RightTrigger ];
+                LeftBumper, RightBumper];
 
             var uniqueKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -396,6 +367,20 @@ namespace UltimateEnd.ViewModels
                 case "Start": Start = keyName; break;
                 case "Select": Select = keyName; break;
             }
+        }
+
+        private static string NormalizeKeyName(Key key)
+        {
+            return key.ToString() switch
+            {
+                "LeftCtrl" => "LeftCtrl",
+                "RightCtrl" => "RightCtrl",
+                "LeftShift" => "LeftShift",
+                "RightShift" => "RightShift",
+                "LeftAlt" => "LeftAlt",
+                "RightAlt" => "RightAlt",
+                _ => key.ToString()
+            };
         }
 
         #endregion

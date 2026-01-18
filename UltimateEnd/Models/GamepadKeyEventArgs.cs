@@ -10,16 +10,19 @@ namespace UltimateEnd.Models
 
         public GamepadButton? OriginalButton { get; set; }
 
+        public int PhysicalButtonIndex { get; set; } = -1;
+
         public GamepadKeyEventArgs()
         {
         }
 
-        public GamepadKeyEventArgs(RoutedEvent routedEvent, Key key, GamepadButton originalButton)
+        public GamepadKeyEventArgs(RoutedEvent routedEvent, Key key, GamepadButton originalButton, int physicalButtonIndex = -1)
         {
             RoutedEvent = routedEvent;
             Key = key;
             IsFromGamepad = true;
             OriginalButton = originalButton;
+            PhysicalButtonIndex = physicalButtonIndex;
         }
     }
 }

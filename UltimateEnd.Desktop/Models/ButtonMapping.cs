@@ -3,14 +3,23 @@
     public class ButtonMapping
     {
         public int A { get; set; }
+
         public int B { get; set; }
+
         public int X { get; set; }
+
         public int Y { get; set; }
+
         public int LB { get; set; }
+
         public int RB { get; set; }
+
         public int Select { get; set; }
+
         public int Start { get; set; }
+
         public int LeftStick { get; set; }
+
         public int RightStick { get; set; }
 
         public static ButtonMapping XboxStyle() => new()
