@@ -262,10 +262,11 @@ namespace UltimateEnd.Views
                     GameScrollViewerBase.Focus();
                     args.Handled = true;
                 }
-                else if (InputManager.IsAnyButtonPressed(args.Key, GamepadButton.ButtonA, GamepadButton.Start))
+                else if (args.Key == Key.Enter || InputManager.IsAnyButtonPressed(args.Key, GamepadButton.ButtonA, GamepadButton.Start))
                 {
                     ViewModel?.CommitSearch();
                     GameScrollViewerBase.Focus();
+
                     args.Handled = true;
                 }
             };

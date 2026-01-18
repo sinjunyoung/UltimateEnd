@@ -45,7 +45,7 @@
     <PackageReference Include="SharpDX" />
     <PackageReference Include="SharpDX.DirectInput" />
     <PackageReference Include="Squid-Box.SevenZipSharp" />
-    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="System.Drawing.Common" /><PackageReference Include="System.Management" />
     <PackageReference Include="System.Windows.Extensions" />
   </ItemGroup>
 

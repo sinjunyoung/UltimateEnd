@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using System;
 using System.Diagnostics;
+using System.Management;
 using System.Runtime.InteropServices;
 
 namespace UltimateEnd.Desktop.Utils
@@ -17,8 +18,7 @@ namespace UltimateEnd.Desktop.Utils
         [DllImport("user32.dll")]
         private static extern int PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-        public static readonly AttachedProperty<bool> EnableProperty =
-            AvaloniaProperty.RegisterAttached<TouchKeyboardBehavior, Control, bool>("Enable", defaultValue: false);
+        public static readonly AttachedProperty<bool> EnableProperty = AvaloniaProperty.RegisterAttached<TouchKeyboardBehavior, Control, bool>("Enable", defaultValue: false);
 
         static TouchKeyboardBehavior() => EnableProperty.Changed.Subscribe(OnEnableChanged);
 
@@ -27,7 +27,6 @@ namespace UltimateEnd.Desktop.Utils
             if (args.Sender is TextBox textBox)
             {
                 textBox.AddHandler(InputElement.PointerPressedEvent, (s, e) => {
-                    if (e.Pointer.Type == PointerType.Touch)
                         ShowKeyboard();
                 }, RoutingStrategies.Tunnel, true);
 
@@ -37,22 +36,55 @@ namespace UltimateEnd.Desktop.Utils
 
         public static void ShowKeyboard()
         {
+            if (IsPhysicalKeyboardAttached()) return;
+
             IntPtr hwnd = FindWindow("IPTip_Main_Window", null);
             if (hwnd != IntPtr.Zero) return;
 
             try
             {
-                Process.Start(new ProcessStartInfo("TabTip.exe") { UseShellExecute = true });
-                
+                string commonFiles = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+                string tabTipPath = System.IO.Path.Combine(commonFiles, @"microsoft shared\ink\TabTip.exe");
+
+                if (!System.IO.File.Exists(tabTipPath))
+                    tabTipPath = tabTipPath.Replace("Program Files (x86)", "Program Files");
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = tabTipPath,
+                    UseShellExecute = true
+                });
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"터치 키보드 실행 실패: {ex.Message}");
+            }
         }
 
         public static void HideKeyboard()
         {
+            if (IsPhysicalKeyboardAttached()) return;
+
             IntPtr hwnd = FindWindow("IPTip_Main_Window", null);
 
             if (hwnd != IntPtr.Zero) PostMessage(hwnd, 0x0112, (IntPtr)0xF060, IntPtr.Zero);
+        }
+
+        private static bool IsPhysicalKeyboardAttached()
+        {
+            try
+            {
+                var searcher = new ManagementObjectSearcher(
+                    "SELECT * FROM Win32_Keyboard WHERE DeviceID LIKE '%USB%'"
+                );
+
+                int count = searcher.Get().Count;
+                return count > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
