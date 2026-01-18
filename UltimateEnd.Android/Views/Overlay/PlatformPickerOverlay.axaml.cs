@@ -41,18 +41,10 @@ namespace UltimateEnd.Android.Views.Overlays
                 return;
             }
 
-            if (SearchBox.IsFocused &&
-                !InputManager.IsAnyButtonPressed(e.Key,
-                    GamepadButton.ButtonB,
-                    GamepadButton.ButtonA,
-                    GamepadButton.Start,
-                    GamepadButton.DPadUp,
-                    GamepadButton.DPadDown) &&
-                e.Key != Key.Space)
-                return;
+            if (SearchBox.IsFocused && !InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonB, GamepadButton.ButtonA, GamepadButton.Start, GamepadButton.DPadUp, GamepadButton.DPadDown) && e.Key != Key.Space) return;
 
             if (e.Key == Key.Space ||
-                InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+                InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
                 ToggleCurrent();

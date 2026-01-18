@@ -422,18 +422,15 @@ namespace UltimateEnd.Views.Overlays
                 base.OnKeyDown(e);
                 return;
             }
-
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 if (IsScrapInProgress)
                     Cancel();
                 else
                     Close();
-
                 e.Handled = true;
                 return;
             }
-
             base.OnKeyDown(e);
         }
 

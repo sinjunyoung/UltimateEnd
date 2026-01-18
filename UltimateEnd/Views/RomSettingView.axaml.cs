@@ -36,7 +36,7 @@ namespace UltimateEnd.Views
 
         protected async override void OnKeyDown(KeyEventArgs e)
         {
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB) || e.Key == Key.Back)
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB) || e.Key == Key.Back)
             {
                 if (DataContext is RomSettingViewModel vm)
                 {
@@ -47,7 +47,7 @@ namespace UltimateEnd.Views
                 return;
             }
 
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 if (DataContext is RomSettingViewModel vm)
                 {

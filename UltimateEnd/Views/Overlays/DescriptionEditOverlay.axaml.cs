@@ -18,7 +18,7 @@ namespace UltimateEnd.Views.Overlays
         {
             if (!this.Visible) return;
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 Hide(HiddenState.Cancel);

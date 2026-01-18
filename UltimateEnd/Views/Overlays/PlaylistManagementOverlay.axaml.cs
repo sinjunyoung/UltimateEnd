@@ -224,9 +224,9 @@ namespace UltimateEnd.Views.Overlays
 
         private void OnNameTextBoxKeyDown(object? sender, KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
                 e.Handled = true;
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 HideEditOverlay();

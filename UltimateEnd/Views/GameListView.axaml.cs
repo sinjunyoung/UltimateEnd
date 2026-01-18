@@ -311,25 +311,24 @@ namespace UltimateEnd.Views
         protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
         {
             if (ViewModel == null) return;
+            
             if (ViewModel.DisplayItems.Count == 0) return;
-
+            
             if (GameRenameOverlay?.Visible == true) return;
-
+            
             if (ViewModel.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return;
-
+            
             await KeySoundHelper.PlaySoundForKeyEvent(e);
-
+            
             int count = ViewModel.DisplayItems.Count;
-
             int currentIndex = ViewModel.SelectedItem != null ? ViewModel.DisplayItems.IndexOf(ViewModel.SelectedItem) : 0;
 
-            if (currentIndex < 0)
-                currentIndex = 0;
+            if (currentIndex < 0) currentIndex = 0;
 
             int newIndex = currentIndex;
             bool isCircular = false;
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 if (currentIndex > 0)
                     newIndex = currentIndex - 1;
@@ -340,7 +339,7 @@ namespace UltimateEnd.Views
                 }
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 if (currentIndex < count - 1)
                     newIndex = currentIndex + 1;
@@ -351,27 +350,29 @@ namespace UltimateEnd.Views
                 }
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 ViewModel?.GoToPreviousPlatform();
                 ResetScrollToTop();
                 e.Handled = true;
+
                 return;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 ViewModel?.GoToNextPlatform();
                 ResetScrollToTop();
                 e.Handled = true;
+
                 return;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.RightBumper))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.RightBumper))
             {
                 newIndex = Math.Min(currentIndex + _visibleItemCount, count - 1);
                 isCircular = true;
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.LeftBumper))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.LeftBumper))
             {
                 newIndex = Math.Max(currentIndex - _visibleItemCount, 0);
                 isCircular = true;
@@ -389,7 +390,6 @@ namespace UltimateEnd.Views
                 isCircular = true;
                 e.Handled = true;
             }
-
             if (newIndex >= 0 && newIndex < count && newIndex != currentIndex)
             {
                 ViewModel.SelectedItem = ViewModel.DisplayItems[newIndex];
@@ -399,7 +399,6 @@ namespace UltimateEnd.Views
                 else if (ViewModel.SelectedItem?.IsGame == true)
                     ScrollToItem(ViewModel.SelectedItem.Game!);
             }
-
             Dispatcher.UIThread.Post(() => GameScrollViewer.Focus(), DispatcherPriority.Input);
         }
 
@@ -434,7 +433,7 @@ namespace UltimateEnd.Views
 
         private void OnRenameTextBoxKeyDown(object sender, KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
 
@@ -449,7 +448,7 @@ namespace UltimateEnd.Views
                     }
                 }
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
 

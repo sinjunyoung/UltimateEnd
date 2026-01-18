@@ -70,12 +70,12 @@ namespace UltimateEnd.Desktop.Views
         {
             if (ViewModel == null) return;
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 ViewModel.GoBackCommand?.Execute(null);
             }
-            else if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
                 ViewModel.SaveCommandCommand?.Execute(null);

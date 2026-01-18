@@ -2,7 +2,7 @@
 using Avalonia.Interactivity;
 using UltimateEnd.Enums;
 
-namespace UltimateEnd.Desktop.Models
+namespace UltimateEnd.Models
 {
     public class GamepadKeyEventArgs : KeyEventArgs
     {

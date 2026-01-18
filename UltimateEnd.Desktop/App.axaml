@@ -137,9 +137,11 @@
 
 	<Application.Styles>
 		<FluentTheme />
+		<!--
 		<Style Selector="TextBox">
 			<Setter Property="(utils:TouchKeyboardBehavior.Enable)" Value="True" />
 		</Style>
+		!-->
 		<StyleInclude Source="avares://UltimateEnd/Styles/Common.axaml"/>
 	</Application.Styles>
 </Application>

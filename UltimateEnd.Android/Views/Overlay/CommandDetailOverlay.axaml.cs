@@ -37,7 +37,7 @@ namespace UltimateEnd.Android.Views.Overlays
                 return;
             }
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 if (e.Source is TextBox || e.Source is ComboBox)
                     return;

@@ -8,7 +8,8 @@ namespace UltimateEnd.Behaviors
 {
     public static class InputMappingBehavior
     {
-        public static readonly AttachedProperty<bool> EnableProperty = AvaloniaProperty.RegisterAttached<Control, bool>("Enable", typeof(InputMappingBehavior));
+        public static readonly AttachedProperty<bool> EnableProperty =
+            AvaloniaProperty.RegisterAttached<Control, bool>("Enable", typeof(InputMappingBehavior));
 
         static InputMappingBehavior()
         {
@@ -35,17 +36,17 @@ namespace UltimateEnd.Behaviors
 
             Key translatedKey = Key.None;
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
                 translatedKey = Key.Up;
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
                 translatedKey = Key.Down;
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
                 translatedKey = Key.Left;
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
                 translatedKey = Key.Right;
-            else if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
                 translatedKey = Key.Enter;
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
                 translatedKey = Key.Escape;
             else
                 return;
@@ -62,6 +63,7 @@ namespace UltimateEnd.Behaviors
                     Key = translatedKey,
                     Source = control
                 };
+
                 control.RaiseEvent(newEvent);
 
                 control.KeyDown += OnKeyDown;

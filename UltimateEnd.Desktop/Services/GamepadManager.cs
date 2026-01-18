@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Enums;
+using UltimateEnd.Services;
 using UltimateEnd.Utils;
-using AKey = Avalonia.Input.Key;
 
 namespace UltimateEnd.Desktop.Services
 {
@@ -38,60 +38,36 @@ namespace UltimateEnd.Desktop.Services
         private readonly TimeSpan InputInitialDelay = TimeSpan.FromMilliseconds(250);
         private readonly TimeSpan InputRepeatRate = TimeSpan.FromMilliseconds(50);
         private readonly TimeSpan StickDirectionChangeDelay = TimeSpan.FromMilliseconds(100);
-
         private const int StickDeadzone = 20000;
         private const int StickCenter = 32767;
 
-        private AKey _cachedDPadUp;
-        private AKey _cachedDPadDown;
-        private AKey _cachedDPadLeft;
-        private AKey _cachedDPadRight;
-        private AKey _cachedButtonA;
-        private AKey _cachedButtonB;
-        private AKey _cachedButtonX;
-        private AKey _cachedButtonY;
-        private AKey _cachedLeftBumper;
-        private AKey _cachedRightBumper;
-        private AKey _cachedStart;
-        private AKey _cachedSelect;
+        private ButtonMapping _buttonMapping;
 
         public GamepadManager()
         {
+            _buttonMapping = LoadButtonMapping();
             InitializeDevices();
-
-            UpdateKeyMappingCache();
-
-            InputManager.KeyMappingsChanged += OnKeyMappingsChanged;
 
             _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Background, (s, e) => PollInput());
             _timer.Start();
         }
 
-        private void OnKeyMappingsChanged(object? sender, EventArgs e)
+        private static ButtonMapping LoadButtonMapping()
         {
-            UpdateKeyMappingCache();
-        }
+            var settings = SettingsService.LoadSettings();
 
-        private void UpdateKeyMappingCache()
-        {
-            _cachedDPadUp = InputManager.GetMappedKey(GamepadButton.DPadUp);
-            _cachedDPadDown = InputManager.GetMappedKey(GamepadButton.DPadDown);
-            _cachedDPadLeft = InputManager.GetMappedKey(GamepadButton.DPadLeft);
-            _cachedDPadRight = InputManager.GetMappedKey(GamepadButton.DPadRight);
-            _cachedButtonA = InputManager.GetMappedKey(GamepadButton.ButtonA);
-            _cachedButtonB = InputManager.GetMappedKey(GamepadButton.ButtonB);
-            _cachedButtonX = InputManager.GetMappedKey(GamepadButton.ButtonX);
-            _cachedButtonY = InputManager.GetMappedKey(GamepadButton.ButtonY);
-            _cachedLeftBumper = InputManager.GetMappedKey(GamepadButton.LeftBumper);
-            _cachedRightBumper = InputManager.GetMappedKey(GamepadButton.RightBumper);
-            _cachedStart = InputManager.GetMappedKey(GamepadButton.Start);
-            _cachedSelect = InputManager.GetMappedKey(GamepadButton.Select);
+            return settings.ControllerType switch
+            {
+                "Xbox" => ButtonMapping.XboxStyle(),
+                "PlayStation" => ButtonMapping.PlayStationStyle(),
+                "Switch" => ButtonMapping.SwitchStyle(),
+                _ => ButtonMapping.XboxStyle()
+            };
         }
 
         private void InitializeDevices()
         {
             var devices = _directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
-
             foreach (var deviceInstance in devices)
             {
                 try
@@ -100,9 +76,40 @@ namespace UltimateEnd.Desktop.Services
                     joystick.Properties.BufferSize = 128;
                     joystick.Acquire();
                     _gamepads.Add(joystick);
+
+                    if (_gamepads.Count == 1)
+                    {
+                        var settings = SettingsService.LoadSettings();
+                        if (settings.ControllerType == "Auto")
+                        {
+                            _buttonMapping = DetectControllerType(joystick);
+                            System.Diagnostics.Debug.WriteLine($"컨트롤러 자동 감지: {joystick.Information.ProductName} -> 매핑 적용됨");
+                        }
+                    }
                 }
                 catch { }
             }
+        }
+
+        private static ButtonMapping DetectControllerType(Joystick joystick)
+        {
+            var name = joystick.Information.ProductName.ToLower();
+
+            if (name.Contains("dualsense") || name.Contains("dualshock") ||
+                name.Contains("wireless controller") || name.Contains("ps4") || name.Contains("ps5"))
+            {
+                System.Diagnostics.Debug.WriteLine("PlayStation 컨트롤러 감지");
+                return ButtonMapping.PlayStationStyle();
+            }
+
+            if (name.Contains("pro controller") || name.Contains("switch"))
+            {
+                System.Diagnostics.Debug.WriteLine("Switch 컨트롤러 감지");
+                return ButtonMapping.SwitchStyle();
+            }
+
+            System.Diagnostics.Debug.WriteLine("Xbox 컨트롤러로 감지");
+            return ButtonMapping.XboxStyle();
         }
 
         private void PollInput()
@@ -112,7 +119,6 @@ namespace UltimateEnd.Desktop.Services
             try
             {
                 _isProcessing = true;
-
                 var joystick = _gamepads[0];
                 joystick.Poll();
                 var state = joystick.GetCurrentState();
@@ -134,13 +140,42 @@ namespace UltimateEnd.Desktop.Services
             bool isDown = povValue >= 13500 && povValue <= 22500;
             bool isLeft = povValue >= 22500 && povValue <= 31500;
             bool isRight = povValue >= 4500 && povValue <= 13500;
-
             var now = DateTime.Now;
 
-            ProcessDirectionalInput(isUp, ref _prevDpadUp, _cachedDPadUp, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
-            ProcessDirectionalInput(isDown, ref _prevDpadDown, _cachedDPadDown, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
-            ProcessDirectionalInput(isLeft, ref _prevDpadLeft, _cachedDPadLeft, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
-            ProcessDirectionalInput(isRight, ref _prevDpadRight, _cachedDPadRight, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
+            ProcessDirectionalInput(isUp, ref _prevDpadUp, GamepadButton.DPadUp, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
+            ProcessDirectionalInput(isDown, ref _prevDpadDown, GamepadButton.DPadDown, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
+            ProcessDirectionalInput(isLeft, ref _prevDpadLeft, GamepadButton.DPadLeft, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
+            ProcessDirectionalInput(isRight, ref _prevDpadRight, GamepadButton.DPadRight, ref _dpadPressStartTime, ref _lastDpadMoveTime, now);
+        }
+
+        private void ProcessDirectionalInput(bool isActive, ref bool prevState, GamepadButton button,
+            ref DateTime pressStartTime, ref DateTime lastMoveTime, DateTime now)
+        {
+            if (isActive)
+            {
+                if (!prevState)
+                {
+                    SendKeyDown(button);
+                    lastMoveTime = now;
+                    pressStartTime = now;
+                }
+                else
+                {
+                    TimeSpan timeSincePress = now - pressStartTime;
+                    TimeSpan timeSinceLastMove = now - lastMoveTime;
+                    if (timeSincePress > InputInitialDelay && timeSinceLastMove > InputRepeatRate)
+                    {
+                        SendKeyDown(button);
+                        lastMoveTime = now;
+                    }
+                }
+            }
+            else if (prevState)
+            {
+                SendKeyUp(button);
+                pressStartTime = DateTime.MinValue;
+            }
+            prevState = isActive;
         }
 
         private void HandleLeftStick(int x, int y)
@@ -149,18 +184,14 @@ namespace UltimateEnd.Desktop.Services
             int deltaY = y - StickCenter;
             int absDeltaX = Math.Abs(deltaX);
             int absDeltaY = Math.Abs(deltaY);
-
             bool isHorizontalDominant = absDeltaX > absDeltaY;
-
             bool isLeft = deltaX < -StickDeadzone;
             bool isRight = deltaX > StickDeadzone;
             bool isUp = deltaY < -StickDeadzone;
             bool isDown = deltaY > StickDeadzone;
-
             var now = DateTime.Now;
 
             bool tryingNewDirection = false;
-
             if (isHorizontalDominant && (isLeft || isRight))
                 tryingNewDirection = (isLeft && !_prevStickLeft) || (isRight && !_prevStickRight);
             else if (!isHorizontalDominant && (isUp || isDown))
@@ -169,72 +200,39 @@ namespace UltimateEnd.Desktop.Services
             if (tryingNewDirection)
             {
                 if (now - _lastStickDirectionChange < StickDirectionChangeDelay) return;
-
                 _lastStickDirectionChange = now;
             }
 
             if (isHorizontalDominant && (isLeft || isRight))
             {
-                ProcessStickDirection(isLeft, ref _prevStickLeft, _cachedDPadLeft, now);
-                ProcessStickDirection(isRight, ref _prevStickRight, _cachedDPadRight, now);
-                ProcessStickDirection(false, ref _prevStickUp, _cachedDPadUp, now);
-                ProcessStickDirection(false, ref _prevStickDown, _cachedDPadDown, now);
+                ProcessStickDirection(isLeft, ref _prevStickLeft, GamepadButton.DPadLeft, now);
+                ProcessStickDirection(isRight, ref _prevStickRight, GamepadButton.DPadRight, now);
+                ProcessStickDirection(false, ref _prevStickUp, GamepadButton.DPadUp, now);
+                ProcessStickDirection(false, ref _prevStickDown, GamepadButton.DPadDown, now);
             }
             else if (!isHorizontalDominant && (isUp || isDown))
             {
-                ProcessStickDirection(isUp, ref _prevStickUp, _cachedDPadUp, now);
-                ProcessStickDirection(isDown, ref _prevStickDown, _cachedDPadDown, now);
-                ProcessStickDirection(false, ref _prevStickLeft, _cachedDPadLeft, now);
-                ProcessStickDirection(false, ref _prevStickRight, _cachedDPadRight, now);
+                ProcessStickDirection(isUp, ref _prevStickUp, GamepadButton.DPadUp, now);
+                ProcessStickDirection(isDown, ref _prevStickDown, GamepadButton.DPadDown, now);
+                ProcessStickDirection(false, ref _prevStickLeft, GamepadButton.DPadLeft, now);
+                ProcessStickDirection(false, ref _prevStickRight, GamepadButton.DPadRight, now);
             }
             else
             {
-                ProcessStickDirection(false, ref _prevStickUp, _cachedDPadUp, now);
-                ProcessStickDirection(false, ref _prevStickDown, _cachedDPadDown, now);
-                ProcessStickDirection(false, ref _prevStickLeft, _cachedDPadLeft, now);
-                ProcessStickDirection(false, ref _prevStickRight, _cachedDPadRight, now);
+                ProcessStickDirection(false, ref _prevStickUp, GamepadButton.DPadUp, now);
+                ProcessStickDirection(false, ref _prevStickDown, GamepadButton.DPadDown, now);
+                ProcessStickDirection(false, ref _prevStickLeft, GamepadButton.DPadLeft, now);
+                ProcessStickDirection(false, ref _prevStickRight, GamepadButton.DPadRight, now);
             }
         }
 
-        private void ProcessDirectionalInput(bool isActive, ref bool prevState, AKey key,
-            ref DateTime pressStartTime, ref DateTime lastMoveTime, DateTime now)
+        private void ProcessStickDirection(bool isActive, ref bool prevState, GamepadButton button, DateTime now)
         {
             if (isActive)
             {
                 if (!prevState)
                 {
-                    SendKeyDown(key);
-                    lastMoveTime = now;
-                    pressStartTime = now;
-                }
-                else
-                {
-                    TimeSpan timeSincePress = now - pressStartTime;
-                    TimeSpan timeSinceLastMove = now - lastMoveTime;
-
-                    if (timeSincePress > InputInitialDelay && timeSinceLastMove > InputRepeatRate)
-                    {
-                        SendKeyDown(key);
-                        lastMoveTime = now;
-                    }
-                }
-            }
-            else if (prevState)
-            {
-                SendKeyUp(key);
-                pressStartTime = DateTime.MinValue;
-            }
-
-            prevState = isActive;
-        }
-
-        private void ProcessStickDirection(bool isActive, ref bool prevState, AKey key, DateTime now)
-        {
-            if (isActive)
-            {
-                if (!prevState)
-                {
-                    SendKeyDown(key);
+                    SendKeyDown(button);
                     _lastStickMoveTime = now;
                     _stickPressStartTime = now;
                 }
@@ -242,88 +240,90 @@ namespace UltimateEnd.Desktop.Services
                 {
                     TimeSpan timeSincePress = now - _stickPressStartTime;
                     TimeSpan timeSinceLastMove = now - _lastStickMoveTime;
-
                     if (timeSincePress > InputInitialDelay && timeSinceLastMove > InputRepeatRate)
                     {
-                        SendKeyDown(key);
+                        SendKeyDown(button);
                         _lastStickMoveTime = now;
                     }
                 }
             }
             else if (prevState)
             {
-                SendKeyUp(key);
+                SendKeyUp(button);
                 _stickPressStartTime = DateTime.MinValue;
             }
-
             prevState = isActive;
         }
 
         private void HandleButtons(bool[] currentButtons)
         {
-            MapButton(0, GamepadButton.ButtonA, _cachedButtonA, currentButtons);
-            MapButton(1, GamepadButton.ButtonB, _cachedButtonB, currentButtons);
-            MapButton(2, GamepadButton.ButtonX, _cachedButtonX, currentButtons);
-            MapButton(3, GamepadButton.ButtonY, _cachedButtonY, currentButtons);
-            MapButton(4, GamepadButton.LeftBumper, _cachedLeftBumper, currentButtons);
-            MapButton(5, GamepadButton.RightBumper, _cachedRightBumper, currentButtons);
-            MapButton(6, GamepadButton.Select, _cachedSelect, currentButtons);
-            MapButton(7, GamepadButton.Start, _cachedStart, currentButtons);
+            MapButton(_buttonMapping.A, GamepadButton.ButtonA, currentButtons);
+            MapButton(_buttonMapping.B, GamepadButton.ButtonB, currentButtons);
+            MapButton(_buttonMapping.X, GamepadButton.ButtonX, currentButtons);
+            MapButton(_buttonMapping.Y, GamepadButton.ButtonY, currentButtons);
+            MapButton(_buttonMapping.LB, GamepadButton.LeftBumper, currentButtons);
+            MapButton(_buttonMapping.RB, GamepadButton.RightBumper, currentButtons);
+            MapButton(_buttonMapping.Select, GamepadButton.Select, currentButtons);
+            MapButton(_buttonMapping.Start, GamepadButton.Start, currentButtons);
 
             Array.Copy(currentButtons, _prevButtons, Math.Min(currentButtons.Length, _prevButtons.Length));
         }
 
-        private void MapButton(int index, GamepadButton button, AKey key, bool[] currentButtons)
+        private void MapButton(int index, GamepadButton button, bool[] currentButtons)
         {
             if (index >= currentButtons.Length) return;
-
             bool wasDown = _prevButtons[index];
             bool isDown = currentButtons[index];
 
             if (!wasDown && isDown)
             {
-                SendButtonEvent(button, key);
-                SendKeyUp(key);
+                SendButtonEvent(button);
+                SendKeyUp(button);
             }
         }
 
-        private static void SendKeyDown(AKey key)
+        private static void SendKeyDown(GamepadButton button)
         {
             var target = GetEventTarget();
-
             if (target == null) return;
+
+            var key = InputManager.GetMappedKey(button);
 
             var args = new GamepadKeyEventArgs
             {
                 RoutedEvent = InputElement.KeyDownEvent,
                 Key = key,
                 Source = target,
-                IsFromGamepad = true
+                IsFromGamepad = true,
+                OriginalButton = button
             };
             target.RaiseEvent(args);
         }
 
-        private static void SendKeyUp(AKey key)
+        private static void SendKeyUp(GamepadButton button)
         {
             var target = GetEventTarget();
-
             if (target == null) return;
+
+            var key = InputManager.GetMappedKey(button);
 
             var args = new GamepadKeyEventArgs
             {
                 RoutedEvent = InputElement.KeyUpEvent,
                 Key = key,
                 Source = target,
-                IsFromGamepad = true
+                IsFromGamepad = true,
+                OriginalButton = button
             };
             target.RaiseEvent(args);
         }
 
-        private static void SendButtonEvent(GamepadButton button, AKey key)
+        private static void SendButtonEvent(GamepadButton button)
         {
             var target = GetEventTarget();
-
             if (target == null) return;
+
+            var key = InputManager.GetMappedKey(button);
 
             var args = new GamepadKeyEventArgs
             {
@@ -339,23 +339,17 @@ namespace UltimateEnd.Desktop.Services
         private static InputElement? GetEventTarget()
         {
             var app = Avalonia.Application.Current;
-
             if (app?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 var focused = desktop.MainWindow?.FocusManager?.GetFocusedElement() as InputElement;
-
                 return focused ?? desktop.MainWindow as InputElement;
             }
-
             return null;
         }
 
         public void Dispose()
         {
-            InputManager.KeyMappingsChanged -= OnKeyMappingsChanged;
-
             _timer?.Stop();
-
             foreach (var joystick in _gamepads)
             {
                 try

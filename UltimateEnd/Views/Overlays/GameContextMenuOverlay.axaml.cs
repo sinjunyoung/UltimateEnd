@@ -289,9 +289,7 @@ namespace UltimateEnd.Views.Overlays
                 return;
             }
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB) &&
-                _currentOperationCts != null &&
-                !_currentOperationCts.IsCancellationRequested)
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB) && _currentOperationCts != null && !_currentOperationCts.IsCancellationRequested)
             {
                 _currentOperationCts.Cancel();
                 e.Handled = true;

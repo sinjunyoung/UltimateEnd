@@ -1,22 +1,25 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using System;
 using System.Diagnostics;
-using System.Management;
 using System.Runtime.InteropServices;
 
 namespace UltimateEnd.Desktop.Utils
 {
     public partial class TouchKeyboardBehavior
     {
-
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
 
         [DllImport("user32.dll")]
         private static extern int PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        private const int SW_SHOW = 5;
 
         public static readonly AttachedProperty<bool> EnableProperty = AvaloniaProperty.RegisterAttached<TouchKeyboardBehavior, Control, bool>("Enable", defaultValue: false);
 
@@ -26,65 +29,43 @@ namespace UltimateEnd.Desktop.Utils
         {
             if (args.Sender is TextBox textBox)
             {
-                textBox.AddHandler(InputElement.PointerPressedEvent, (s, e) => {
-                        ShowKeyboard();
-                }, RoutingStrategies.Tunnel, true);
-
+                textBox.GotFocus += (s, e) => ShowKeyboard();
                 textBox.LostFocus += (s, e) => HideKeyboard();
             }
         }
 
         public static void ShowKeyboard()
         {
-            if (IsPhysicalKeyboardAttached()) return;
-
             IntPtr hwnd = FindWindow("IPTip_Main_Window", null);
-            if (hwnd != IntPtr.Zero) return;
 
-            try
+            if (hwnd != IntPtr.Zero)
             {
-                string commonFiles = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
-                string tabTipPath = System.IO.Path.Combine(commonFiles, @"microsoft shared\ink\TabTip.exe");
-
-                if (!System.IO.File.Exists(tabTipPath))
-                    tabTipPath = tabTipPath.Replace("Program Files (x86)", "Program Files");
-
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = tabTipPath,
-                    UseShellExecute = true
-                });
+                ShowWindow(hwnd, SW_SHOW);
+                return;
             }
-            catch (Exception ex)
+
+            string tabTipPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles), @"microsoft shared\ink\TabTip.exe");
+
+            if (!System.IO.File.Exists(tabTipPath))
+                tabTipPath = @"C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe";
+
+            if (!System.IO.File.Exists(tabTipPath))
+                tabTipPath = @"C:\Program Files (x86)\Common Files\microsoft shared\ink\TabTip.exe";
+
+            Process.Start(new ProcessStartInfo
             {
-                Debug.WriteLine($"터치 키보드 실행 실패: {ex.Message}");
-            }
+                FileName = tabTipPath,
+                WorkingDirectory = System.IO.Path.GetDirectoryName(tabTipPath),
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Normal
+            });
         }
 
         public static void HideKeyboard()
         {
-            if (IsPhysicalKeyboardAttached()) return;
-
             IntPtr hwnd = FindWindow("IPTip_Main_Window", null);
 
-            if (hwnd != IntPtr.Zero) PostMessage(hwnd, 0x0112, (IntPtr)0xF060, IntPtr.Zero);
-        }
-
-        private static bool IsPhysicalKeyboardAttached()
-        {
-            try
-            {
-                var searcher = new ManagementObjectSearcher(
-                    "SELECT * FROM Win32_Keyboard WHERE DeviceID LIKE '%USB%'"
-                );
-
-                int count = searcher.Get().Count;
-                return count > 0;
-            }
-            catch
-            {
-                return false;
-            }
+            if (hwnd != IntPtr.Zero) _ = PostMessage(hwnd, 0x0112, 0xF060, IntPtr.Zero);
         }
     }
 }

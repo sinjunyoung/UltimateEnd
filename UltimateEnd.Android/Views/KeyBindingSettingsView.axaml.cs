@@ -43,12 +43,12 @@ namespace UltimateEnd.Android.Views
                 return;
             }
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 ViewModel.GoBackCommand?.Execute(Unit.Default);
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 e.Handled = true;
                 await WavSounds.Click();
@@ -56,7 +56,7 @@ namespace UltimateEnd.Android.Views
                 if (listBox != null && listBox.SelectedIndex > 0)
                     listBox.SelectedIndex--;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 e.Handled = true;
                 await WavSounds.Click();
@@ -64,7 +64,7 @@ namespace UltimateEnd.Android.Views
                 if (listBox != null && listBox.SelectedIndex < ViewModel.ButtonItems.Count - 1)
                     listBox.SelectedIndex++;
             }
-            else if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
                 var listBox = this.FindControl<ListBox>("ButtonList");

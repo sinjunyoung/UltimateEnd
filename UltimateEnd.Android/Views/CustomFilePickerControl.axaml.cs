@@ -121,7 +121,7 @@ namespace UltimateEnd.Views
 
             if (e.Handled) return;
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 OnClick(EventArgs.Empty);
@@ -141,7 +141,7 @@ namespace UltimateEnd.Views
                 return;
             }
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 e.Handled = true;
                 OnClick(EventArgs.Empty);
@@ -149,7 +149,7 @@ namespace UltimateEnd.Views
                 return;
             }
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 e.Handled = true;
                 OnClick(EventArgs.Empty);
@@ -157,7 +157,7 @@ namespace UltimateEnd.Views
                 return;
             }
 
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
                 OnClick(EventArgs.Empty);

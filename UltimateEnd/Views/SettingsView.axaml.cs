@@ -79,7 +79,7 @@ namespace UltimateEnd.Views
 
         private async void OnKeyDown(object? sender, KeyEventArgs e)
         {
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB) || e.Key == Key.Back)
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB) || e.Key == Key.Back)
             {
                 if (DataContext is SettingsViewModel vm)
                 {

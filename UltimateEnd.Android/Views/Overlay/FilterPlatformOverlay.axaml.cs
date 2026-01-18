@@ -54,7 +54,7 @@ namespace UltimateEnd.Android.Views.Overlays
             if (!this.Visible) return;
 
             if (SearchBox.IsFocused &&
-                !InputManager.IsAnyButtonPressed(e.Key,
+                !InputManager.IsAnyButtonPressed(e,
                     GamepadButton.ButtonB,
                     GamepadButton.ButtonA,
                     GamepadButton.Start,

@@ -4,6 +4,7 @@ using Avalonia.VisualTree;
 using System;
 using System.Collections.Generic;
 using UltimateEnd.Enums;
+using UltimateEnd.Models;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Utils
@@ -64,34 +65,51 @@ namespace UltimateEnd.Utils
         private static Key ParseKey(string keyString)
         {
             if (Enum.TryParse<Key>(keyString, out var key)) return key;
-
             return Key.None;
         }
 
-        public static bool IsButtonPressed(Key key, GamepadButton button)
+        public static bool IsGamepadButtonPressed(KeyEventArgs e, GamepadButton button)
         {
-            if (!_keyMappings.TryGetValue(button, out var mappedKey)) return false;
+            if (e is not GamepadKeyEventArgs gpe || !gpe.IsFromGamepad) return false;
 
-            if (mappedKey != key) return false;
+            return gpe.OriginalButton == button;
+        }
+
+        public static bool IsKeyboardKeyPressed(KeyEventArgs e, GamepadButton button)
+        {
+            if (e is GamepadKeyEventArgs gpe && gpe.IsFromGamepad) return false;
 
             if (IsTextInputFocused())
             {
-                bool isAllowedInTextBox = key == Key.Escape || key == Key.Enter;
-
+                bool isAllowedInTextBox = e.Key == Key.Escape || e.Key == Key.Enter;
                 if (!isAllowedInTextBox) return false;
             }
 
-            return true;
+            if (!_keyMappings.TryGetValue(button, out var mappedKey)) return false;
+
+            return mappedKey == e.Key;
         }
 
-        public static bool IsAnyButtonPressed(Key key, params GamepadButton[] buttons)
+        public static bool IsButtonPressed(KeyEventArgs e, GamepadButton button) => IsGamepadButtonPressed(e, button) || IsKeyboardKeyPressed(e, button);
+
+
+        public static bool IsAnyButtonPressed(KeyEventArgs e, params GamepadButton[] buttons)
         {
             foreach (var button in buttons)
             {
-                if (IsButtonPressed(key, button)) return true;
+                if (IsButtonPressed(e, button)) return true;
             }
 
             return false;
+        }
+
+        public static Key GetMappedKey(GamepadButton button)
+        {
+            var result = _keyMappings.TryGetValue(button, out var key) ? key : Key.None;
+
+            System.Diagnostics.Debug.WriteLine($"[InputManager] GetMappedKey({button}): {result}");
+
+            return result;
         }
 
         public static GamepadButton? GetMappedButton(Key key)
@@ -103,8 +121,6 @@ namespace UltimateEnd.Utils
 
             return null;
         }
-
-        public static Key GetMappedKey(GamepadButton button) => _keyMappings.TryGetValue(button, out var key) ? key : Key.None;
 
         private static bool IsTextInputFocused()
         {

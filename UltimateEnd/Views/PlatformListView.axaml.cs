@@ -551,73 +551,71 @@ namespace UltimateEnd.Views
 
             if (ViewModel == null) return;
 
-            var handled = ViewModel.IsMenuFocused ? HandleMenuNavigation(e.Key) : HandleGridNavigation(e.Key);
+            var handled = ViewModel.IsMenuFocused ? HandleMenuNavigation(e) : HandleGridNavigation(e);
 
             if (handled) e.Handled = true;
         }
 
-        private bool HandleMenuNavigation(Key key)
+        private bool HandleMenuNavigation(KeyEventArgs e)
         {
             if (ViewModel == null) return false;
-
-            if (InputManager.IsButtonPressed(key, GamepadButton.DPadDown))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 ViewModel.IsMenuFocused = false;
                 ResetMenuIcons();
                 _carouselManager?.UpdateCardStylesAndScroll(ViewModel);
                 return true;
             }
-            if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonB) || key == Key.Escape)
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonB) || e.Key == Key.Escape)
             {
                 ViewModel.IsMenuFocused = false;
                 ResetMenuIcons();
                 _carouselManager?.UpdateCardStylesAndScroll(ViewModel);
                 return true;
             }
-            else if (InputManager.IsButtonPressed(key, GamepadButton.DPadLeft))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 MoveToPreviousMenuIcon();
                 return true;
             }
-            else if (InputManager.IsButtonPressed(key, GamepadButton.DPadRight))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 MoveToNextMenuIcon();
                 return true;
             }
-            else if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 ExecuteCurrentMenuIcon();
                 return true;
             }
-
             return false;
         }
 
-        private bool HandleGridNavigation(Key key)
+        private bool HandleGridNavigation(KeyEventArgs e)
         {
             if (ViewModel == null) return false;
 
-            if (InputManager.IsButtonPressed(key, GamepadButton.DPadUp))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 MoveGridUp();
                 return true;
             }
-            else if (InputManager.IsButtonPressed(key, GamepadButton.DPadDown))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 MoveGridDown();
                 return true;
             }
-            else if (InputManager.IsButtonPressed(key, GamepadButton.DPadLeft))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 ViewModel.MoveLeft();
                 return true;
             }
-            else if (InputManager.IsButtonPressed(key, GamepadButton.DPadRight))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 ViewModel.MoveRight();
                 return true;
             }
-            else if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 _ = WavSounds.OK();
                 ViewModel.SelectCurrentPlatform();

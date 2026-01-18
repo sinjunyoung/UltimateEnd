@@ -117,6 +117,8 @@ namespace UltimateEnd.Models
 
         public Dictionary<string, string> KeyBindings { get; set; } = [];
 
+        public string ControllerType { get; set; } = "Auto";
+
         private double _gameListSplitterPosition = DefaultGameListSplitterPosition;
 
         public double GameListSplitterPosition

@@ -53,12 +53,12 @@ namespace UltimateEnd.Views.Overlays
         {
             KeyDownOccurred?.Invoke(this, e);
 
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 SaveRequested?.Invoke(this, EventArgs.Empty);
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 Hide(HiddenState.Close);
                 e.Handled = true;

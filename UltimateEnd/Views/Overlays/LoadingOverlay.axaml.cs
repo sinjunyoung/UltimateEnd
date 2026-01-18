@@ -88,7 +88,7 @@ public partial class LoadingOverlay : BaseOverlay, INotifyPropertyChanged
             return;
         }
 
-        if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+        if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
         {
             Cancel();
             e.Handled = true;

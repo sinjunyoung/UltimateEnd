@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using UltimateEnd.Desktop.Models;
-using UltimateEnd.Desktop.Services;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.Enums;
 using UltimateEnd.Utils;
@@ -56,7 +55,6 @@ namespace UltimateEnd.Desktop.Views
         protected override void OnPointerPressed(PointerPressedEventArgs e)
         {
             base.OnPointerPressed(e);
-
             this.Focus();
         }
 
@@ -79,6 +77,7 @@ namespace UltimateEnd.Desktop.Views
             _buttonBorders.Clear();
 
             var canvas = this.FindControl<Canvas>("Canvas");
+
             if (canvas != null)
             {
                 var borders = canvas.Children
@@ -111,8 +110,7 @@ namespace UltimateEnd.Desktop.Views
             if (e.Key == Key.F12)
             {
                 _isDesignMode = !_isDesignMode;
-                if (_coordsDisplay != null)
-                    _coordsDisplay.IsVisible = _isDesignMode;
+                if (_coordsDisplay != null) _coordsDisplay.IsVisible = _isDesignMode;
                 e.Handled = true;
 
                 return;
@@ -136,35 +134,36 @@ namespace UltimateEnd.Desktop.Views
                     ViewModel.HandleKeyPress(e.Key);
 
                 e.Handled = true;
+
                 return;
             }
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 ViewModel.GoBackCommand?.Execute(Unit.Default);
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 e.Handled = true;
                 MovePrevious();
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 e.Handled = true;
                 MoveNext();
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 e.Handled = true;
                 MovePrevious();
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 e.Handled = true;
                 MoveNext();
             }
-            else if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
                 SelectCurrent();
@@ -213,16 +212,13 @@ namespace UltimateEnd.Desktop.Views
 
         private async void SelectCurrent()
         {
-            if (_buttonBorders.Count == 0 || _selectedIndex >= _buttonBorders.Count)
-                return;
+            if (_buttonBorders.Count == 0 || _selectedIndex >= _buttonBorders.Count) return;
 
             await WavSounds.OK();
 
             var border = _buttonBorders[_selectedIndex];
-            if (border.Tag is string buttonName)
-            {
-                ViewModel?.StartBinding(buttonName);
-            }
+
+            if (border.Tag is string buttonName) ViewModel?.StartBinding(buttonName);
         }
 
         private void UpdateSelection()
@@ -230,6 +226,7 @@ namespace UltimateEnd.Desktop.Views
             for (int i = 0; i < _buttonBorders.Count; i++)
             {
                 var control = _buttonBorders[i];
+
                 if (i == _selectedIndex)
                 {
                     if (control is Border border)
@@ -240,6 +237,7 @@ namespace UltimateEnd.Desktop.Views
                     else if (control is Grid grid)
                     {
                         var path = grid.Children.OfType<Path>().FirstOrDefault();
+
                         if (path != null)
                         {
                             path.StrokeThickness = 3;
@@ -257,6 +255,7 @@ namespace UltimateEnd.Desktop.Views
                     else if (control is Grid grid)
                     {
                         var path = grid.Children.OfType<Path>().FirstOrDefault();
+
                         if (path != null)
                         {
                             path.StrokeThickness = 2;
@@ -273,15 +272,13 @@ namespace UltimateEnd.Desktop.Views
             {
                 _draggingBorder = control;
                 _dragStartPoint = e.GetPosition(control.Parent as Canvas);
-                _elementStartPosition = new Point(
-                    Canvas.GetLeft(control),
-                    Canvas.GetTop(control)
-                );
+                _elementStartPosition = new Point(Canvas.GetLeft(control), Canvas.GetTop(control));
 
                 control.PointerMoved += OnBorderDrag;
                 control.PointerReleased += OnBorderDragEnd;
 
                 e.Handled = true;
+
                 return;
             }
 
@@ -320,12 +317,7 @@ namespace UltimateEnd.Desktop.Views
             Canvas.SetLeft(_draggingBorder, newLeft);
             Canvas.SetTop(_draggingBorder, newTop);
 
-            if (_coordsDisplay != null)
-            {
-                _coordsDisplay.Text = $"📍 {_draggingBorder.Name}\n" +
-                                     $"Canvas.Left=\"{Math.Round(newLeft)}\"\n" +
-                                     $"Canvas.Top=\"{Math.Round(newTop)}\"";
-            }
+            if (_coordsDisplay != null) _coordsDisplay.Text = $"📍 {_draggingBorder.Name}\n" + $"Canvas.Left=\"{Math.Round(newLeft)}\"\n" + $"Canvas.Top=\"{Math.Round(newTop)}\"";
         }
 
         private void OnBorderDragEnd(object? sender, PointerReleasedEventArgs e)
@@ -338,13 +330,7 @@ namespace UltimateEnd.Desktop.Views
             var finalLeft = Canvas.GetLeft(_draggingBorder);
             var finalTop = Canvas.GetTop(_draggingBorder);
 
-            if (_coordsDisplay != null)
-            {
-                _coordsDisplay.Text = $"✅ {_draggingBorder.Name}\n" +
-                                     $"Canvas.Left=\"{Math.Round(finalLeft)}\"\n" +
-                                     $"Canvas.Top=\"{Math.Round(finalTop)}\"\n\n" +
-                                     $"👆 XAML에 복사하세요";
-            }
+            if (_coordsDisplay != null) _coordsDisplay.Text = $"✅ {_draggingBorder.Name}\n" + $"Canvas.Left=\"{Math.Round(finalLeft)}\"\n" + $"Canvas.Top=\"{Math.Round(finalTop)}\"\n\n" + $"👆 XAML에 복사하세요";
 
             _draggingBorder = null;
         }
@@ -353,8 +339,7 @@ namespace UltimateEnd.Desktop.Views
         {
             ViewModel?.GoBackCommand?.Execute(Unit.Default);
 
-            if (e != null)
-                e.Handled = true;
+            if (e != null) e.Handled = true;
         }
 
         public void FocusView()

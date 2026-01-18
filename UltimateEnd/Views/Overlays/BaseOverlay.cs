@@ -44,56 +44,52 @@ namespace UltimateEnd.Views.Overlays
                 base.OnKeyDown(e);
                 return;
             }
-
             if (e.Source is TextBox)
             {
                 base.OnKeyDown(e);
                 return;
             }
-
             e.Handled = true;
-
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
                 Hide(HiddenState.Cancel);
                 return;
             }
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 await WavSounds.Click();
                 e.Handled = true;
                 MovePrevious();
                 return;
             }
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 await WavSounds.Click();
                 e.Handled = true;
                 MoveNext();
                 return;
             }
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 await WavSounds.Click();
                 e.Handled = true;
                 MovePrevious();
                 return;
             }
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 await WavSounds.Click();
                 e.Handled = true;
                 MoveNext();
                 return;
             }
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
                 SelectCurrent();
                 return;
             }
-
             base.OnKeyDown(e);
         }
     }

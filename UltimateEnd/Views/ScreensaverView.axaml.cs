@@ -196,7 +196,7 @@ namespace UltimateEnd.Views
 
             if (ViewModel == null) return;
 
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.Start, GamepadButton.ButtonA))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.Start, GamepadButton.ButtonA))
             {
                 ViewModel.NavigateToGameCommand.Execute().Subscribe();
                 e.Handled = true;

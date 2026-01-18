@@ -176,8 +176,9 @@ namespace UltimateEnd.ViewModels
 
         public async void HandleKeyPress(Key key)
         {
-            if (!IsBinding || string.IsNullOrEmpty(_currentBindingKey))
-                return;
+            if (!IsBinding || string.IsNullOrEmpty(_currentBindingKey)) return;
+
+            if (key == Key.None) return;
 
             string keyName = NormalizeKeyName(key);
 
@@ -193,7 +194,24 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
-        #region Protected Virtual Methods
+        #region Protected Virtual Methods - 플랫폼별 확장 포인트
+
+        protected virtual void LoadPlatformSpecificSettings(Models.AppSettings settings)
+        {
+        }
+
+        protected virtual void SavePlatformSpecificSettings(Models.AppSettings settings)
+        {
+        }
+
+        protected virtual void ResetPlatformSpecificDefaults()
+        {
+        }
+
+        protected virtual async Task ShowSaveCompletionMessage()
+        {
+            await Task.CompletedTask;
+        }
 
         protected virtual string GetButtonDisplayName(string buttonName)
         {
@@ -211,6 +229,8 @@ namespace UltimateEnd.ViewModels
                 "RightBumper" => "RB (Right Bumper)",
                 "LeftTrigger" => "LT (Left Trigger)",
                 "RightTrigger" => "RT (Right Trigger)",
+                "Start" => "Start",
+                "Select" => "Select",
                 _ => buttonName
             };
         }
@@ -222,6 +242,7 @@ namespace UltimateEnd.ViewModels
         private void LoadSettings()
         {
             var settings = SettingsService.LoadSettings();
+
             if (settings.KeyBindings != null && settings.KeyBindings.Count > 0)
             {
                 DPadUp = settings.KeyBindings.GetValueOrDefault("DPadUp", "Up");
@@ -234,7 +255,13 @@ namespace UltimateEnd.ViewModels
                 ButtonY = settings.KeyBindings.GetValueOrDefault("ButtonY", "F");
                 LeftBumper = settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp");
                 RightBumper = settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown");
+                LeftTrigger = settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl");
+                RightTrigger = settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt");
+                Start = settings.KeyBindings.GetValueOrDefault("Start", "Return");
+                Select = settings.KeyBindings.GetValueOrDefault("Select", "Escape");
             }
+
+            LoadPlatformSpecificSettings(settings);
         }
 
         protected virtual async Task ResetToDefault()
@@ -253,6 +280,12 @@ namespace UltimateEnd.ViewModels
             ButtonY = "F";
             LeftBumper = "PageUp";
             RightBumper = "PageDown";
+            LeftTrigger = "LeftCtrl";
+            RightTrigger = "LeftAlt";
+            Start = "Return";
+            Select = "Escape";
+
+            ResetPlatformSpecificDefaults();
 
             snap.Restore();
         }
@@ -285,17 +318,26 @@ namespace UltimateEnd.ViewModels
             settings.KeyBindings["ButtonY"] = ButtonY;
             settings.KeyBindings["LeftBumper"] = LeftBumper;
             settings.KeyBindings["RightBumper"] = RightBumper;
+            settings.KeyBindings["LeftTrigger"] = LeftTrigger;
+            settings.KeyBindings["RightTrigger"] = RightTrigger;
+            settings.KeyBindings["Start"] = Start;
+            settings.KeyBindings["Select"] = Select;
+
+            SavePlatformSpecificSettings(settings);
 
             SettingsService.SaveSettingsQuiet(settings);
             InputManager.LoadKeyBindings();
 
             await WavSounds.OK();
+            await ShowSaveCompletionMessage();
+
             GoBack();
         }
 
         private async Task GoBackAsync()
         {
             await WavSounds.Cancel();
+
             GoBack();
         }
 
@@ -319,18 +361,17 @@ namespace UltimateEnd.ViewModels
 
         private bool HasDuplicateKeys()
         {
-            var allKeys = new List<string>
-            {
+            List<string> allKeys =  [
                 DPadUp, DPadDown, DPadLeft, DPadRight,
                 ButtonA, ButtonB, ButtonX, ButtonY,
-                LeftBumper, RightBumper
-            };
+                LeftBumper, RightBumper,
+                LeftTrigger, RightTrigger ];
 
             var uniqueKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var key in allKeys)
             {
-                if (!uniqueKeys.Add(key))
-                    return true;
+                if (!uniqueKeys.Add(key)) return true;
             }
 
             return false;
@@ -350,6 +391,10 @@ namespace UltimateEnd.ViewModels
                 case "ButtonY": ButtonY = keyName; break;
                 case "LeftBumper": LeftBumper = keyName; break;
                 case "RightBumper": RightBumper = keyName; break;
+                case "LeftTrigger": LeftTrigger = keyName; break;
+                case "RightTrigger": RightTrigger = keyName; break;
+                case "Start": Start = keyName; break;
+                case "Select": Select = keyName; break;
             }
         }
 

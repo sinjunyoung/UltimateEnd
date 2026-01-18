@@ -92,7 +92,7 @@ namespace UltimateEnd.Views.Overlays
 
             if (_selectedIndex == 6)
             {
-                if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
                 {
                     await WavSounds.Click();
                     var slider = this.FindControl<Slider>("ScreensaverTimeoutSlider");
@@ -103,7 +103,7 @@ namespace UltimateEnd.Views.Overlays
                     e.Handled = true;
                     return;
                 }
-                if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
                 {
                     await WavSounds.Click();
                     var slider = this.FindControl<Slider>("ScreensaverTimeoutSlider");

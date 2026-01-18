@@ -157,16 +157,14 @@ namespace UltimateEnd.Views
 
         private async Task<bool> HandleCommonKeyInput(KeyEventArgs e)
         {
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
-                if (HandleButtonBPress(e))
-                    return true;
+                if (HandleButtonBPress(e)) return true;
             }
 
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
-                if (ViewModel?.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing)
-                    return false;
+                if (ViewModel?.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return false;
 
                 if (ViewModel?.SelectedItem != null)
                 {
@@ -176,15 +174,14 @@ namespace UltimateEnd.Views
                         ViewModel.EnterFolder(ViewModel.SelectedItem.SubFolder!);
                     }
                     else if (ViewModel.SelectedItem.IsGame)
-                    {
                         await ViewModel.LaunchGameAsync(ViewModel.SelectedItem.Game!);
-                    }
                 }
+
                 e.Handled = true;
+
                 return true;
             }
-
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonY))
+            if (InputManager.IsButtonPressed(e, GamepadButton.ButtonY))
             {
                 if (ViewModel?.SelectedItem?.IsGame == true)
                 {
@@ -192,10 +189,11 @@ namespace UltimateEnd.Views
                     ViewModel.RequestSave();
                     ViewModel.OnFavoritesChanged(ViewModel.SelectedItem.Game);
                 }
+
                 e.Handled = true;
+
                 return true;
             }
-
             switch (e.Key)
             {
                 case Key.F3:
@@ -204,15 +202,18 @@ namespace UltimateEnd.Views
                         SearchBoxBase.Focus();
                         SearchBoxBase.SelectAll();
                     }, DispatcherPriority.Input);
+
                     e.Handled = true;
+
                     return true;
 
                 case Key.Back:
                     ViewModel?.GoBack();
                     e.Handled = true;
-                    return true;
-            }
 
+                    return true;
+
+            }
             return false;
         }
 
@@ -220,6 +221,7 @@ namespace UltimateEnd.Views
         {
             ViewModel?.GoBack();
             e.Handled = true;
+
             return true;
         }
 
@@ -255,27 +257,24 @@ namespace UltimateEnd.Views
         {
             SearchBoxBase.KeyDown += (s, args) =>
             {
-                if (InputManager.IsButtonPressed(args.Key, GamepadButton.ButtonB))
+                if (InputManager.IsButtonPressed(args, GamepadButton.ButtonB))
                 {
                     SearchBoxBase.Text = string.Empty;
                     ViewModel?.CommitSearch();
                     GameScrollViewerBase.Focus();
                     args.Handled = true;
                 }
-                else if (args.Key == Key.Enter || InputManager.IsAnyButtonPressed(args.Key, GamepadButton.ButtonA, GamepadButton.Start))
+                else if (args.Key == Key.Enter || InputManager.IsAnyButtonPressed(args, GamepadButton.ButtonA, GamepadButton.Start))
                 {
                     ViewModel?.CommitSearch();
                     GameScrollViewerBase.Focus();
-
                     args.Handled = true;
                 }
             };
-
             SearchBoxBase.LostFocus += (s, args) =>
             {
                 ViewModel?.CommitSearch();
             };
-
             SearchBoxBase.GotFocus += async (s, args) =>
             {
                 await Task.Delay(100);

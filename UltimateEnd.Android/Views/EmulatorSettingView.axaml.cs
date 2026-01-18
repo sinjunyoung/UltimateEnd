@@ -192,7 +192,7 @@ namespace UltimateEnd.Android.Views
 
         private async void OnCommandListKeyDown(object? sender, KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e.Key, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 if (ViewModel?.SelectedCommand != null)
                 {
@@ -201,7 +201,7 @@ namespace UltimateEnd.Android.Views
                 }
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.ButtonB))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 await WavSounds.Cancel();
                 ViewModel?.GoBack();

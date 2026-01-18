@@ -56,27 +56,31 @@ namespace UltimateEnd.Desktop.Services
             }
         }
 
-        private string ExtractExecutablePath(string launchCommand)
+        private static string ExtractExecutablePath(string launchCommand)
         {
+            if (string.IsNullOrWhiteSpace(launchCommand)) return string.Empty;
+
             launchCommand = launchCommand.Trim();
 
-            if (launchCommand.StartsWith("\""))
+            if (launchCommand.StartsWith('\''))
             {
-                var endQuoteIndex = launchCommand.IndexOf("\"", 1);
+                var endQuoteIndex = launchCommand.IndexOf('\'', 1);
 
-                if (endQuoteIndex > 0)
-                    return launchCommand.Substring(1, endQuoteIndex - 1);
+                if (endQuoteIndex > 0) return launchCommand[1..endQuoteIndex];
             }
+
+            var exeIndex = launchCommand.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+
+            if (exeIndex > 0) return launchCommand[..(exeIndex + 4)]; 
 
             var firstSpaceIndex = launchCommand.IndexOf(' ');
 
-            if (firstSpaceIndex > 0)
-                return launchCommand.Substring(0, firstSpaceIndex);
+            if (firstSpaceIndex > 0) return launchCommand[..firstSpaceIndex];
 
             return launchCommand;
         }
 
-        private Avalonia.Media.Imaging.Bitmap? ExtractIconFromFile(string filePath)
+        private static Avalonia.Media.Imaging.Bitmap? ExtractIconFromFile(string filePath)
         {
             var shinfo = new SHFILEINFO();
             var result = SHGetFileInfo(filePath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_LARGEICON);
@@ -96,7 +100,7 @@ namespace UltimateEnd.Desktop.Services
                 DestroyIcon(shinfo.hIcon);
             }
         }
-        private Avalonia.Media.Imaging.Bitmap ConvertToAvaloniaBitmap(System.Drawing.Bitmap drawingBitmap)
+        private static Avalonia.Media.Imaging.Bitmap ConvertToAvaloniaBitmap(System.Drawing.Bitmap drawingBitmap)
         {
             using var memoryStream = new MemoryStream();
 

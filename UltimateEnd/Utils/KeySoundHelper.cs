@@ -6,11 +6,11 @@ namespace UltimateEnd.Utils
 {
     public static class KeySoundHelper
     {
-        public static async Task PlaySoundForKey(Key key)
+        public static async Task PlaySoundForKey(KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(key, GamepadButton.ButtonB, GamepadButton.Select))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonB, GamepadButton.Select))
                 await WavSounds.Cancel();
-            else if (InputManager.IsAnyButtonPressed(key,
+            else if (InputManager.IsAnyButtonPressed(e,
                 GamepadButton.DPadUp,
                 GamepadButton.DPadDown,
                 GamepadButton.DPadLeft,
@@ -20,10 +20,10 @@ namespace UltimateEnd.Utils
             {
                 await WavSounds.Click();
             }
-            else if (key == Key.Back)
+            else if (e.Key == Key.Back)
                 await WavSounds.Cancel();
         }
 
-        public static async Task PlaySoundForKeyEvent(KeyEventArgs e) => await PlaySoundForKey(e.Key);
+        public static async Task PlaySoundForKeyEvent(KeyEventArgs e) => await PlaySoundForKey(e);
     }
 }

@@ -204,6 +204,7 @@ namespace UltimateEnd.Views
         protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
         {
             if (ViewModel == null) return;
+
             if (ViewModel.DisplayItems.Count == 0) return;
 
             if (GameRenameOverlay?.Visible == true) return;
@@ -211,7 +212,6 @@ namespace UltimateEnd.Views
             if (ViewModel.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return;
 
             await KeySoundHelper.PlaySoundForKeyEvent(e);
-
             int count = ViewModel.DisplayItems.Count;
             int currentIndex = ViewModel.SelectedItem != null ? ViewModel.DisplayItems.IndexOf(ViewModel.SelectedItem) : 0;
 
@@ -222,7 +222,7 @@ namespace UltimateEnd.Views
             int newIndex = currentIndex;
             bool needsScroll = false;
 
-            if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadUp))
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 if (row > 0)
                 {
@@ -237,7 +237,7 @@ namespace UltimateEnd.Views
                 }
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadDown))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 int nextIndex = currentIndex + _columns;
                 if (nextIndex < count)
@@ -252,7 +252,7 @@ namespace UltimateEnd.Views
                 }
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadLeft))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 if (col > 0)
                     newIndex = currentIndex - 1;
@@ -263,7 +263,7 @@ namespace UltimateEnd.Views
                 }
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.DPadRight))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 if (col < _columns - 1 && currentIndex < count - 1)
                     newIndex = currentIndex + 1;
@@ -271,14 +271,14 @@ namespace UltimateEnd.Views
                     newIndex = row * _columns;
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.RightBumper))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.RightBumper))
             {
                 int pageSize = _rows * _columns;
                 newIndex = Math.Min(currentIndex + pageSize, count - 1);
                 needsScroll = true;
                 e.Handled = true;
             }
-            else if (InputManager.IsButtonPressed(e.Key, GamepadButton.LeftBumper))
+            else if (InputManager.IsButtonPressed(e, GamepadButton.LeftBumper))
             {
                 int pageSize = _rows * _columns;
                 newIndex = Math.Max(currentIndex - pageSize, 0);
@@ -297,16 +297,13 @@ namespace UltimateEnd.Views
                 needsScroll = true;
                 e.Handled = true;
             }
-
             if (newIndex >= 0 && newIndex < count && newIndex != currentIndex)
             {
                 ViewModel.SelectedItem = ViewModel.DisplayItems[newIndex];
                 ViewModel.StopVideo();
 
-                if (needsScroll)
-                    ScrollToItem(ViewModel.SelectedGame);
+                if (needsScroll) ScrollToItem(ViewModel.SelectedGame);
             }
-
             Dispatcher.UIThread.Post(() => GameScrollViewer.Focus(), DispatcherPriority.Input);
         }
 
