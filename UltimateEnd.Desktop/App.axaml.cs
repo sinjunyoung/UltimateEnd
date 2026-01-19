@@ -63,10 +63,8 @@ namespace UltimateEnd.Desktop
                 desktop.Exit += OnExit;
             }
 
-            ThemeService.Initialize();
-
+            ThemeService.Initialize();            
             ScreenSaverBlocker.BlockWindowsScreenSaver();
-
             InputManager.LoadKeyBindings();
 
             try

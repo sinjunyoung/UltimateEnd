@@ -59,6 +59,7 @@ public partial class App : Application
         }
 
         ThemeService.Initialize();
+        InputManager.LoadKeyBindings();
         base.OnFrameworkInitializationCompleted();
     }
 }

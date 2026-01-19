@@ -25,11 +25,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>CS8601;CS8602;CS8603;CS8604;CS8618;CA1416;NETSDK1206;NU1701</NoWarn>
+    <NoWarn>CS8601;CS8602;CS8603;CS8604;CS8618;CA1401;CA1416;NETSDK1206;NU1701;SYSLIB1054</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>CS8601;CS8602;CS8603;CS8604;CS8618;CA1416;NETSDK1206;NU1701</NoWarn>
+    <NoWarn>CS8601;CS8602;CS8603;CS8604;CS8618;CA1401;CA1416;NETSDK1206;NU1701;SYSLIB1054</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

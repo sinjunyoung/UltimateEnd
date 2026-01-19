@@ -166,6 +166,12 @@ namespace UltimateEnd.Android.Services
                 LaunchCommand = "am start -n xyz.aethersx2.android/.EmulationActivity -a android.intent.action.MAIN -e bootPath \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
+            config.AddEmulator(new Command
+            {
+                Id = "rpcsx", Name = "RPCSX", IsRetroArch = false, SupportedPlatforms = ["ps3"],
+                LaunchCommand = "am start -n net.rpcsx/.MainActivity --es titleId {romName} --activity-clear-task --activity-clear-top --activity-no-history"
+            });
+
 
             config.AddEmulator(new Command
             {
