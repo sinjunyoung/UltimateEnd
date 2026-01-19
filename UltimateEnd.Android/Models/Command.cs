@@ -11,7 +11,7 @@ namespace UltimateEnd.Android.Models
     {
         private string? _coreName;
         private string _launchCommand = string.Empty;        
-        bool _isRetroArch;
+        bool _isRetroArch = false;
 
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;

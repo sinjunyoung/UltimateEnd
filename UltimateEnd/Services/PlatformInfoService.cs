@@ -263,8 +263,8 @@ namespace UltimateEnd.Services
             db.Platforms.Add(new PlatformInfo { Id = "pc98", DisplayName = "NEC PC-9801", Aliases = ["pc-98"], Extensions = [".2hd", ".88d", ".98d", ".d88", ".d98", ".cmd", ".dup", ".fdd", ".fdi", ".hdd", ".hdi", ".hdm", ".hdn", ".m3u", ".nhd", ".tfd", ".thd", ".xdf", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.PC9801 });
 
             // Microsoft
-            db.Platforms.Add(new PlatformInfo { Id = "xbox", DisplayName = "Xbox", Extensions = [".iso", ".xiso", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.Xbox });
-            db.Platforms.Add(new PlatformInfo { Id = "xbox360", DisplayName = "Xbox 360", Extensions = [".iso", ".xex", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.Xbox360 });
+            db.Platforms.Add(new PlatformInfo { Id = "xbox", DisplayName = "Xbox", Extensions = [".iso", ".xiso",], ScreenScraperSystemId = ScreenScraperSystemId.Xbox });
+            db.Platforms.Add(new PlatformInfo { Id = "xbox360", DisplayName = "Xbox 360", Extensions = [".iso", ".xex"], ScreenScraperSystemId = ScreenScraperSystemId.Xbox360 });
             db.Platforms.Add(new PlatformInfo { Id = "xboxone", DisplayName = "Xbox One", Extensions = [".xvd", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.XboxOne });
 
             // Other

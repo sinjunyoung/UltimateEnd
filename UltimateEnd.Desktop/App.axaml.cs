@@ -64,14 +64,16 @@ namespace UltimateEnd.Desktop
             }
 
             ThemeService.Initialize();            
-            ScreenSaverBlocker.BlockWindowsScreenSaver();
-            InputManager.LoadKeyBindings();
+            ScreenSaverBlocker.BlockWindowsScreenSaver();            
 
             try
             {
                 _gamepadManager = new GamepadManager();
             }
             catch { }
+
+            GamepadManager.GamepadConnectionChanged += () => InputManager.LoadKeyBindings();
+            InputManager.LoadKeyBindings();
 
             base.OnFrameworkInitializationCompleted();
         }

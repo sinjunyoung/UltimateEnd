@@ -96,13 +96,19 @@ namespace UltimateEnd.Managers
             _screensaverViewModel.NavigateToGame += OnScreensaverNavigateToGame;
             _screensaverViewModel.ExitScreensaver += OnScreensaverExit;
 
+            bool hasVideoGames = await _screensaverViewModel?.InitializeAsync([.. _platformListViewModel?.Platforms]);
+
+            if (!hasVideoGames)
+            {
+                CleanupScreensaver();
+                _idleDetectionService?.ResetIdleTimer();
+                return;
+            }
+
             ViewChangeRequested?.Invoke(_screensaverViewModel);
 
             var window = GetMainWindow();
             window?.Activate();
-
-            if (_platformListViewModel != null)
-                await _screensaverViewModel.InitializeAsync([.. _platformListViewModel.Platforms]);
         }
 
         private static Control? GetMainWindowContent()

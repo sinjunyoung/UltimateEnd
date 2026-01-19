@@ -51,7 +51,11 @@ namespace UltimateEnd.Desktop.Services
 
         private ButtonMapping _buttonMapping;
 
+        private int _lastGamepadCount = 0;
+
         #endregion
+
+        public static event Action? GamepadConnectionChanged;
 
         #region Constructor
 
@@ -63,6 +67,8 @@ namespace UltimateEnd.Desktop.Services
 
             _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Background, (s, e) => PollInput());
             _timer.Start();
+
+            StartDeviceMonitoring();
         }
 
         #endregion
@@ -468,6 +474,33 @@ namespace UltimateEnd.Desktop.Services
             }
 
             return null;
+        }
+
+        #endregion
+
+        #region Device Change Detection
+
+        private void StartDeviceMonitoring()
+        {
+            var monitorTimer = new DispatcherTimer(
+                TimeSpan.FromSeconds(2),
+                DispatcherPriority.Background,
+                (s, e) => CheckDeviceChanges()
+            );
+            monitorTimer.Start();
+        }
+
+        private void CheckDeviceChanges()
+        {
+            var devices = _directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+            var currentCount = devices.Count;
+
+            if (currentCount != _lastGamepadCount)
+            {
+                _lastGamepadCount = currentCount;
+                RefreshDevices();
+                GamepadConnectionChanged?.Invoke();
+            }
         }
 
         #endregion

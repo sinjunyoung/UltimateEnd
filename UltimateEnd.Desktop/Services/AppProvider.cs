@@ -18,7 +18,7 @@ namespace UltimateEnd.Desktop.Services
 
         public string PlatformName => "Desktop";
 
-        public async Task<List<NativeAppInfo>> BrowseAppsAsync()
+        public async Task<NativeAppInfo> BrowseAppsAsync()
         {
             var filters = new List<FilePickerFileType>
             {
@@ -31,7 +31,7 @@ namespace UltimateEnd.Desktop.Services
                 filters
             );
 
-            if (string.IsNullOrEmpty(filePath)) return [];
+            if (string.IsNullOrEmpty(filePath)) return null;
 
             var displayName = Path.GetFileNameWithoutExtension(filePath);
             var icon = _iconProvider.GetAppIcon(filePath);
@@ -63,14 +63,12 @@ namespace UltimateEnd.Desktop.Services
             }
 
             return
-            [
-                new() {
+                new NativeAppInfo{
                     Identifier = dummyFileName,
                     DisplayName = displayName,
                     Icon = icon,
-                    ActivityName = savedIconPath
-                }
-            ];
+                    ActivityName = savedIconPath 
+                };
         }
 
         public void LaunchApp(GameMetadata game)

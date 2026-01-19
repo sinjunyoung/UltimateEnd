@@ -206,7 +206,7 @@ namespace UltimateEnd.Views.Overlays
             toggle.HorizontalAlignment = value ? Avalonia.Layout.HorizontalAlignment.Right : Avalonia.Layout.HorizontalAlignment.Left;
         }
 
-        private async void SaveSettings()
+        private void SaveSettings()
         {
             try
             {
@@ -232,26 +232,20 @@ namespace UltimateEnd.Views.Overlays
 
                 config.Save();
 
-                await WavSounds.Confirm();
                 Hide(HiddenState.Confirm);
             }
             catch { }
         }
 
-        private async void OnBackClick(object? sender, PointerPressedEventArgs e)
+        private void OnBackClick(object? sender, PointerPressedEventArgs e)
         {
             e.Handled = true;
-            await WavSounds.Cancel();
             Hide(HiddenState.Cancel);
         }
 
         private void OnBackgroundClick(object? sender, PointerPressedEventArgs e)
         {
-            if (e.Source == sender)
-            {
-                _ = WavSounds.Cancel();
-                Hide(HiddenState.Cancel);
-            }
+            if (e.Source == sender) Hide(HiddenState.Cancel);
         }
 
         private async void OnToggleLanguage(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -480,14 +474,12 @@ namespace UltimateEnd.Views.Overlays
 
         private void OnDelayChanged(object? sender, Avalonia.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
-            if (DelayValueText != null)
-                DelayValueText.Text = $"{(int)e.NewValue}ms";
+            if (DelayValueText != null) DelayValueText.Text = $"{(int)e.NewValue}ms";
         }
 
         private void OnHttpTimeoutChanged(object? sender, Avalonia.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
-            if (HttpTimeoutValueText != null)
-                HttpTimeoutValueText.Text = $"{(int)e.NewValue}√ ";
+            if (HttpTimeoutValueText != null) HttpTimeoutValueText.Text = $"{(int)e.NewValue}√ ";
         }
 
         private async void OnClearCacheTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

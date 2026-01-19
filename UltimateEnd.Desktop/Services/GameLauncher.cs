@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Enums;
+using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
@@ -50,9 +51,12 @@ namespace UltimateEnd.Desktop.Services
                             UpdateEmulatorExecutablePath(command.Id, found);
                         }
                         else
-                        {
+                        {                            
                             var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
+                            await DialogService.Instance.ShowLoading("정보 확인 중...");
                             var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+                            await DialogService.Instance.HideLoading();
+
 
                             return new EmulatorValidationResult
                             {
@@ -72,7 +76,9 @@ namespace UltimateEnd.Desktop.Services
                     else
                     {
                         var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
+                        await DialogService.Instance.ShowLoading("정보 확인 중...");
                         var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+                        await DialogService.Instance.HideLoading();
 
                         return new EmulatorValidationResult
                         {

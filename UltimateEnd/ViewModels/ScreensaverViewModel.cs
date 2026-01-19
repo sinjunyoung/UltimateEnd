@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
@@ -32,6 +31,12 @@ namespace UltimateEnd.ViewModels
 
         private readonly Random _random = new();
 
+        private List<GameMetadata> _videoFavorites = [];
+        private List<GameMetadata> _videoNormal = [];
+        private List<GameMetadata> _allFavorites = [];
+        private List<GameMetadata> _allNormal = [];
+        private bool _cacheBuilt = false;
+
         public event Action? NavigateToGame;
         public event Action? ExitScreensaver;
 
@@ -43,7 +48,7 @@ namespace UltimateEnd.ViewModels
             private set
             {
                 this.RaiseAndSetIfChanged(ref _currentGame, value);
-                UpdatePlatformLogoImage();
+                UpdatePlatformLogoImageAsync();
                 this.RaisePropertyChanged(nameof(GameTitle));
                 this.RaisePropertyChanged(nameof(HasVideo));
             }
@@ -95,7 +100,7 @@ namespace UltimateEnd.ViewModels
             {
                 Interval = TimeSpan.FromSeconds(30)
             };
-            _videoChangeTimer.Tick += async (s, e) => await SelectRandomGame();
+            _videoChangeTimer.Tick += (s, e) => SelectRandomGame();
 
             NavigateToGameCommand = ReactiveCommand.Create(NavigateToCurrentGame);
             ExitScreensaverCommand = ReactiveCommand.Create(Exit);
@@ -103,129 +108,150 @@ namespace UltimateEnd.ViewModels
             UpdateClock();
         }
 
-        public async Task InitializeAsync(List<Platform> platforms)
+        public async Task<bool> InitializeAsync(List<Platform> platforms)
         {
             _platformsById.Clear();
-
             _mappingConfig = PlatformMappingService.Instance.LoadMapping();
 
             foreach (var platform in platforms)
                 _platformsById[platform.Id] = platform;
 
-            await SelectRandomGame();
+            await Task.Run(() => BuildGameCache());
+
+            int totalVideoGames = _videoFavorites.Count + _videoNormal.Count;
+
+            if (totalVideoGames == 0)
+                return false;
+
+            SelectRandomGame();
 
             _videoChangeTimer.Start();
+
+            return true;
         }
 
-        private void UpdatePlatformLogoImage()
+        private void BuildGameCache()
         {
-            _platformLogoImage?.Dispose();
-            _platformLogoImage = null;
+            var allGames = AllGamesManager.Instance.GetAllGames();
 
-            if (_currentGame == null)
+            var estimatedSize = allGames.Count / 4;
+            _videoFavorites = new List<GameMetadata>(estimatedSize);
+            _videoNormal = new List<GameMetadata>(estimatedSize * 2);
+            _allFavorites = new List<GameMetadata>(estimatedSize);
+            _allNormal = new List<GameMetadata>(estimatedSize * 2);
+
+            foreach (var game in allGames)
             {
-                PlatformLogoImage = null;
+                if (game.Ignore) continue;
 
-                return;
+                if (game.HasVideo)
+                {
+                    if (game.IsFavorite)
+                        _videoFavorites.Add(game);
+                    else
+                        _videoNormal.Add(game);
+                }
+
+                if (game.IsFavorite)
+                    _allFavorites.Add(game);
+                else
+                    _allNormal.Add(game);
             }
 
-            try
+            _cacheBuilt = true;
+        }
+
+        private void SelectRandomGame()
+        {
+            if (!_cacheBuilt) return;
+
+            int totalVideoGames = _videoFavorites.Count + _videoNormal.Count;
+            if (totalVideoGames == 0) return;
+
+            List<GameMetadata> targetList;
+
+            if (_random.NextDouble() < 0.2 && _videoFavorites.Count > 0)
+                targetList = _videoFavorites;
+            else if (_videoNormal.Count > 0)
+                targetList = _videoNormal;
+            else
+                targetList = _videoFavorites;
+
+            if (targetList.Count > 0)
+                CurrentGame = targetList[_random.Next(targetList.Count)];
+        }
+
+        private async void UpdatePlatformLogoImageAsync()
+        {
+            var oldImage = _platformLogoImage;
+            _platformLogoImage = null;
+            PlatformLogoImage = null;
+
+            await Task.Delay(1);
+            oldImage?.Dispose();
+
+            if (_currentGame == null) return;
+
+            await Task.Run(async () =>
             {
-                var mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(_currentGame.PlatformId);
-                var logoUri = ResourceHelper.GetLogoImage(mappedPlatformId ?? _currentGame.PlatformId);
-
-                if (logoUri != null)
+                try
                 {
-                    var uri = new Uri(logoUri);
+                    var mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(_currentGame.PlatformId);
+                    var logoUri = ResourceHelper.GetLogoImage(mappedPlatformId ?? _currentGame.PlatformId);
 
-                    if (logoUri.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                    if (logoUri != null)
                     {
-                        var svg = SvgSource.Load(logoUri, uri);
+                        var uri = new Uri(logoUri);
+                        Bitmap? newBitmap = null;
 
-                        if (svg?.Picture != null)
+                        if (logoUri.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                         {
-                            var bounds = svg.Picture.CullRect;
+                            var svg = SvgSource.Load(logoUri, uri);
 
-                            if (bounds.Width > 0 && bounds.Height > 0)
+                            if (svg?.Picture != null)
                             {
-                                using var bitmap = new SKBitmap((int)bounds.Width, (int)bounds.Height);
-                                using (var canvas = new SKCanvas(bitmap))
-                                {
-                                    canvas.Clear(SKColors.Transparent);
-                                    canvas.DrawPicture(svg.Picture);
-                                    canvas.Flush();
-                                }
+                                var bounds = svg.Picture.CullRect;
 
-                                using var image = SKImage.FromBitmap(bitmap);
-                                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                                using var memStream = new MemoryStream(data.ToArray());
-                                PlatformLogoImage = new Bitmap(memStream);
+                                if (bounds.Width > 0 && bounds.Height > 0)
+                                {
+                                    using var bitmap = new SKBitmap((int)bounds.Width, (int)bounds.Height);
+                                    using (var canvas = new SKCanvas(bitmap))
+                                    {
+                                        canvas.Clear(SKColors.Transparent);
+                                        canvas.DrawPicture(svg.Picture);
+                                        canvas.Flush();
+                                    }
+
+                                    using var image = SKImage.FromBitmap(bitmap);
+                                    using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                                    using var memStream = new MemoryStream(data.ToArray());
+                                    newBitmap = new Bitmap(memStream);
+                                }
                             }
-                            else
-                                PlatformLogoImage = null;
                         }
                         else
-                            PlatformLogoImage = null;
-                    }
-                    else
-                    {
-                        using var stream = AssetLoader.Open(uri);
-                        PlatformLogoImage = new Bitmap(stream);
+                        {
+                            using var stream = AssetLoader.Open(uri);
+                            newBitmap = new Bitmap(stream);
+                        }
+
+                        await Dispatcher.UIThread.InvokeAsync(() => PlatformLogoImage = newBitmap);
                     }
                 }
-                else
-                    PlatformLogoImage = null;
-            }
-            catch
-            {
-                PlatformLogoImage = null;
-            }
+                catch
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() => PlatformLogoImage = null);
+                }
+            });
         }
 
         private string GetActualPlatformId(string gamePlatformId)
         {
-            if (_mappingConfig?.FolderMappings == null)
-                return gamePlatformId;
+            if (_mappingConfig?.FolderMappings == null) return gamePlatformId;
 
             var mappedId = PlatformMappingService.Instance.GetMappedPlatformId(gamePlatformId);
 
             return mappedId ?? gamePlatformId;
-        }
-
-        private Task SelectRandomGame()
-        {
-            var allGames = AllGamesManager.Instance.GetAllGames()
-                .Where(g => !g.Ignore)
-                .ToList();
-
-            if (allGames.Count == 0) return Task.CompletedTask;
-
-            var gamesWithVideo = allGames.Where(g => g.HasVideo).ToList();
-            var candidates = gamesWithVideo.Count > 0 ? gamesWithVideo : allGames;
-
-            if (candidates.Count == 0) return Task.CompletedTask;
-
-            var favorites = candidates.Where(g => g.IsFavorite).ToList();
-            var nonFavorites = candidates.Where(g => !g.IsFavorite).ToList();
-
-            GameMetadata newGame;
-
-            if (favorites.Count > 0 && nonFavorites.Count > 0)
-            {
-                if (_random.NextDouble() < 0.2)
-                    newGame = favorites[_random.Next(favorites.Count)];
-                else
-                    newGame = nonFavorites[_random.Next(nonFavorites.Count)];
-            }
-            else if (favorites.Count > 0)
-                newGame = favorites[_random.Next(favorites.Count)];
-            else if (nonFavorites.Count > 0)
-                newGame = nonFavorites[_random.Next(nonFavorites.Count)];
-            else
-                return Task.CompletedTask;
-
-            CurrentGame = newGame;
-            return Task.CompletedTask;
         }
 
         private void UpdateClock()
@@ -251,11 +277,11 @@ namespace UltimateEnd.ViewModels
 
         public (Platform? platform, GameMetadata? game) GetCurrentSelection()
         {
-            if (_currentGame?.PlatformId == null)
-                return (null, null);
+            if (_currentGame?.PlatformId == null) return (null, null);
 
             var actualPlatformId = GetActualPlatformId(_currentGame.PlatformId);
             _platformsById.TryGetValue(actualPlatformId, out var platform);
+
             return (platform, _currentGame);
         }
 
@@ -271,8 +297,7 @@ namespace UltimateEnd.ViewModels
             _clockTimer?.Start();
             _videoChangeTimer?.Start();
 
-            if (CurrentGame?.HasVideo == true)
-                await VideoPlayerManager.Instance.PlayWithDelayAsync(CurrentGame);
+            if (CurrentGame?.HasVideo == true) await VideoPlayerManager.Instance.PlayWithDelayAsync(CurrentGame);
         }
 
         public void Dispose()
@@ -285,6 +310,12 @@ namespace UltimateEnd.ViewModels
             _platformLogoImage = null;
 
             _platformsById.Clear();
+
+            _videoFavorites.Clear();
+            _videoNormal.Clear();
+            _allFavorites.Clear();
+            _allNormal.Clear();
+
             CurrentGame = null;
         }
     }

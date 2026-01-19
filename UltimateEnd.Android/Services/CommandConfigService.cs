@@ -78,134 +78,133 @@ namespace UltimateEnd.Android.Services
 
             config.AddEmulator(new Command
             { 
-                Id = "dolphin", Name = "Dolphin", IsRetroArch = false, SupportedPlatforms = ["gc", "wii"],
+                Id = "dolphin", Name = "Dolphin", SupportedPlatforms = ["gc", "wii"],
                 LaunchCommand = "am start -n org.dolphinemu.dolphinemu/.ui.main.MainActivity -a android.intent.action.VIEW -e AutoStartFile \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "dolphinmmjr2", Name = "Dolphin MMJR2", IsRetroArch = false, SupportedPlatforms = ["gc", "wii"], 
+                Id = "dolphinmmjr2", Name = "Dolphin MMJR2", SupportedPlatforms = ["gc", "wii"], 
                 LaunchCommand = "am start -n org.dolphinemu.mmjr/org.dolphinemu.dolphinemu.ui.main.MainActivity -a android.intent.action.VIEW -e AutoStartFile \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             { 
-                Id = "cemu", Name = "Cemu", IsRetroArch = false, SupportedPlatforms = ["wiiu"],
+                Id = "cemu", Name = "Cemu", SupportedPlatforms = ["wiiu"],
                 LaunchCommand = "am start -n info.cemu.cemu/.emulation.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             { 
-                Id = "flycast", Name = "Flycast", IsRetroArch = false, SupportedPlatforms = ["naomi", "naomi2", "dc"],
+                Id = "flycast", Name = "Flycast", SupportedPlatforms = ["naomi", "naomi2", "dc"],
                 LaunchCommand = "am start -n com.flycast.emulator/.MainActivity -a android.intent.action.VIEW -d \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "drastic", Name = "DRASTIC", IsRetroArch = false, SupportedPlatforms = ["nds"],
+                Id = "drastic", Name = "DRASTIC", SupportedPlatforms = ["nds"],
                 LaunchCommand = "am start -n com.dsemu.drastic/.DraSticActivity -a android.intent.action.VIEW -d \"{fileUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "melondsdual", Name = "MELONDS Dual", IsRetroArch = false, SupportedPlatforms = ["nds"],
+                Id = "melondsdual", Name = "MELONDS Dual", SupportedPlatforms = ["nds"],
                 LaunchCommand = "am start -n me.magnum.melonds/me.magnum.melonds.ui.emulator.EmulatorActivity -a me.magnum.melonds.LAUNCH_ROM -d \"{safUriRomPath}\" --grant-read-uri-permission --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "noods", Name = "NOODS", IsRetroArch = false, SupportedPlatforms = ["nds"],
+                Id = "noods", Name = "NOODS", SupportedPlatforms = ["nds"],
                 LaunchCommand = "am start -n com.hydra.noods/.FileBrowser -a android.intent.action.MAIN -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "citra", Name = "Citra", IsRetroArch = false, SupportedPlatforms = ["3ds"],
+                Id = "citra", Name = "Citra", SupportedPlatforms = ["3ds"],
                 LaunchCommand = "am start -n org.citra.citra_emu/.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-top"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "citra mmj", Name = "Citra MMJ", IsRetroArch = false, SupportedPlatforms = ["3ds"],
+                Id = "citra mmj", Name = "Citra MMJ", SupportedPlatforms = ["3ds"],
                 LaunchCommand = "am start -n com.antutu.ABenchMark/org.citra.emu.ui.EmulationActivity -a android.intent.action.VIEW -e GamePath \"{romPath}\" --activity-clear-top"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "azahar", Name = "AZAHAR", IsRetroArch = false, SupportedPlatforms = ["3ds"],
+                Id = "azahar", Name = "AZAHAR", SupportedPlatforms = ["3ds"],
                 LaunchCommand = "am start -n io.github.lime3ds.android/org.citra.citra_emu.activities.EmulationActivity -a android.intent.action.VIEW  -d \"{safUriRomPath}\" --activity-clear-top"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "azahar plus", Name = "AZAHAR Plus", IsRetroArch = false, SupportedPlatforms = ["3ds"],
+                Id = "azahar plus", Name = "AZAHAR Plus", SupportedPlatforms = ["3ds"],
                 LaunchCommand = "am start -n io.github.azaharplus.android/org.citra.citra_emu.activities.EmulationActivity -a android.intent.action.VIEW  -d \"{safUriRomPath}\" --activity-clear-top"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "ppsspp", Name = "PPSSPP", IsRetroArch = false, SupportedPlatforms = ["psp"],
+                Id = "ppsspp", Name = "PPSSPP", SupportedPlatforms = ["psp"],
                 LaunchCommand = "am start -n org.ppsspp.ppsspp/.PpssppActivity -a android.intent.action.VIEW -d \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "ppssppgold", Name = "PPSSPP(Gold)", IsRetroArch = false, SupportedPlatforms = ["psp"],
+                Id = "ppssppgold", Name = "PPSSPP(Gold)", SupportedPlatforms = ["psp"],
                 LaunchCommand = "am start -n org.ppsspp.ppssppgold/org.ppsspp.ppsspp.PpssppActivity -a android.intent.action.VIEW -d \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command // 미 확인
             {
-                Id = "vita3k", Name = "VITA3K", IsRetroArch = false, SupportedPlatforms = ["psvita"],
+                Id = "vita3k", Name = "VITA3K", SupportedPlatforms = ["psvita"],
                 LaunchCommand = "am start -n org.vita3k.emulator/.Emulator -a android.intent.action.VIEW --esa AppStartParameters -r,{romName} --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "aethersx2", Name = "AetherSX2", IsRetroArch = false, SupportedPlatforms = ["ps2"],
+                Id = "aethersx2", Name = "AetherSX2", SupportedPlatforms = ["ps2"],
                 LaunchCommand = "am start -n xyz.aethersx2.android/.EmulationActivity -a android.intent.action.MAIN -e bootPath \"{romPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "rpcsx", Name = "RPCSX", IsRetroArch = false, SupportedPlatforms = ["ps3"],
+                Id = "rpcsx", Name = "RPCSX", SupportedPlatforms = ["ps3"],
                 LaunchCommand = "am start -n net.rpcsx/.MainActivity --es titleId {romName} --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
-
             config.AddEmulator(new Command
             {
-                Id = "yuzu", Name = "Yuzu", IsRetroArch = false, SupportedPlatforms = ["nsw"],
+                Id = "yuzu", Name = "Yuzu", SupportedPlatforms = ["nsw"],
                 LaunchCommand = "am start -n org.yuzu.yuzu_emu/.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "citron", Name = "Citron", IsRetroArch = false, SupportedPlatforms = ["nsw"],
+                Id = "citron", Name = "Citron", SupportedPlatforms = ["nsw"],
                 LaunchCommand = "am start -n org.citron.citron_emu/.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "edenlegacy", Name = "Eden Legacy", IsRetroArch = false, SupportedPlatforms = ["nsw"],
+                Id = "edenlegacy", Name = "Eden Legacy", SupportedPlatforms = ["nsw"],
                 LaunchCommand = "am start -n dev.legacy.eden_emulator/org.yuzu.yuzu_emu.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "edenoptimized", Name = "Eden Optimized", IsRetroArch = false, SupportedPlatforms = ["nsw"],
+                Id = "edenoptimized", Name = "Eden Optimized", SupportedPlatforms = ["nsw"],
                 LaunchCommand = "am start -n com.miHoYo.Yuanshen/org.yuzu.yuzu_emu.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "edenstandard", Name = "Eden Standard", IsRetroArch = false, SupportedPlatforms = ["nsw"],
+                Id = "edenstandard", Name = "Eden Standard", SupportedPlatforms = ["nsw"],
                 LaunchCommand = "am start -n dev.eden.eden_emulator/org.yuzu.yuzu_emu.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "rpgmakerxp", Name = "RPG Maker XP", IsRetroArch = false, SupportedPlatforms = ["rpgmakerxp"],
+                Id = "rpgmakerxp", Name = "RPG Maker XP", SupportedPlatforms = ["rpgmakerxp"],
                 LaunchCommand = @"am start -a cyou.joiplay.runtime.mkxp-z.run  -n cyou.joiplay.runtime.rpgmaker/cyou.joiplay.runtime.rpgmaker.PermissionActivity --es game '{""folder"":""{romDir}/{romName}"",""type"":""mkxp-z""}' --es settings '{""useRuby18"":{""boolean"":true},""gamepad"":{""xKeyCode"":{""int"":54},""yKeyCode"":{""int"":113},""zKeyCode"":{""int"":45},""aKeyCode"":{""int"":52},""bKeyCode"":{""int"":59},""cKeyCode"":{""int"":46},""lKeyCode"":{""int"":66},""rKeyCode"":{""int"":111},""clKeyCode"":{""int"":132},""crKeyCode"":{""int"":138}}}'"
             });
 

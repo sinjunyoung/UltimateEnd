@@ -25,6 +25,7 @@ namespace UltimateEnd.Orchestrators
         {
             PrepareForLaunch();
             IdleDetectionEnabled?.Invoke(false);
+            VideoContainerVisibilityRequested?.Invoke(false);
 
             if (!OperatingSystem.IsAndroid()) ScreenSaverManager.Instance.PauseScreenSaver();
 
@@ -44,6 +45,7 @@ namespace UltimateEnd.Orchestrators
                         {
                             LaunchFailed?.Invoke();
                             IdleDetectionEnabled?.Invoke(true);
+                            VideoContainerVisibilityRequested?.Invoke(true);
                             return;
                         }
                     }
@@ -51,6 +53,7 @@ namespace UltimateEnd.Orchestrators
                     {
                         LaunchFailed?.Invoke();
                         IdleDetectionEnabled?.Invoke(true);
+                        VideoContainerVisibilityRequested?.Invoke(true);
                         return;
                     }
                 }
@@ -63,6 +66,7 @@ namespace UltimateEnd.Orchestrators
                 await HandleError(ex);
                 LaunchFailed?.Invoke();
                 IdleDetectionEnabled?.Invoke(true);
+                VideoContainerVisibilityRequested?.Invoke(true);
                 return;
             }
 
@@ -72,6 +76,7 @@ namespace UltimateEnd.Orchestrators
 
             IdleDetectionEnabled?.Invoke(true);
             LaunchCompleted?.Invoke();
+            VideoContainerVisibilityRequested?.Invoke(true);
 
             if (!OperatingSystem.IsAndroid()) ScreenSaverManager.Instance.ResumeScreenSaver();
         }
@@ -80,13 +85,8 @@ namespace UltimateEnd.Orchestrators
         {
             ActivateApp();
             await Task.Delay(100);
-
-            VideoContainerVisibilityRequested?.Invoke(false);
-
             var handler = EmulatorValidationHandlerFactory.Create?.Invoke();
             var action = handler != null ? await handler.HandleValidationFailedAsync(validation) : EmulatorValidationAction.Cancel;
-
-            VideoContainerVisibilityRequested?.Invoke(true);
 
             return action;
         }
@@ -102,12 +102,7 @@ namespace UltimateEnd.Orchestrators
         {
             ActivateApp();
             await Task.Delay(200);
-
-            VideoContainerVisibilityRequested?.Invoke(false);
-
             await DialogService.Instance.ShowMessage("게임 실행 오류", $"게임 실행 중 오류가 발생했습니다:\n{ex.Message}", MessageType.Error);
-
-            VideoContainerVisibilityRequested?.Invoke(true);
         }
 
         private async static Task DeactivateApp()

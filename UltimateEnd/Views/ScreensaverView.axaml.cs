@@ -124,38 +124,40 @@ namespace UltimateEnd.Views
         {
             base.OnAttachedToVisualTree(e);
 
-            Dispatcher.UIThread.Post(() =>
-            {
-                InitializeVideoPlayer();
-                VideoContainer.Opacity = 0;
-            }, DispatcherPriority.Loaded);
-
             if (ViewModel != null) ViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
             Dispatcher.UIThread.Post(async () =>
             {
-                await Task.Delay(300);
-
-                if (ViewModel?.CurrentGame?.HasVideo == true)
+                try
                 {
-                    await VideoPlayerManager.Instance.PlayWithDelayAsync(ViewModel.CurrentGame);
-                    await Task.Delay(500);
+                    VideoContainer.Opacity = 0;
 
-                    Dispatcher.UIThread.Post(() =>
+                    InitializeVideoPlayer();
+
+                    await Task.Delay(100);
+
+                    this.Focus();
+
+                    if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                     {
+                        var window = desktop.MainWindow;
+
+                        if (window != null && window.WindowState != WindowState.FullScreen) window.WindowState = WindowState.FullScreen;
+                    }
+
+                    await Task.Delay(200);
+
+                    if (ViewModel?.CurrentGame?.HasVideo == true)
+                    {
+                        await VideoPlayerManager.Instance.PlayWithDelayAsync(ViewModel.CurrentGame);
+                        await Task.Delay(300);
                         UpdateVideoSize();
                         VideoContainer.Opacity = 1;
-                    }, DispatcherPriority.Background);
+                    }
                 }
-
-                this.Focus();
-
-                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                catch (Exception ex)
                 {
-                    var window = desktop.MainWindow;
-
-                    if (window != null && window.WindowState != WindowState.FullScreen)
-                        window.WindowState = WindowState.FullScreen;
+                    System.Diagnostics.Debug.WriteLine($"Screensaver initialization error: {ex}");
                 }
             }, DispatcherPriority.Background);
         }

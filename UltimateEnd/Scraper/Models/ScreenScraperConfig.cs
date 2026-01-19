@@ -153,7 +153,7 @@ namespace UltimateEnd.Scraper.Models
             }
         }
 
-        private CoverImageType _coverImage = CoverImageType.Box3D;
+        private CoverImageType _coverImage = CoverImageType.Box2D;
         public CoverImageType CoverImage
         {
             get => _coverImage;
@@ -397,7 +397,7 @@ namespace UltimateEnd.Scraper.Models
             _preferredLanguage = "jp";
             _regionStyle = "Japanese";
             _logoImage = LogoImageType.Normal;
-            _coverImage = CoverImageType.Box3D;
+            _coverImage = CoverImageType.Box2D;
             _useZipInternalFileName = false;
             _allowScrapTitle = false;
             _allowScrapDescription = true;

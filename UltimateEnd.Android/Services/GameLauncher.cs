@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Android.Models;
+using UltimateEnd.Coordinators;
 using UltimateEnd.Enums;
+using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 
@@ -49,7 +51,9 @@ namespace UltimateEnd.Android.Services
                 if (!_appValidator.IsAppInstalled(packageName))
                 {
                     var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
+                    await DialogService.Instance.ShowLoading("정보 확인 중...");
                     var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+                    await DialogService.Instance.HideLoading();
 
                     return new EmulatorValidationResult
                     {

@@ -33,8 +33,6 @@ namespace UltimateEnd.Views.Overlays
             var snapshot = FocusHelper.CreateSnapshot();
             _focusStack.Push(snapshot);
 
-            _focusStack.Push(FocusHelper.CreateSnapshot());
-
             TitleText.Text = title;
             MessageText.Text = message;
 

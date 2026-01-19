@@ -22,9 +22,9 @@ namespace UltimateEnd.Android.Services
 
         public AppProvider() { }
 
-        public async Task<List<NativeAppInfo>> BrowseAppsAsync()
+        public async Task<NativeAppInfo> BrowseAppsAsync()
         {
-            var tcs = new TaskCompletionSource<List<NativeAppInfo>>();
+            var tcs = new TaskCompletionSource<NativeAppInfo>();
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -55,14 +55,12 @@ namespace UltimateEnd.Android.Services
 
                         File.WriteAllText(dummyFilePath, fileContent);
 
-                        var result = new List<NativeAppInfo>
+                        var result = new NativeAppInfo
                         {
-                            new() {
-                                Identifier = dummyFileName,
-                                DisplayName = selectedApp.DisplayName,
-                                ActivityName = selectedApp.ActivityName,
-                                Icon = selectedApp.Icon
-                            }
+                            Identifier = dummyFileName,
+                            DisplayName = selectedApp.DisplayName,
+                            ActivityName = selectedApp.ActivityName,
+                            Icon = selectedApp.Icon
                         };
 
                         overlay.AppSelected -= handler;
@@ -78,7 +76,7 @@ namespace UltimateEnd.Android.Services
                             overlay.AppSelected -= handler;
                             overlay.Hidden -= hiddenHandler;
                             grid.Children.Remove(overlay);
-                            tcs.SetResult([]);
+                            tcs.SetResult(null);
                         }
                     };
 

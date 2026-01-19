@@ -54,148 +54,114 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
-                Id = "mGBA",
-                Name = "mGBA",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\mGBA\mGBA.exe {romPath} --fullscreen",
-                SupportedPlatforms = ["gb", "gbc", "gba"]
+                Id = "mGBA", Name = "mGBA", SupportedPlatforms = ["gb", "gbc", "gba"],
+                LaunchCommand = @"Emulators\mGBA\mGBA.exe {romPath} --fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "visualboyadvance",
-                Name = "VisualBoyAdvance",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\VisualBoyAdvance\VisualBoyAdvance.exe {romPath}",
-                SupportedPlatforms = ["gb", "gbc", "gba"]
+                Id = "visualboyadvance", Name = "VisualBoyAdvance", SupportedPlatforms = ["gb", "gbc", "gba"],
+                LaunchCommand = @"Emulators\VisualBoyAdvance\VisualBoyAdvance.exe {romPath}"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "bsnes",
-                Name = "BSNES",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\bsnes\bsnes.exe {romPath} --fullscreen",
-                SupportedPlatforms = ["gb", "gbc", "gba", "sfc", "fc", "md", "mastersystem", "gg", "pce", "ws", "wsc"]
+                Id = "bsnes", Name = "BSNES", SupportedPlatforms = ["gb", "gbc", "gba", "sfc", "fc", "md", "mastersystem", "gg", "pce", "ws", "wsc"],
+                LaunchCommand = @"Emulators\bsnes\bsnes.exe {romPath} --fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "mesen",
-                Name = "Mesen",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\Mesen\Mesen.exe {romPath} --fullscreen",
-                SupportedPlatforms = ["fc", "sfc", "gb", "gbc", "gba", "pce", "gg", "ws", "wsc"]
+                Id = "mesen", Name = "Mesen", SupportedPlatforms = ["fc", "sfc", "gb", "gbc", "gba", "pce", "gg", "ws", "wsc"],
+                LaunchCommand = @"Emulators\Mesen\Mesen.exe {romPath} --fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "desmume",
-                Name = "DeSmuME",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\desmume\DeSmuME_0.9.13_x64.exe {romPath} --windowed-fullscreen",
-                SupportedPlatforms = ["nds"]
+                Id = "desmume", Name = "DeSmuME", SupportedPlatforms = ["nds"],
+                LaunchCommand = @"Emulators\desmume\DeSmuME_0.9.13_x64.exe {romPath} --windowed-fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "azahar",
-                Name = "Azahar",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\azahar\azahar.exe {romPath}",
-                SupportedPlatforms = ["3ds"]
+                Id = "azahar", Name = "Azahar", SupportedPlatforms = ["3ds"],
+                LaunchCommand = @"Emulators\azahar\azahar.exe {romPath}"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "azahar plus",
-                Name = "Azahar Plus",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\azaharplus\azahar.exe {romPath}",
-                SupportedPlatforms = ["3ds"]
+                Id = "azahar plus", Name = "Azahar Plus", SupportedPlatforms = ["3ds"],
+                LaunchCommand = @"Emulators\azaharplus\azahar.exe {romPath}"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "ppsspp",
-                Name = "PPSSPP",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\PPSSPP\PPSSPPWindows64.exe {romPath} --fullscreen",
-                SupportedPlatforms = ["psp"]
+                Id = "ppsspp", Name = "PPSSPP", SupportedPlatforms = ["psp"],
+                LaunchCommand = @"Emulators\PPSSPP\PPSSPPWindows64.exe {romPath} --fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "pcsx2",
-                Name = "PCSX2",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\pcsx2\pcsx2-qt.exe {romPath} -fullscreen",
-                SupportedPlatforms = ["ps2"]
+                Id = "pcsx2", Name = "PCSX2", SupportedPlatforms = ["ps2"],
+                LaunchCommand = @"Emulators\pcsx2\pcsx2-qt.exe {romPath} -fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "rpcs3",
-                Name = "RPCS3",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\rpcs3\rpcs3.exe {preScriptResult} --no-gui",
-                SupportedPlatforms = ["ps3"],
+                Id = "rpcs3", Name = "RPCS3", SupportedPlatforms = ["ps3"],
+                LaunchCommand = @"Emulators\rpcs3\rpcs3.exe {preScriptResult} --no-gui",                
                 PrelaunchScript = @"powershell -Command ""$img = Mount-DiskImage -ImagePath '{romPath}' -PassThru; '{romPath}' | Out-File (Join-Path $env:TEMP 'rpcs3_iso.txt'); $drive = ($img | Get-Volume).DriveLetter + ':'; $eboot = (Get-ChildItem -Path $drive -Recurse -Filter 'EBOOT.BIN' | Select-Object -First 1).FullName; Write-Output $eboot""",
                 PostlaunchScript = @"powershell -Command ""$f = Join-Path $env:TEMP 'rpcs3_iso.txt'; if (Test-Path $f) { Dismount-DiskImage -ImagePath (Get-Content $f); Remove-Item $f }"""
             });
 
             config.AddEmulator(new Command
             {
-                Id = "vita3k",
-                Name = "Vita3K",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\Vita3K\Vita3K.exe -r {romName} --fullscreen",
-                SupportedPlatforms = ["vita"]
+                Id = "vita3k", Name = "Vita3K", SupportedPlatforms = ["vita"],
+                LaunchCommand = @"Emulators\Vita3K\Vita3K.exe -r {romName} --fullscreen"                
             });
 
             config.AddEmulator(new Command
             {
-                Id = "dolphin",
-                Name = "Dolphin",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\Dolphin\Dolphin.exe {romPath} --config ""Dolphin.Display.Fullscreen=True""",
-                SupportedPlatforms = ["gc", "wii"]
+                Id = "dolphin", Name = "Dolphin", SupportedPlatforms = ["gc", "wii"],
+                LaunchCommand = @"Emulators\Dolphin\Dolphin.exe {romPath} --config ""Dolphin.Display.Fullscreen=True"""
             });
 
             config.AddEmulator(new Command
             {
-                Id = "cemu",
-                Name = "CEMU",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\cemu\Cemu.exe -g {romPath} -f",
-                SupportedPlatforms = ["wiiu"]
+                Id = "cemu", Name = "CEMU", SupportedPlatforms = ["wiiu"],
+                LaunchCommand = @"Emulators\cemu\Cemu.exe -g {romPath} -f"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "sudachi",
-                Name = "sudachi",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\sudachi\sudachi.exe -f -g {romPath}",
-                SupportedPlatforms = ["switch"]
+                Id = "sudachi", Name = "sudachi", SupportedPlatforms = ["switch"],
+                LaunchCommand = @"Emulators\sudachi\sudachi.exe -f -g {romPath}"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "yuzu",
-                Name = "yuzu",
-                IsRetroArch = false,
-                LaunchCommand = @"Emulators\yuzu\yuzu.exe -f -g {romPath}",
-                SupportedPlatforms = ["switch"]
+                Id = "yuzu", Name = "yuzu", SupportedPlatforms = ["switch"],
+                LaunchCommand = @"Emulators\yuzu\yuzu.exe -f -g {romPath}"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "steam",
-                Name = "STEAM",
-                IsRetroArch = false,
-                LaunchCommand = @"""C:\Program Files (x86)\Steam\steam.exe"" -applaunch {romName}",
-                SupportedPlatforms = ["steam"]
+                Id = "xemu", Name = "xemu", SupportedPlatforms = ["xbox"],
+                LaunchCommand = @"Emulators\xemu\xemu.exe -dvd_path {romPath} -full-screen"
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "xenia", Name = "Xenia", SupportedPlatforms = ["xbox360"],
+                LaunchCommand = @"Emulators\xenia\xenia_canary.exe {preScriptResult} --fullscreen=true",
+                PrelaunchScript = @"powershell -Command ""$img = Mount-DiskImage -ImagePath '{romPath}' -PassThru; '{romPath}' | Out-File (Join-Path $env:TEMP 'xenia_iso.txt'); $drive = ($img | Get-Volume).DriveLetter + ':'; $xex = (Get-ChildItem -Path $drive -Recurse -Filter 'default.xex' | Select-Object -First 1).FullName; Write-Output $xex""",
+                PostlaunchScript = @"powershell -Command ""$f = Join-Path $env:TEMP 'xenia_iso.txt'; if (Test-Path $f) { Dismount-DiskImage -ImagePath (Get-Content $f); Remove-Item $f }"""
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "steam", Name = "STEAM", SupportedPlatforms = ["steam"],
+                LaunchCommand = @"""C:\Program Files (x86)\Steam\steam.exe"" -applaunch {romName}"                
             });
 
             SetCommonDefaultEmulators(config);

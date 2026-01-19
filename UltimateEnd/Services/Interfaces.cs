@@ -37,7 +37,7 @@ namespace UltimateEnd.Services
 
         string PlatformName { get; }
 
-        Task<List<NativeAppInfo>> BrowseAppsAsync();
+        Task<NativeAppInfo> BrowseAppsAsync();
 
         void LaunchApp(GameMetadata game);
     }

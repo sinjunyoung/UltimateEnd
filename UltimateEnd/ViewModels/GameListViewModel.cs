@@ -361,13 +361,22 @@ namespace UltimateEnd.ViewModels
                 if (ViewMode == GameViewMode.List) await _videoCoordinator.ResumeAsync(SelectedGame);
             };
             _launchOrchestrator.VideoContainerVisibilityRequested += visible => Dispatcher.UIThread.Post(() => IsVideoContainerVisible = visible);
-            _launchOrchestrator.LaunchCompleted += () => Dispatcher.UIThread.Post(async () =>
+            _launchOrchestrator.LaunchCompleted += () => Dispatcher.UIThread.Post(() =>
             {
-                await Task.Delay(400);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    RequestExplicitScroll?.Invoke(this, SelectedGame);
+                }, DispatcherPriority.Background);
+
                 IsLaunchingGame = false;
             });
             _launchOrchestrator.LaunchFailed += () => Dispatcher.UIThread.Post(() =>
             {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    RequestExplicitScroll?.Invoke(this, SelectedGame);
+                }, DispatcherPriority.Background);
+
                 IsLaunchingGame = false;
                 TryResumeVideo();
             });                
@@ -748,61 +757,86 @@ namespace UltimateEnd.ViewModels
         {
             try
             {
-                var focusSnapshot = FocusHelper.CreateSnapshot();
                 var appProvider = AppProviderFactory.Create?.Invoke();
 
                 if (appProvider == null)
-                {
-                    focusSnapshot.Restore(); return;
-                }
+                    return;
 
-                var apps = await appProvider.BrowseAppsAsync();
+                var app = await appProvider.BrowseAppsAsync();
 
-                if (apps == null || apps.Count == 0)
+                if (app == null)
                 {
-                    focusSnapshot.Restore();
+                    if (SelectedGame != null)
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            RequestExplicitScroll?.Invoke(this, SelectedGame);
+                        }, DispatcherPriority.Background);
+                    }
+
                     return;
                 }
 
                 var systemAppsPath = AppSettings.SystemAppsPath;
                 var converter = PathConverterFactory.Create?.Invoke();
                 var realSystemAppsPath = converter?.FriendlyPathToRealPath(systemAppsPath) ?? systemAppsPath;
+
+                foreach(var g in Games)
+                {
+                    if (g.PlatformId == appProvider.PlatformId && g.RomFile == app.Identifier)
+                    {
+                        this._videoCoordinator.IsVideoContainerVisible = false;
+                        await DialogService.Instance.ShowInfo("이미 추가된 앱입니다.");
+                        this._videoCoordinator.IsVideoContainerVisible = true;
+
+                        if (SelectedGame != null)
+                        {
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                RequestExplicitScroll?.Invoke(this, SelectedGame);
+                            }, DispatcherPriority.Background);
+                        }
+
+                        return;
+                    }
+                }
+
                 var platformPath = Path.Combine(realSystemAppsPath, appProvider.PlatformId);
 
                 Directory.CreateDirectory(platformPath);
 
-                foreach (var app in apps)
+                var game = new GameMetadata
                 {
-                    var game = new GameMetadata
-                    {
-                        PlatformId = appProvider.PlatformId,
-                        RomFile = app.Identifier,
-                        Title = app.DisplayName,
-                        EmulatorId = app.ActivityName
-                    };
+                    PlatformId = appProvider.PlatformId,
+                    RomFile = app.Identifier,
+                    Title = app.DisplayName,
+                    EmulatorId = app.ActivityName
+                };
 
-                    game.SetBasePath(platformPath);
+                game.SetBasePath(platformPath);
 
-                    if (app.Icon != null)
-                    {
-                        var safeFileName = string.Join("_", app.DisplayName.Split(Path.GetInvalidFileNameChars()));
-                        var mediaPath = Path.Combine(platformPath, "media", safeFileName);
+                if (app.Icon != null)
+                {
+                    var safeFileName = string.Join("_", app.DisplayName.Split(Path.GetInvalidFileNameChars()));
+                    var mediaPath = Path.Combine(platformPath, "media", safeFileName);
 
-                        Directory.CreateDirectory(mediaPath);
+                    Directory.CreateDirectory(mediaPath);
 
-                        var logoPath = Path.Combine(mediaPath, "logo.png");
-                        app.Icon.Save(logoPath);
+                    var logoPath = Path.Combine(mediaPath, "logo.png");
+                    app.Icon.Save(logoPath);
 
-                        var friendlyPath = converter?.RealPathToFriendlyPath(logoPath) ?? logoPath;
-                        game.LogoImagePath = PathHelper.ToRelativePath(friendlyPath);
-                    }
+                    var friendlyPath = converter?.RealPathToFriendlyPath(logoPath) ?? logoPath;
+                    var relativePath = PathHelper.ToRelativePath(friendlyPath);
 
-                    AllGamesManager.Instance.AddGame(game);
-
-                    await Dispatcher.UIThread.InvokeAsync(() => Games.Add(game));
-
-                    _persistenceService.MarkGameAsChanged(game);
+                    game.CoverImagePath = relativePath;
+                    game.LogoImagePath = relativePath;
                 }
+
+                AllGamesManager.Instance.AddGame(game);
+
+                await Dispatcher.UIThread.InvokeAsync(() => Games.Add(game));
+
+                _persistenceService.MarkGameAsChanged(game);
 
                 AllGamesManager.Instance.SavePlatformGames(appProvider.PlatformId);
                 
@@ -824,8 +858,6 @@ namespace UltimateEnd.ViewModels
                         RequestExplicitScroll?.Invoke(this, lastGame);
                     }
                 });
-
-                focusSnapshot.Restore();
             }
             catch (Exception ex)
             {

@@ -13,7 +13,7 @@ namespace UltimateEnd.Desktop.Models
         private string? _workingDirectory;
         private string? _prelaunchScript;
         private string? _postlaunchScript;
-        private bool _isRetroArch;
+        private bool _isRetroArch = false;
 
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
