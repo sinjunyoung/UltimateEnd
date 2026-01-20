@@ -93,7 +93,16 @@ namespace UltimateEnd.Views
 
             OnDataContextChangedCore(e);
 
-            GameScrollViewerFocusLoaded();
+            if (ViewModel?.SelectedGame != null)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ScrollToItem(ViewModel.SelectedGame);
+                    GameScrollViewerFocusLoaded();
+                }, DispatcherPriority.Loaded);
+            }
+            else
+                GameScrollViewerFocusLoaded();
         }
 
         protected async override void OnKeyDown(KeyEventArgs e)
@@ -104,8 +113,7 @@ namespace UltimateEnd.Views
 
             if (SearchBoxBase.IsFocused) return;
 
-            if (await HandleCommonKeyInput(e))
-                return;
+            if (await HandleCommonKeyInput(e)) return;
 
             OnKeyDownCore(e);
         }

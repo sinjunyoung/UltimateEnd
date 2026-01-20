@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using UltimateEnd.Behaviors;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
@@ -26,6 +25,7 @@ namespace UltimateEnd.Views
         private int _visibleItemCount = 13;
         private bool _isResizing = false;
         private bool _isScrollViewerInitialized = false;
+        private double _cachedHeight = 0;
 
         #endregion
 
@@ -147,6 +147,7 @@ namespace UltimateEnd.Views
             base.OnAttachedToVisualTreeCore(e);
 
             VideoContainer.PointerPressed += (s, args) => args.Handled = true;
+            _isScrollViewerInitialized = false;
             GameScrollViewer.Loaded += OnScrollViewerLoaded;
 
             InitializeVideoPlayer();
@@ -237,18 +238,13 @@ namespace UltimateEnd.Views
 
                     double viewportHeight = scrollViewer.Viewport.Height;
                     _visibleItemCount = (int)(viewportHeight / itemHeight);
+
+                    _cachedHeight = itemHeight;
                 }
-
-                if (ViewModel?.SelectedGame != null)
-                {
-                    int index = ViewModel.Games.IndexOf(ViewModel.SelectedGame);
-
-                    if (index >= 0) Dispatcher.UIThread.Post(() => ScrollToIndex(index), DispatcherPriority.Loaded);
-                }
-
-                if (!_isResizing && ViewModel?.SelectedGame?.HasVideo == true) Dispatcher.UIThread.Post(() => ViewModel?.PlayInitialVideoCommand.Execute(ViewModel.SelectedGame).Subscribe(), DispatcherPriority.Loaded);                    
+                if (!_isResizing && ViewModel?.SelectedGame?.HasVideo == true) Dispatcher.UIThread.Post(() => ViewModel?.PlayInitialVideoCommand.Execute(ViewModel.SelectedGame).Subscribe(), DispatcherPriority.Loaded);
             }
         }
+
 
         #endregion
 
@@ -266,8 +262,6 @@ namespace UltimateEnd.Views
             if (index >= 0)
                 ScrollToIndex(index);
         }
-
-        private double _cachedHeight = 0;
 
         protected override void ScrollToIndex(int index)
         {
@@ -617,10 +611,7 @@ namespace UltimateEnd.Views
             _videoViewInitializer?.Initialize(VideoContainer, ViewModel?.MediaPlayer);
         }
 
-        private void CleanupVideoPlayer()
-        {
-            // 필요 시 정리 로직
-        }
+        private void CleanupVideoPlayer() { }
 
         #endregion
     }

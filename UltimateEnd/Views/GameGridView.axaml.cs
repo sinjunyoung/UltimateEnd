@@ -5,6 +5,8 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
@@ -53,6 +55,7 @@ namespace UltimateEnd.Views
         {
             base.OnAttachedToVisualTreeCore(e);
 
+            _isInitialized = false;
             GameScrollViewer.SizeChanged += OnScrollViewerSizeChanged;
             GameScrollViewer.Loaded += OnScrollViewerLoaded;
 
@@ -98,25 +101,29 @@ namespace UltimateEnd.Views
 
         #region ScrollViewer Events
 
-        private void OnScrollViewerLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void OnScrollViewerLoaded(object? sender, RoutedEventArgs e)
         {
             if (!_isInitialized)
             {
                 _isInitialized = true;
                 GameScrollViewer.Loaded -= OnScrollViewerLoaded;
 
-                Dispatcher.UIThread.Post(() =>
+                CalculateGridLayout();
+
+                if (ViewModel?.SelectedGame != null)
                 {
-                    CalculateGridLayout();
+                    int index = ViewModel.DisplayItems
+                        .Select((item, idx) => new { item, idx })
+                        .FirstOrDefault(x => x.item.IsGame && x.item.Game == ViewModel.SelectedGame)
+                        ?.idx ?? -1;
 
-                    if (ViewModel?.SelectedGame != null)
-                        ScrollToItem(ViewModel.SelectedGame);
+                    if (index >= 0) ScrollToIndex(index);
+                }
 
-                    EnsureVideoStopped();
-
-                }, DispatcherPriority.Loaded);
+                EnsureVideoStopped();
             }
         }
+
 
         private void OnScrollViewerSizeChanged(object? sender, SizeChangedEventArgs e) => CalculateGridLayout();
 
@@ -128,17 +135,13 @@ namespace UltimateEnd.Views
         {
             double availableWidth = GameScrollViewer.Bounds.Width;
 
-            if (availableWidth <= 0)
-                return;
+            if (availableWidth <= 0) return;
 
             int MIN_ITEM_WIDTH = ThumbnailSettings.GetMaxCoverWidth();
 
             const double SPACING = 5;
-
             int columns = Math.Max(3, (int)((availableWidth + SPACING) / (MIN_ITEM_WIDTH + SPACING)));
-
             double actualItemWidth = (availableWidth - (SPACING * (columns + 1))) / columns;
-
             double actualItemHeight = actualItemWidth * 1.4;
 
             _columns = columns;
@@ -154,6 +157,9 @@ namespace UltimateEnd.Views
             };
 
             GameItemsRepeater.Layout = layout;
+
+            GameItemsRepeater.InvalidateMeasure();
+            GameItemsRepeater.UpdateLayout();
         }
 
         #endregion
@@ -162,9 +168,13 @@ namespace UltimateEnd.Views
 
         protected override void ScrollToItem(GameMetadata game)
         {
-            if (ViewModel?.Games == null) return;
+            if (ViewModel?.DisplayItems == null) return;
 
-            int index = ViewModel.Games.IndexOf(game);
+            int index = ViewModel.DisplayItems
+                .Select((item, idx) => new { item, idx })
+                .FirstOrDefault(x => x.item.IsGame && x.item.Game == game)
+                ?.idx ?? -1;
+
             if (index < 0) return;
 
             ScrollToIndex(index);
@@ -172,11 +182,12 @@ namespace UltimateEnd.Views
 
         protected override void ScrollToIndex(int index)
         {
-            if (ViewModel?.Games.Count == 0) return;
+            if (ViewModel?.Games.Count == 0 || index < 0) return;
 
             int row = index / _columns;
 
             double availableWidth = GameScrollViewer.Bounds.Width;
+
             if (availableWidth <= 0) return;
 
             int MIN_ITEM_WIDTH = ThumbnailSettings.GetMaxCoverWidth();
@@ -187,31 +198,34 @@ namespace UltimateEnd.Views
             double actualItemHeight = actualItemWidth * 1.4;
 
             double rowHeight = actualItemHeight + SPACING;
-            double targetOffset = row * rowHeight;
+            double itemTop = row * rowHeight;
+            double itemBottom = itemTop + actualItemHeight;
 
-            double viewportHeight = GameScrollViewer.Viewport.Height;
-            double currentOffset = GameScrollViewer.Offset.Y;
+            double viewportTop = GameScrollViewer.Offset.Y;
+            double viewportBottom = viewportTop + GameScrollViewer.Viewport.Height;
 
-            if (targetOffset < currentOffset || targetOffset + actualItemHeight > currentOffset + viewportHeight)
-            {
-                double centeredOffset = targetOffset - (viewportHeight / 2) + (actualItemHeight / 2);
-                centeredOffset = Math.Max(0, Math.Min(centeredOffset, GameScrollViewer.ScrollBarMaximum.Y));
+            if (itemTop >= viewportTop && itemBottom <= viewportBottom) return;
 
-                GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, centeredOffset);
-            }
+            double targetOffset = viewportTop;
+
+            if (itemTop < viewportTop)
+                targetOffset = itemTop;
+            else if (itemBottom > viewportBottom)
+                targetOffset = itemBottom - GameScrollViewer.Viewport.Height;
+
+            targetOffset = Math.Max(0, Math.Min(targetOffset, GameScrollViewer.ScrollBarMaximum.Y));
+            GameScrollViewer.Offset = new Vector(GameScrollViewer.Offset.X, targetOffset);
         }
 
         protected override async void OnGameItemsRepeaterKeyDown(object? sender, KeyEventArgs e)
         {
             if (ViewModel == null) return;
-
             if (ViewModel.DisplayItems.Count == 0) return;
-
             if (GameRenameOverlay?.Visible == true) return;
-
             if (ViewModel.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return;
 
             await KeySoundHelper.PlaySoundForKeyEvent(e);
+
             int count = ViewModel.DisplayItems.Count;
             int currentIndex = ViewModel.SelectedItem != null ? ViewModel.DisplayItems.IndexOf(ViewModel.SelectedItem) : 0;
 
@@ -220,20 +234,15 @@ namespace UltimateEnd.Views
             int row = currentIndex / _columns;
             int col = currentIndex % _columns;
             int newIndex = currentIndex;
-            bool needsScroll = false;
 
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 if (row > 0)
-                {
                     newIndex = currentIndex - _columns;
-                    needsScroll = true;
-                }
                 else
                 {
                     int lastRow = (count - 1) / _columns;
                     newIndex = Math.Min(count - 1, lastRow * _columns + col);
-                    needsScroll = true;
                 }
                 e.Handled = true;
             }
@@ -241,15 +250,9 @@ namespace UltimateEnd.Views
             {
                 int nextIndex = currentIndex + _columns;
                 if (nextIndex < count)
-                {
                     newIndex = nextIndex;
-                    needsScroll = true;
-                }
                 else
-                {
                     newIndex = Math.Min(col, count - 1);
-                    needsScroll = true;
-                }
                 e.Handled = true;
             }
             else if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
@@ -275,35 +278,32 @@ namespace UltimateEnd.Views
             {
                 int pageSize = _rows * _columns;
                 newIndex = Math.Min(currentIndex + pageSize, count - 1);
-                needsScroll = true;
                 e.Handled = true;
             }
             else if (InputManager.IsButtonPressed(e, GamepadButton.LeftBumper))
             {
                 int pageSize = _rows * _columns;
                 newIndex = Math.Max(currentIndex - pageSize, 0);
-                needsScroll = true;
                 e.Handled = true;
             }
             else if (e.Key == Key.Home)
             {
                 newIndex = 0;
-                needsScroll = true;
                 e.Handled = true;
             }
             else if (e.Key == Key.End)
             {
                 newIndex = count - 1;
-                needsScroll = true;
                 e.Handled = true;
             }
+
             if (newIndex >= 0 && newIndex < count && newIndex != currentIndex)
             {
                 ViewModel.SelectedItem = ViewModel.DisplayItems[newIndex];
                 ViewModel.StopVideo();
-
-                if (needsScroll) ScrollToItem(ViewModel.SelectedGame);
+                ScrollToIndex(newIndex);
             }
+
             Dispatcher.UIThread.Post(() => GameScrollViewer.Focus(), DispatcherPriority.Input);
         }
 
