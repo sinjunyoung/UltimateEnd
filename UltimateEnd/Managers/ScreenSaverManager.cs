@@ -13,15 +13,27 @@ namespace UltimateEnd.Managers
 {
     public class ScreenSaverManager : IDisposable
     {
-        private static ScreenSaverManager? _instance;
+        #region Singleton
 
+        private static ScreenSaverManager? _instance;
         public static ScreenSaverManager Instance => _instance ??= new();
+
+        private ScreenSaverManager() { }
+
+        #endregion
+
+        #region Fields
 
         private IdleDetectionService? _idleDetectionService;
         private ScreensaverViewModel? _screensaverViewModel;
         private ViewModelBase? _previousView;
         private PlatformListViewModel? _platformListViewModel;
         private ViewModelBase? _currentView;
+        private bool _isWindowActive = true;
+
+        #endregion
+
+        #region Events
 
         public event Action<ViewModelBase>? ViewChangeRequested;
         public event Func<Task>? BackToPlatformListRequested;
@@ -31,7 +43,15 @@ namespace UltimateEnd.Managers
         public event Action<GameMetadata>? FavoritesChanged;
         public event Action<Platform>? LastSelectedPlatformChanged;
 
-        private ScreenSaverManager() { }
+        #endregion
+
+        #region Properties
+
+        public bool IsScreensaverActive => _screensaverViewModel != null;
+
+        #endregion
+
+        #region Initialization
 
         public void Initialize(double timeoutMinutes)
         {
@@ -45,12 +65,15 @@ namespace UltimateEnd.Managers
             _idleDetectionService.Start();
         }
 
+        #endregion
+
+        #region Public Methods
+
         public void RegisterPlatformListViewModel(PlatformListViewModel viewModel) => _platformListViewModel = viewModel;
 
         public void SetTimeout(double minutes)
         {
-            if (_idleDetectionService != null)
-                _idleDetectionService.IdleTimeout = TimeSpan.FromMinutes(minutes);
+            if (_idleDetectionService != null) _idleDetectionService.IdleTimeout = TimeSpan.FromMinutes(minutes);
         }
 
         public void PauseScreenSaver() => _idleDetectionService?.Disable();
@@ -71,10 +94,41 @@ namespace UltimateEnd.Managers
 
         public void OnAppResumed() => ResumeScreenSaver();
 
-        public bool IsScreensaverActive => _screensaverViewModel != null;
+        public void NotifyCurrentView(ViewModelBase? view)
+        {
+            _currentView = view;
+
+            if (view != null && view != _screensaverViewModel) _idleDetectionService?.ResetIdleTimer();
+        }
+
+        public void OnWindowDeactivated()
+        {
+            _isWindowActive = false;
+
+            if (_screensaverViewModel != null) RestoreFromScreensaver();
+
+            _idleDetectionService?.Disable();
+        }
+
+        public void OnWindowActivated()
+        {
+            _isWindowActive = true;
+            _idleDetectionService?.Enable();
+            _idleDetectionService?.ResetIdleTimer();
+        }
+
+        #endregion
+
+        #region Event Handlers
 
         private async void OnScreensaverActivated()
         {
+            if (!_isWindowActive)
+            {
+                _idleDetectionService?.ResetIdleTimer();
+                return;
+            }
+
             if (_screensaverViewModel != null) return;
 
             var root = GetMainWindowContent();
@@ -111,29 +165,9 @@ namespace UltimateEnd.Managers
             window?.Activate();
         }
 
-        private static Control? GetMainWindowContent()
-        {
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                return desktop.MainWindow?.Content as Control;
-
-            if (Avalonia.Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime single)
-                return single.MainView as Control;
-
-            return null;
-        }
-
-        private static Window? GetMainWindow()
-        {
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                return desktop.MainWindow;
-
-            return null;
-        }
-
         private void OnUserActivityDetected()
         {
-            if (_screensaverViewModel != null)
-                RestoreFromScreensaver();
+            if (_screensaverViewModel != null) RestoreFromScreensaver();
         }
 
         private void OnScreensaverExit() => RestoreFromScreensaver();
@@ -162,8 +196,7 @@ namespace UltimateEnd.Managers
 
             gameListViewModel.BackRequested += async () =>
             {
-                if (BackToPlatformListRequested != null)
-                    await BackToPlatformListRequested.Invoke();
+                if (BackToPlatformListRequested != null) await BackToPlatformListRequested.Invoke();
             };
             gameListViewModel.FavoritesChanged += (s, g) => FavoritesChanged?.Invoke(g);
             gameListViewModel.PreviousPlatformRequested += () => PreviousPlatformRequested?.Invoke();
@@ -178,8 +211,8 @@ namespace UltimateEnd.Managers
 
             Dispatcher.UIThread.Post(() =>
             {
-                if (GetCurrentView() == gameListViewModel && game != null)
-                    gameListViewModel.ScrollToGame(game);
+                if (GetCurrentView() == gameListViewModel && game != null) gameListViewModel.ScrollToGame(game);
+
             }, DispatcherPriority.ApplicationIdle);
 
             if (OperatingSystem.IsWindows())
@@ -195,6 +228,10 @@ namespace UltimateEnd.Managers
                 }, DispatcherPriority.Background);
             }
         }
+
+        #endregion
+
+        #region Private Methods
 
         private async void RestoreFromScreensaver()
         {
@@ -230,15 +267,27 @@ namespace UltimateEnd.Managers
             }
         }
 
-        public void NotifyCurrentView(ViewModelBase? view)
-        {
-            _currentView = view;
+        private ViewModelBase? GetCurrentView() => _currentView;
 
-            if (view != null && view != _screensaverViewModel)
-                _idleDetectionService?.ResetIdleTimer();
+        private static Control? GetMainWindowContent()
+        {
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) return desktop.MainWindow?.Content as Control;
+
+            if (Avalonia.Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime single) return single.MainView as Control;
+
+            return null;
         }
 
-        private ViewModelBase? GetCurrentView() => _currentView;
+        private static Window? GetMainWindow()
+        {
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) return desktop.MainWindow;
+
+            return null;
+        }
+
+        #endregion
+
+        #region IDisposable
 
         public void Dispose()
         {
@@ -246,5 +295,7 @@ namespace UltimateEnd.Managers
             _screensaverViewModel?.Dispose();
             _instance = null;
         }
+
+        #endregion
     }
 }

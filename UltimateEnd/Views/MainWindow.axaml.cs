@@ -1,10 +1,9 @@
 ﻿using Avalonia.Controls;
-using Avalonia.VisualTree;
 using System;
-using System.Linq;
+using System.Diagnostics;
+using UltimateEnd.Managers;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
-using UltimateEnd.Views.Overlays;
 
 namespace UltimateEnd.Views;
 
@@ -20,14 +19,17 @@ public partial class MainWindow : Window
 
     private void OnWindowDeactivated(object? sender, EventArgs e)
     {
+        ScreenSaverManager.Instance.OnWindowDeactivated();
+
         var gameListViewModel = FindGameListViewModel();
         gameListViewModel?.StopVideo();
     }
 
     private void OnWindowActivated(object? sender, EventArgs e)
     {
-        if (OverlayHelper.IsAnyOverlayVisible(this))
-            return;
+        ScreenSaverManager.Instance.OnWindowActivated();
+
+        if (OverlayHelper.IsAnyOverlayVisible(this)) return;
 
         var gameListViewModel = FindGameListViewModel();
         _ = gameListViewModel?.ResumeVideoAsync();
@@ -35,8 +37,7 @@ public partial class MainWindow : Window
 
     private GameListViewModel? FindGameListViewModel()
     {
-        if (this.DataContext is MainViewModel mainViewModel)
-            return mainViewModel.CurrentView as GameListViewModel;
+        if (this.DataContext is MainViewModel mainViewModel) return mainViewModel.CurrentView as GameListViewModel;
 
         return null;
     }
