@@ -47,23 +47,22 @@ namespace UltimateEnd.Views.Overlays
         {
             _menuActions = new Dictionary<int, Action>
             {
-                [0] = () => OnThemeClickAction(),
-                [1] = () => OnBackgroundImageClickAction(),                
-                [2] = () => OnEmulatorClickAction(),
-                [3] = () => OnPlaylistClickAction(),
-                [4] = () => OnSaveBackupModeClickAction(),
-                [5] = () => OnToggleNativeAppPlatformAction(),
-                [6] = () => OnScreensaverTimeoutClickAction(),
-                [7] = () => OnScrapClickAction(),
-                [8] = () => OnKeyBindingClickAction(),
-                [9] = () => OnGenreClickAction()
+                [0] = () => OnThemeClickAction(),           // 테마 설정
+                [1] = () => OnBackgroundImageClickAction(), // 배경 이미지 설정
+                [2] = () => OnEmulatorClickAction(),        // 에뮬레이터 설정
+                [3] = () => OnKeyBindingClickAction(),      // 키 설정
+                [4] = () => OnScrapClickAction(),           // 스크랩 설정
+                [5] = () => OnPlaylistClickAction(),        // 플레이리스트 관리
+                [6] = () => OnSaveBackupModeClickAction(),  // 세이브 백업 모드
+                [7] = () => OnGenreClickAction(),           // 장르 관리
+                [8] = () => OnToggleNativeAppPlatformAction(), // Desktop 플랫폼 표시
+                [9] = () => OnScreensaverTimeoutClickAction()  // 화면보호기 대기시간
             };
         }
 
         protected override void SelectCurrent()
         {
-            if (_menuActions.TryGetValue(_selectedIndex, out var action))
-                action?.Invoke();
+            if (_menuActions.TryGetValue(_selectedIndex, out var action)) action?.Invoke();
         }
 
         protected override void MovePrevious()
@@ -90,28 +89,32 @@ namespace UltimateEnd.Views.Overlays
                 return;
             }
 
-            if (_selectedIndex == 6)
+            if (_selectedIndex == 9) // 화면보호기 대기시간 슬라이더
             {
                 if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
                 {
                     await WavSounds.Click();
+
                     var slider = this.FindControl<Slider>("ScreensaverTimeoutSlider");
+
                     if (slider != null)
-                    {
                         slider.Value = Math.Max(slider.Minimum, slider.Value - 1);
-                    }
+
                     e.Handled = true;
+
                     return;
                 }
                 if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
                 {
                     await WavSounds.Click();
+
                     var slider = this.FindControl<Slider>("ScreensaverTimeoutSlider");
+
                     if (slider != null)
-                    {
                         slider.Value = Math.Min(slider.Maximum, slider.Value + 1);
-                    }
+
                     e.Handled = true;
+
                     return;
                 }
             }
@@ -131,9 +134,7 @@ namespace UltimateEnd.Views.Overlays
                     item.BringIntoView();
                 }
                 else
-                {
                     item.Background = this.FindResource("Background.Secondary") as IBrush;
-                }
             }
         }
 
@@ -161,6 +162,7 @@ namespace UltimateEnd.Views.Overlays
             if (sender is Border border && _menuItems.Count > 0)
             {
                 var index = _menuItems.IndexOf(border);
+
                 if (index >= 0)
                 {
                     _selectedIndex = index;
@@ -173,13 +175,13 @@ namespace UltimateEnd.Views.Overlays
         {
             OnShowing(EventArgs.Empty);
 
-            var settings = Services.SettingsService.LoadSettings();
+            var settings = SettingsService.LoadSettings();
             var slider = this.FindControl<Slider>("ScreensaverTimeoutSlider");
 
-            if (slider != null)
-                slider.Value = settings.ScreensaverTimeoutMinutes;
+            if (slider != null) slider.Value = settings.ScreensaverTimeoutMinutes;
 
             var saveBackupModeText = this.FindControl<TextBlock>("SaveBackupModeText");
+
             if (saveBackupModeText != null)
             {
                 saveBackupModeText.Text = settings.SaveBackupMode switch
@@ -191,7 +193,7 @@ namespace UltimateEnd.Views.Overlays
             }
 
             UpdateToggle(NativeAppPlatformToggle, NativeAppPlatformToggleThumb, settings.ShowNativeAppPlatform);
-            
+
             this.IsVisible = true;
             this.Focusable = true;
             this.Focus();
@@ -211,18 +213,16 @@ namespace UltimateEnd.Views.Overlays
             if (this.TryFindResource(resourceKey, out object? resource) && resource is IBrush brush)
                 toggleBack.Background = brush;
 
-            toggle.HorizontalAlignment = value
-                ? Avalonia.Layout.HorizontalAlignment.Right
-                : Avalonia.Layout.HorizontalAlignment.Left;
+            toggle.HorizontalAlignment = value ? Avalonia.Layout.HorizontalAlignment.Right : Avalonia.Layout.HorizontalAlignment.Left;
         }
 
         public override void Hide(HiddenState state)
         {
             if (_pendingScreensaverTimeout >= 0)
             {
-                var settings = Services.SettingsService.LoadSettings();
+                var settings = SettingsService.LoadSettings();
                 settings.ScreensaverTimeoutMinutes = _pendingScreensaverTimeout;
-                Services.SettingsService.SaveSettingsQuiet(settings);
+                SettingsService.SaveSettingsQuiet(settings);
 
                 ScreensaverTimeoutChanged?.Invoke(this, _pendingScreensaverTimeout);
 
@@ -241,14 +241,13 @@ namespace UltimateEnd.Views.Overlays
 
         private void OnOverlayBackgroundClick(object? sender, PointerPressedEventArgs e)
         {
-            if (e.Source == sender)
-                OnCloseClick(sender, e);
+            if (e.Source == sender) OnCloseClick(sender, e);
         }
 
         private async void OnThemeClickAction()
         {
             await WavSounds.OK();
-            ThemeClicked?.Invoke(this, EventArgs.Empty);        
+            ThemeClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private async void OnBackgroundImageClickAction()
