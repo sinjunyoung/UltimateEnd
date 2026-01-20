@@ -243,12 +243,33 @@ namespace UltimateEnd.Scraper
             {
                 try
                 {
-                    FlushAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    FlushSync();
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[Cache] Shutdown 저장 실패: {ex.Message}");
                 }
+            }
+        }
+
+        public static void FlushSync()
+        {
+            if (!_isDirty) return;
+
+            _fileLock.Wait();
+            try
+            {
+                var json = JsonSerializer.Serialize(_cache, JsonOptions);
+                File.WriteAllText(CacheFilePath, json);
+                _isDirty = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Cache] 저장 실패: {ex.Message}");
+            }
+            finally
+            {
+                _fileLock.Release();
             }
         }
     }

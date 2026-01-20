@@ -22,6 +22,7 @@ using UltimateEnd.Android.Services;
 using UltimateEnd.Enums;
 using UltimateEnd.Managers;
 using UltimateEnd.SaveFile;
+using UltimateEnd.Scraper;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
@@ -166,6 +167,8 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     protected override void OnPause()
     {
+        ScreenScraperCache.FlushSync();
+
         base.OnPause();
 
         var app = Avalonia.Application.Current?.ApplicationLifetime as ISingleViewApplicationLifetime;
@@ -211,6 +214,12 @@ public class MainActivity : AvaloniaMainActivity<App>
 
             ScreenSaverManager.Instance.OnAppResumed();
         }
+    }
+
+    protected override void OnDestroy()
+    {
+        ScreenScraperCache.Shutdown();
+        base.OnDestroy();
     }
 
     public override bool DispatchKeyEvent(KeyEvent? e)

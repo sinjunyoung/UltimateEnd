@@ -6,6 +6,7 @@ using UltimateEnd.Desktop.Services;
 using UltimateEnd.Desktop.Utils;
 using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.SaveFile;
+using UltimateEnd.Scraper;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
@@ -80,6 +81,7 @@ namespace UltimateEnd.Desktop
 
         private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
         {
+            ScreenScraperCache.Shutdown();
             _gamepadManager?.Dispose();
             ScreenSaverBlocker.RestoreWindowsScreenSaver();
         }

@@ -51,7 +51,7 @@ public partial class App : Application
         WavSounds.Initialize(AssetPathProviderFactory.Create.Invoke());
 
         if(ApplicationLifetime is ISingleViewApplicationLifetime singleView)
-    {
+        {
             singleView.MainView ??= new MainContentView
                 {
                     DataContext = new MainViewModel()
