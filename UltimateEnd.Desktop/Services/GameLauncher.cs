@@ -379,19 +379,13 @@ namespace UltimateEnd.Desktop.Services
         private static async Task<string?> ExecuteScriptAsync(string script, string romPath, string workingDir)
         {
             string processedScript = script
-        .Replace("{romPath}", romPath)
-        .Replace("{romDir}", Path.GetDirectoryName(romPath) ?? "")
-        .Replace("{romName}", Path.GetFileNameWithoutExtension(romPath));
+                .Replace("{romPath}", romPath)
+                .Replace("{romDir}", Path.GetDirectoryName(romPath) ?? "")
+                .Replace("{romName}", Path.GetFileNameWithoutExtension(romPath));
 
             var (scriptExe, scriptArgs) = Utils.CommandParser.ParseCommand(processedScript);
 
-            if (!Path.IsPathRooted(scriptExe) &&
-                !UriHelper.IsUriScheme(scriptExe) &&
-                !scriptExe.Equals("powershell", StringComparison.OrdinalIgnoreCase) &&
-                !scriptExe.Equals("cmd", StringComparison.OrdinalIgnoreCase))
-            {
-                scriptExe = Path.Combine(AppContext.BaseDirectory, scriptExe);
-            }
+            if (!Path.IsPathRooted(scriptExe) && !UriHelper.IsUriScheme(scriptExe) && !scriptExe.Equals("powershell", StringComparison.OrdinalIgnoreCase) && !scriptExe.Equals("cmd", StringComparison.OrdinalIgnoreCase)) scriptExe = Path.Combine(AppContext.BaseDirectory, scriptExe);
 
             var scriptPsi = new ProcessStartInfo
             {

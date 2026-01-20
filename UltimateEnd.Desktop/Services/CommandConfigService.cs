@@ -84,6 +84,24 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
+                Id = "melonds", Name = "melonDS", SupportedPlatforms = ["nds"],
+                LaunchCommand = @"Emulators\melonds\melonDS.exe -f {romPath}"
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "duckstation", Name = "DuckStation", SupportedPlatforms = ["ps1"],
+                LaunchCommand = @"Emulators\duckstation\duckstation-qt-x64-ReleaseLTCG.exe -fullscreen {romPath}"
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "citra", Name = "Citra", SupportedPlatforms = ["3ds"],
+                LaunchCommand = @"Emulators\citra\citra-qt.exe -g {romPath} --fullscreen"
+            });
+
+            config.AddEmulator(new Command
+            {
                 Id = "azahar", Name = "Azahar", SupportedPlatforms = ["3ds"],
                 LaunchCommand = @"Emulators\azahar\azahar.exe {romPath}"                
             });
