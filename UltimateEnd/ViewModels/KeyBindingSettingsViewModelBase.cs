@@ -168,6 +168,31 @@ namespace UltimateEnd.ViewModels
 
         #region Public Methods
 
+        public void LoadSettings()
+        {
+            var settings = SettingsService.LoadSettings();
+
+            if (settings.KeyBindings != null && settings.KeyBindings.Count > 0)
+            {
+                DPadUp = settings.KeyBindings.GetValueOrDefault("DPadUp", "Up");
+                DPadDown = settings.KeyBindings.GetValueOrDefault("DPadDown", "Down");
+                DPadLeft = settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left");
+                DPadRight = settings.KeyBindings.GetValueOrDefault("DPadRight", "Right");
+                ButtonA = settings.KeyBindings.GetValueOrDefault("ButtonA", "Return");
+                ButtonB = settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape");
+                ButtonX = settings.KeyBindings.GetValueOrDefault("ButtonX", "X");
+                ButtonY = settings.KeyBindings.GetValueOrDefault("ButtonY", "F");
+                LeftBumper = settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp");
+                RightBumper = settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown");
+                LeftTrigger = settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl");
+                RightTrigger = settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt");
+                Start = settings.KeyBindings.GetValueOrDefault("Start", "Return");
+                Select = settings.KeyBindings.GetValueOrDefault("Select", "Escape");
+            }
+
+            LoadPlatformSpecificSettings(settings);
+        }
+
         public virtual void StartBinding(string buttonName)
         {
             _currentBindingKey = buttonName;
@@ -255,32 +280,7 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
-        #region Private Methods
-
-        private void LoadSettings()
-        {
-            var settings = SettingsService.LoadSettings();
-
-            if (settings.KeyBindings != null && settings.KeyBindings.Count > 0)
-            {
-                DPadUp = settings.KeyBindings.GetValueOrDefault("DPadUp", "Up");
-                DPadDown = settings.KeyBindings.GetValueOrDefault("DPadDown", "Down");
-                DPadLeft = settings.KeyBindings.GetValueOrDefault("DPadLeft", "Left");
-                DPadRight = settings.KeyBindings.GetValueOrDefault("DPadRight", "Right");
-                ButtonA = settings.KeyBindings.GetValueOrDefault("ButtonA", "Return");
-                ButtonB = settings.KeyBindings.GetValueOrDefault("ButtonB", "Escape");
-                ButtonX = settings.KeyBindings.GetValueOrDefault("ButtonX", "X");
-                ButtonY = settings.KeyBindings.GetValueOrDefault("ButtonY", "F");
-                LeftBumper = settings.KeyBindings.GetValueOrDefault("LeftBumper", "PageUp");
-                RightBumper = settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown");
-                LeftTrigger = settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl");
-                RightTrigger = settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt");
-                Start = settings.KeyBindings.GetValueOrDefault("Start", "Return");
-                Select = settings.KeyBindings.GetValueOrDefault("Select", "Escape");
-            }
-
-            LoadPlatformSpecificSettings(settings);
-        }
+        #region Private Methods        
 
         private async Task SaveAndGoBack()
         {

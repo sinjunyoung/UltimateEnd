@@ -2,13 +2,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:UltimateEnd.Desktop.ViewModels"
              x:Class="UltimateEnd.Desktop.Views.KeyBindingSettingsView"
+			 xmlns:converters="using:UltimateEnd.Converters"
              x:DataType="vm:KeyBindingSettingsViewModel"
              x:Name="KeyBindingSettingsRoot"
              Focusable="True"
              Background="{DynamicResource Background.Primary}">
 
+	<UserControl.Resources>
+		<converters:BoolToBackgroundConverter x:Key="BoolToBackgroundConverter"/>
+	</UserControl.Resources>
+	
+	<UserControl.Styles>
+		<!-- 선택된 버튼 스타일 -->
+		<Style Selector="Button.InputModeButton">
+			<Setter Property="Background" Value="{DynamicResource Background.Primary}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource Background.Border}"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+		<Style Selector="Button.InputModeButton:pointerover">
+			<Setter Property="Background" Value="{DynamicResource Background.Hover}"/>
+		</Style>
+		<Style Selector="Button.InputModeButton.Selected">
+			<Setter Property="Background" Value="{DynamicResource Accent.Primary}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource Accent.Primary}"/>
+			<Setter Property="BorderThickness" Value="3"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+	</UserControl.Styles>
+
 	<Grid RowDefinitions="Auto,Auto,*,Auto">
 
+		<!-- 헤더 -->
 		<Border Grid.Row="0"
 		        Background="{DynamicResource Background.Secondary}"
 		        Padding="20"
@@ -40,26 +64,65 @@
 			</Grid>
 		</Border>
 
+		<!-- 입력 모드 선택 -->
 		<Border Grid.Row="1"
 		        Background="{DynamicResource Background.Secondary}"
-		        Padding="20,10"
+		        Padding="20,15"
 		        BorderThickness="0,0,0,1"
 		        BorderBrush="{DynamicResource Background.Border}">
-			<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-				<Button Content="키보드"
-				        Command="{Binding SwitchToKeyboardCommand}"
-				        Padding="30,10"
-				        FontSize="16"
-				        Foreground="{DynamicResource Text.Primary}"/>
-				<Button Content="{Binding GamepadButtonText}"
-				        Command="{Binding SwitchToGamepadCommand}"
-				        Padding="30,10"
-				        FontSize="16"
-				        Foreground="{DynamicResource Text.Primary}"
-				        IsVisible="{Binding IsGamepadConnected}"/>
-			</StackPanel>
+			<Grid RowDefinitions="Auto,Auto">
+				<!-- 키보드/게임패드 토글 -->
+				<StackPanel Grid.Row="0"
+				            Orientation="Horizontal"
+				            Spacing="10"
+				            HorizontalAlignment="Center">
+					<Button Content="키보드"
+					        Command="{Binding SwitchToKeyboardCommand}"
+					        Padding="30,10"
+					        FontSize="16"
+					        Background="{Binding !IsGamepadMode, Converter={StaticResource BoolToBackgroundConverter}}"
+					        Foreground="{DynamicResource Text.Primary}"/>
+
+					<Button Content="{Binding GamepadButtonText}"
+					        Command="{Binding SwitchToGamepadCommand}"
+					        Padding="30,10"
+					        FontSize="16"
+					        Background="{Binding IsGamepadMode, Converter={StaticResource BoolToBackgroundConverter}}"
+					        Foreground="{DynamicResource Text.Primary}"
+					        IsVisible="{Binding IsGamepadConnected}"/>
+				</StackPanel>
+
+				<!-- 게임패드 선택 (여러 개 연결 시) -->
+				<StackPanel Grid.Row="1"
+				            Orientation="Horizontal"
+				            Spacing="10"
+				            HorizontalAlignment="Center"
+				            Margin="0,10,0,0"
+				            IsVisible="{Binding IsGamepadMode}">
+					<TextBlock Text="사용할 컨트롤러:"
+					           VerticalAlignment="Center"
+					           FontSize="14"
+					           Foreground="{DynamicResource Text.Muted}"/>
+
+					<!-- 여러 개일 때 ComboBox -->
+					<ComboBox ItemsSource="{Binding ConnectedGamepads}"
+					          SelectedIndex="{Binding SelectedGamepadIndex}"
+					          MinWidth="250"
+					          FontSize="14"
+					          IsVisible="{Binding HasMultipleGamepads}"/>
+
+					<!-- 1개일 때 이름만 표시 -->
+					<TextBlock Text="{Binding SelectedGamepadName}"
+					           VerticalAlignment="Center"
+					           FontSize="14"
+					           FontWeight="SemiBold"
+					           Foreground="{DynamicResource Accent.Primary}"
+					           IsVisible="{Binding !HasMultipleGamepads}"/>
+				</StackPanel>
+			</Grid>
 		</Border>
 
+		<!-- 게임패드 이미지 및 버튼들 (기존 코드 유지) -->
 		<Border Grid.Row="2"
 		        VerticalAlignment="Stretch"
 		        HorizontalAlignment="Stretch"
@@ -424,6 +487,7 @@
 			</Viewbox>
 		</Border>
 
+		<!-- 하단 버튼 -->
 		<Border Grid.Row="3"
 		        Background="{DynamicResource Background.Secondary}"
 		        Padding="20"

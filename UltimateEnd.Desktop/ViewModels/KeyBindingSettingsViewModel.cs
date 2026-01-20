@@ -24,6 +24,9 @@ namespace UltimateEnd.Desktop.ViewModels
         private int _gamepadSelect = 6;
         private int _gamepadStart = 7;
 
+        private List<string> _connectedGamepads = new();
+        private int _selectedGamepadIndex = 0;
+
         #endregion
 
         #region Properties - Gamepad State
@@ -31,7 +34,11 @@ namespace UltimateEnd.Desktop.ViewModels
         public bool IsGamepadMode
         {
             get => _isGamepadMode;
-            set => this.RaiseAndSetIfChanged(ref _isGamepadMode, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _isGamepadMode, value);
+                this.RaisePropertyChanged(nameof(IsKeyboardMode));
+            }
         }
 
         public bool IsGamepadConnected
@@ -49,6 +56,38 @@ namespace UltimateEnd.Desktop.ViewModels
                 this.RaisePropertyChanged(nameof(GamepadButtonText));
             }
         }
+
+        public bool IsKeyboardMode => !_isGamepadMode;
+
+        public List<string> ConnectedGamepads
+        {
+            get => _connectedGamepads;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _connectedGamepads, value);
+                this.RaisePropertyChanged(nameof(HasMultipleGamepads));
+            }
+        }
+
+        public int SelectedGamepadIndex
+        {
+            get => _selectedGamepadIndex;
+            set
+            {
+                if (_selectedGamepadIndex != value)
+                {
+                    this.RaiseAndSetIfChanged(ref _selectedGamepadIndex, value);
+                    GamepadManager.SetActiveGamepad(value);
+                    this.RaisePropertyChanged(nameof(SelectedGamepadName));
+                    UpdateGamepadConnectionStatus();
+                    LoadSettings();
+                }
+            }
+        }
+
+        public string SelectedGamepadName => ConnectedGamepads != null && SelectedGamepadIndex >= 0 && SelectedGamepadIndex < ConnectedGamepads.Count ? ConnectedGamepads[SelectedGamepadIndex] : string.Empty;
+
+        public bool HasMultipleGamepads => ConnectedGamepads?.Count > 1;
 
         #endregion
 
@@ -160,8 +199,15 @@ namespace UltimateEnd.Desktop.ViewModels
         {
             UpdateGamepadConnectionStatus();
 
-            SwitchToKeyboardCommand = ReactiveCommand.Create(() => { IsGamepadMode = false; });
-            SwitchToGamepadCommand = ReactiveCommand.Create(() => { IsGamepadMode = true; });
+            SwitchToKeyboardCommand = ReactiveCommand.Create(() =>
+            {
+                IsGamepadMode = false;
+            });
+
+            SwitchToGamepadCommand = ReactiveCommand.Create(() =>
+            {
+                IsGamepadMode = true;
+            });
         }
 
         #endregion
@@ -187,7 +233,6 @@ namespace UltimateEnd.Desktop.ViewModels
             _currentBindingKey = string.Empty;
 
             GamepadManager.SetBindingMode(false);
-
         }
 
         public void UpdateGamepadConnectionStatus()
@@ -196,7 +241,24 @@ namespace UltimateEnd.Desktop.ViewModels
 
             IsGamepadConnected = GamepadManager.IsGamepadConnected();
 
-            if (IsGamepadConnected) DetectedControllerType = GamepadManager.GetDetectedControllerType();
+            if (IsGamepadConnected)
+            {
+                DetectedControllerType = GamepadManager.GetDetectedControllerType();
+
+                ConnectedGamepads = GamepadManager.GetGamepadNames();
+                SelectedGamepadIndex = GamepadManager.GetActiveGamepadIndex();
+
+                if (SelectedGamepadIndex >= ConnectedGamepads.Count) SelectedGamepadIndex = 0;
+
+                this.RaisePropertyChanged(nameof(SelectedGamepadName));
+            }
+            else
+            {
+                ConnectedGamepads.Clear();
+                SelectedGamepadIndex = 0;
+
+                if (IsGamepadMode) IsGamepadMode = false;
+            }
         }
 
         #endregion
@@ -241,6 +303,7 @@ namespace UltimateEnd.Desktop.ViewModels
             else
             {
                 DetectedControllerType = GetDetectedControllerType();
+
                 switch (DetectedControllerType)
                 {
                     case "PlayStation":
@@ -336,13 +399,15 @@ namespace UltimateEnd.Desktop.ViewModels
         {
             if (!IsGamepadMode) return false;
 
-            List<int> allButtons = [ GamepadButtonA, GamepadButtonB, GamepadButtonX, GamepadButtonY, GamepadLeftBumper, GamepadRightBumper];
+            List<int> allButtons = [GamepadButtonA, GamepadButtonB, GamepadButtonX, GamepadButtonY, GamepadLeftBumper, GamepadRightBumper];
 
             var uniqueButtons = new HashSet<int>();
+
             foreach (var button in allButtons)
             {
                 if (!uniqueButtons.Add(button)) return true;
             }
+
             return false;
         }
 

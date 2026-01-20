@@ -30,6 +30,8 @@ namespace UltimateEnd.Models
 
         #endregion
 
+        public int ActiveGamepadIndex { get; set; } = 0;
+
         #region ROM Base Paths
 
         [JsonIgnore]

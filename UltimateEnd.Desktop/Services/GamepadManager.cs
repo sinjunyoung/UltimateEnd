@@ -19,6 +19,7 @@ namespace UltimateEnd.Desktop.Services
         private static GamepadManager? _instance;
         private static string _detectedControllerType = "Xbox";
         private static string _detectedControllerName = "Xbox Controller";
+        private static int _activeGamepadIndex = 0;
 
         private readonly DirectInput _directInput = new();
         private readonly List<Joystick> _gamepads = [];
@@ -81,6 +82,38 @@ namespace UltimateEnd.Desktop.Services
 
         public static string GetDetectedControllerName() => _detectedControllerName;
 
+        public static int GetGamepadCount() => _instance?._gamepads.Count ?? 0;
+
+        public static void SetActiveGamepad(int index)
+        {
+            if (_instance == null) return;
+            if (index >= 0 && index < _instance._gamepads.Count)
+            {
+                _activeGamepadIndex = index;
+
+                DetectControllerType(_instance._gamepads[index]);
+
+                var settings = SettingsService.LoadSettings();
+                settings.ActiveGamepadIndex = index;
+                SettingsService.SaveSettingsQuiet(settings);
+            }
+        }
+
+        public static int GetActiveGamepadIndex() => _activeGamepadIndex;
+
+        public static List<string> GetGamepadNames()
+        {
+            var names = new List<string>();
+
+            if (_instance != null)
+            {
+                foreach (var gamepad in _instance._gamepads)
+                    names.Add(gamepad.Information.ProductName);
+            }
+
+            return names;
+        }
+
         public static void SetBindingMode(bool isBinding)
         {
             if (_instance != null) _instance._isInBindingMode = isBinding;
@@ -104,6 +137,8 @@ namespace UltimateEnd.Desktop.Services
         private static ButtonMapping LoadButtonMapping()
         {
             var settings = SettingsService.LoadSettings();
+
+            _activeGamepadIndex = settings.ActiveGamepadIndex;
 
             if (settings.GamepadButtonMapping != null && settings.GamepadButtonMapping.Count > 0)
             {
@@ -135,23 +170,26 @@ namespace UltimateEnd.Desktop.Services
                     joystick.Properties.BufferSize = 128;
                     joystick.Acquire();
                     _gamepads.Add(joystick);
-
-                    if (_gamepads.Count == 1)
-                    {
-                        DetectControllerType(joystick);
-
-                        var settings = SettingsService.LoadSettings();
-
-                        if (settings.LastDetectedControllerType != _detectedControllerType)
-                        {
-                            _buttonMapping = DetectControllerType(joystick);
-                            settings.LastDetectedControllerType = _detectedControllerType;
-                            settings.GamepadButtonMapping = null;
-                            SettingsService.SaveSettingsQuiet(settings);
-                        }
-                    }
                 }
                 catch { }
+            }
+
+            if (_activeGamepadIndex >= _gamepads.Count)
+                _activeGamepadIndex = 0;
+
+            if (_gamepads.Count > 0)
+            {
+                DetectControllerType(_gamepads[_activeGamepadIndex]);
+
+                var settings = SettingsService.LoadSettings();
+
+                if (settings.LastDetectedControllerType != _detectedControllerType)
+                {
+                    _buttonMapping = DetectControllerType(_gamepads[_activeGamepadIndex]);
+                    settings.LastDetectedControllerType = _detectedControllerType;
+                    settings.GamepadButtonMapping = null!;
+                    SettingsService.SaveSettingsQuiet(settings);
+                }
             }
         }
 
@@ -165,6 +203,7 @@ namespace UltimateEnd.Desktop.Services
             {
                 _detectedControllerType = "PlayStation";
                 _detectedControllerName = name;
+
                 return ButtonMapping.PlayStationStyle();
             }
 
@@ -172,11 +211,13 @@ namespace UltimateEnd.Desktop.Services
             {
                 _detectedControllerType = "Switch";
                 _detectedControllerName = name;
+
                 return ButtonMapping.SwitchStyle();
             }
 
             _detectedControllerType = "Xbox";
             _detectedControllerName = name;
+
             return ButtonMapping.XboxStyle();
         }
 
@@ -188,10 +229,13 @@ namespace UltimateEnd.Desktop.Services
         {
             if (_gamepads.Count == 0 || _isProcessing) return;
 
+            if (_activeGamepadIndex >= _gamepads.Count)
+                _activeGamepadIndex = 0;
+
             try
             {
                 _isProcessing = true;
-                var joystick = _gamepads[0];
+                var joystick = _gamepads[_activeGamepadIndex];
                 joystick.Poll();
                 var state = joystick.GetCurrentState();
 
@@ -482,11 +526,7 @@ namespace UltimateEnd.Desktop.Services
 
         private void StartDeviceMonitoring()
         {
-            var monitorTimer = new DispatcherTimer(
-                TimeSpan.FromSeconds(2),
-                DispatcherPriority.Background,
-                (s, e) => CheckDeviceChanges()
-            );
+            var monitorTimer = new DispatcherTimer(TimeSpan.FromSeconds(2), DispatcherPriority.Background, (s, e) => CheckDeviceChanges());
             monitorTimer.Start();
         }
 

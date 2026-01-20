@@ -15,5 +15,9 @@ sealed class Program
         .UsePlatformDetect()
         .WithInterFont()
         .UseReactiveUI()
-        .LogToTrace();
+        .LogToTrace()
+        .With(new Win32PlatformOptions
+        {   
+            OverlayPopups = true
+        });
 }
