@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UltimateEnd.Desktop.Services;
 using UltimateEnd.Models;
+using UltimateEnd.Services;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 
@@ -24,7 +25,7 @@ namespace UltimateEnd.Desktop.ViewModels
         private int _gamepadSelect = 6;
         private int _gamepadStart = 7;
 
-        private List<string> _connectedGamepads = new();
+        private List<string> _connectedGamepads = [];
         private int _selectedGamepadIndex = 0;
 
         #endregion
@@ -56,7 +57,7 @@ namespace UltimateEnd.Desktop.ViewModels
                 this.RaisePropertyChanged(nameof(GamepadButtonText));
             }
         }
-
+               
         public bool IsKeyboardMode => !_isGamepadMode;
 
         public List<string> ConnectedGamepads
@@ -78,9 +79,13 @@ namespace UltimateEnd.Desktop.ViewModels
                 {
                     this.RaiseAndSetIfChanged(ref _selectedGamepadIndex, value);
                     GamepadManager.SetActiveGamepad(value);
+
+                    DetectedControllerType = GamepadManager.GetDetectedControllerType();
+
                     this.RaisePropertyChanged(nameof(SelectedGamepadName));
-                    UpdateGamepadConnectionStatus();
-                    LoadSettings();
+                    this.RaisePropertyChanged(nameof(GamepadButtonText));
+
+                    LoadPlatformSpecificSettings(SettingsService.LoadSettings());
                 }
             }
         }
@@ -316,6 +321,7 @@ namespace UltimateEnd.Desktop.ViewModels
                         GamepadSelect = 8;
                         GamepadStart = 9;
                         break;
+
                     case "Switch":
                         GamepadButtonA = 1;
                         GamepadButtonB = 0;
@@ -326,6 +332,7 @@ namespace UltimateEnd.Desktop.ViewModels
                         GamepadSelect = 8;
                         GamepadStart = 9;
                         break;
+
                     default:
                         GamepadButtonA = 0;
                         GamepadButtonB = 1;
@@ -372,6 +379,7 @@ namespace UltimateEnd.Desktop.ViewModels
                     GamepadSelect = 8;
                     GamepadStart = 9;
                     break;
+
                 case "Switch":
                     GamepadButtonA = 1;
                     GamepadButtonB = 0;
@@ -382,6 +390,7 @@ namespace UltimateEnd.Desktop.ViewModels
                     GamepadSelect = 8;
                     GamepadStart = 9;
                     break;
+
                 default:
                     GamepadButtonA = 0;
                     GamepadButtonB = 1;

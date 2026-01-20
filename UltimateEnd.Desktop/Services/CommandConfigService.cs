@@ -96,6 +96,12 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
+                Id = "flycast", Name = "Flycast", SupportedPlatforms = ["naomi", "naomi2", "dc"],
+                LaunchCommand = @"Emulators\flycast\flycast.exe -config window:fullscreen=yes {romPath}"
+            });
+
+            config.AddEmulator(new Command
+            {
                 Id = "citra", Name = "Citra", SupportedPlatforms = ["3ds"],
                 LaunchCommand = @"Emulators\citra\citra-qt.exe -g {romPath} --fullscreen"
             });

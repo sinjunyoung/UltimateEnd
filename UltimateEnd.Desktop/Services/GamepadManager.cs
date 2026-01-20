@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using SharpDX.DirectInput;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
@@ -90,11 +91,10 @@ namespace UltimateEnd.Desktop.Services
             if (index >= 0 && index < _instance._gamepads.Count)
             {
                 _activeGamepadIndex = index;
-
-                DetectControllerType(_instance._gamepads[index]);
-
+                _instance._buttonMapping = DetectControllerType(_instance._gamepads[index]);
                 var settings = SettingsService.LoadSettings();
                 settings.ActiveGamepadIndex = index;
+                settings.LastDetectedControllerType = _detectedControllerType;
                 SettingsService.SaveSettingsQuiet(settings);
             }
         }
@@ -107,10 +107,12 @@ namespace UltimateEnd.Desktop.Services
 
             if (_instance != null)
             {
-                foreach (var gamepad in _instance._gamepads)
-                    names.Add(gamepad.Information.ProductName);
+                for (int i = 0; i < _instance._gamepads.Count; i++)
+                {
+                    var gamepad = _instance._gamepads[i];
+                    names.Add($"{gamepad.Information.ProductName}");
+                }
             }
-
             return names;
         }
 
@@ -161,21 +163,29 @@ namespace UltimateEnd.Desktop.Services
         private void InitializeDevices()
         {
             var devices = _directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+            var addedGuids = new HashSet<Guid>();
+            var addedNames = new HashSet<string>();
 
             foreach (var deviceInstance in devices)
             {
+                if (addedGuids.Contains(deviceInstance.InstanceGuid) || addedNames.Contains(deviceInstance.ProductName)) continue;
+
                 try
                 {
                     var joystick = new Joystick(_directInput, deviceInstance.InstanceGuid);
                     joystick.Properties.BufferSize = 128;
                     joystick.Acquire();
                     _gamepads.Add(joystick);
+                    addedGuids.Add(deviceInstance.InstanceGuid);
+                    addedNames.Add(deviceInstance.ProductName);
                 }
                 catch { }
             }
 
             if (_activeGamepadIndex >= _gamepads.Count)
+            {
                 _activeGamepadIndex = 0;
+            }
 
             if (_gamepads.Count > 0)
             {
@@ -198,8 +208,7 @@ namespace UltimateEnd.Desktop.Services
             var name = joystick.Information.ProductName;
             var nameLower = name.ToLower();
 
-            if (nameLower.Contains("dualsense") || nameLower.Contains("dualshock") ||
-                nameLower.Contains("wireless controller") || nameLower.Contains("ps4") || nameLower.Contains("ps5"))
+            if (nameLower.Contains("dualsense") || nameLower.Contains("dualshock") || nameLower.Contains("wireless controller") || nameLower.Contains("ps4") || nameLower.Contains("ps5"))
             {
                 _detectedControllerType = "PlayStation";
                 _detectedControllerName = name;
@@ -229,8 +238,7 @@ namespace UltimateEnd.Desktop.Services
         {
             if (_gamepads.Count == 0 || _isProcessing) return;
 
-            if (_activeGamepadIndex >= _gamepads.Count)
-                _activeGamepadIndex = 0;
+            if (_activeGamepadIndex >= _gamepads.Count) _activeGamepadIndex = 0;
 
             try
             {
@@ -526,7 +534,11 @@ namespace UltimateEnd.Desktop.Services
 
         private void StartDeviceMonitoring()
         {
-            var monitorTimer = new DispatcherTimer(TimeSpan.FromSeconds(2), DispatcherPriority.Background, (s, e) => CheckDeviceChanges());
+            var monitorTimer = new DispatcherTimer(
+                TimeSpan.FromSeconds(2),
+                DispatcherPriority.Background,
+                (s, e) => CheckDeviceChanges()
+            );
             monitorTimer.Start();
         }
 
