@@ -118,7 +118,9 @@ namespace UltimateEnd.Android.Services
                 await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Start);
                 gameStarted = true;
 
-                LaunchIntent(intent);
+                await LaunchIntent(intent);
+
+                await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Stop);
             }
             catch (ActivityNotFoundException ex)
             {
@@ -302,15 +304,19 @@ namespace UltimateEnd.Android.Services
             return MainActivity.Instance;
         }
 
-        private static void LaunchIntent(Intent intent)
+        private static async Task LaunchIntent(Intent intent)
         {
             var activity = GetMainActivityInstance();
-
             if (activity == null || activity.IsFinishing || activity.IsDestroyed) return;
+
+            var tcs = new TaskCompletionSource<bool>();
+            activity.SetGameExitWaiter(tcs);
 
             activity.Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
             activity.StartActivity(intent);
             activity.OverridePendingTransition(0, 0);
+
+            await tcs.Task;
         }
     }
 }

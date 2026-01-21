@@ -108,7 +108,7 @@ namespace UltimateEnd.Scraper
                 _cts = new CancellationTokenSource();
                 _currentTask = Task.Run(async () =>
                 {
-                    var filteredGames = GetGamesNeedingMedia(gameList);
+                    var filteredGames = await GetGamesNeedingMediaAsync(gameList);
 
                     if (filteredGames.Count == 0)
                     {
@@ -256,8 +256,7 @@ namespace UltimateEnd.Scraper
                     }
                 }
 
-                foreach (var platformId in changedPlatforms)
-                    AllGamesManager.Instance.SavePlatformGames(platformId);
+                foreach (var platformId in changedPlatforms) AllGamesManager.Instance.SavePlatformGames(platformId);
 
                 await ScreenScraperCache.FlushAsync();
 
@@ -275,7 +274,7 @@ namespace UltimateEnd.Scraper
             }
         }
 
-        private static List<GameMetadata> GetGamesNeedingMedia(List<GameMetadata> games)
+        private static async Task<List<GameMetadata>> GetGamesNeedingMediaAsync(List<GameMetadata> games)
         {
             var condition = ScreenScraperConfig.Instance.ScrapConditionType;
 
@@ -294,7 +293,7 @@ namespace UltimateEnd.Scraper
                     var isArcade = ScreenScraperSystemClassifier.IsArcadeSystem(screenScraperSystemId);
                     var cacheKey = CacheKeyBuilder.Build(screenScraperSystemId, romPath, isArcade, null);
 
-                    if (ScreenScraperCache.IsFailedResult(cacheKey)) continue;
+                    if (await ScreenScraperCache.IsFailedResultAsync(cacheKey)) continue;
                 }
 
                 if (condition == ScrapCondition.None)
@@ -306,7 +305,6 @@ namespace UltimateEnd.Scraper
                 if (condition == ScrapCondition.AllMediaMissing)
                 {
                     if (!game.HasLogoImage && !game.HasCoverImage && !game.HasVideo) filteredGames.Add(game);
-
                     continue;
                 }
 

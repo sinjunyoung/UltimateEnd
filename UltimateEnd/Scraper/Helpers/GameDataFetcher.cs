@@ -35,7 +35,6 @@ namespace UltimateEnd.Scraper.Helpers
                     return result;
                 }
 
-                // CacheKeyBuilder.BuildSearchFileName이 이미 ZIP 내부 파일명 추출 로직을 포함
                 fileName = CacheKeyBuilder.BuildSearchFileName(romPath, isArcade);
 
                 var url = UrlBuilder.BuildSearchUrl(fileName, systemId, crc, fileSize);
@@ -103,7 +102,7 @@ namespace UltimateEnd.Scraper.Helpers
                     return result;
                 }
 
-                await ScreenScraperCache.SaveCachedResultAsync(cacheKey, game);
+                await ScreenScraperCache.SaveCachedResultAsync(cacheKey, game, (int)systemId);
 
                 result.ResultType = ScrapResultType.Success;
                 result.Game = game;

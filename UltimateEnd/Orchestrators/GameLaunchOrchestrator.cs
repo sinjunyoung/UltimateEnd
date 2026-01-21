@@ -27,7 +27,7 @@ namespace UltimateEnd.Orchestrators
             IdleDetectionEnabled?.Invoke(false);
             VideoContainerVisibilityRequested?.Invoke(false);
 
-            if (!OperatingSystem.IsAndroid()) ScreenSaverManager.Instance.PauseScreenSaver();
+            ScreenSaverManager.Instance.PauseScreenSaver();
 
             try
             {
@@ -78,7 +78,7 @@ namespace UltimateEnd.Orchestrators
             LaunchCompleted?.Invoke();
             VideoContainerVisibilityRequested?.Invoke(true);
 
-            if (!OperatingSystem.IsAndroid()) ScreenSaverManager.Instance.ResumeScreenSaver();
+            ScreenSaverManager.Instance.ResumeScreenSaver();
         }
 
         private async Task<EmulatorValidationAction> HandleValidationFailure(EmulatorValidationResult validation)

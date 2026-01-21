@@ -66,6 +66,8 @@ namespace UltimateEnd.ViewModels
             ScreenSaverManager.Instance.LastSelectedPlatformChanged += platform => _lastSelectedPlatform = platform;
 
             if (_platformListViewModel != null) ScreenSaverManager.Instance.RegisterPlatformListViewModel(_platformListViewModel);
+
+            _ = ScreenScraperCache.InitializeAsync();
         }
 
         private void OnViewChangeRequested(ViewModelBase? newView)

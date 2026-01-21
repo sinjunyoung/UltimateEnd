@@ -71,14 +71,14 @@ namespace UltimateEnd.Scraper
 
                 var cacheKey = CacheKeyBuilder.Build(systemId, romPath, isArcade, crc);
 
-                if (ScreenScraperCache.IsFailedResult(cacheKey))
+                if (await ScreenScraperCache.IsFailedResultAsync(cacheKey))
                 {
                     result.ResultType = ScrapResultType.NotFound;
                     result.Message = PreviouslyFailedSearchMessage;
                     return result;
                 }
 
-                var cachedGame = ScreenScraperCache.GetCachedResult(cacheKey);
+                var cachedGame = await ScreenScraperCache.GetCachedResultAsync(cacheKey);
                 GameResult scrapedGame;
 
                 if (cachedGame != null)
@@ -171,8 +171,7 @@ namespace UltimateEnd.Scraper
                     FailedCount = games.Count
                 };
 
-                foreach (var game in games)
-                    result.Failures.Add((game.GetRomFullPath(), "인터넷 연결을 확인할 수 없습니다."));
+                foreach (var game in games) result.Failures.Add((game.GetRomFullPath(), "인터넷 연결을 확인할 수 없습니다."));
 
                 progress?.Report(new BatchProgress(0, games.Count, 0, games.Count, 0, 0, "인터넷 연결을 확인할 수 없습니다.", null));
 
@@ -194,9 +193,7 @@ namespace UltimateEnd.Scraper
 
             void ReportProgress(string status, GameMetadata game = null)
             {
-                progress?.Report(new BatchProgress(
-                    processedCount, games.Count, successCount,
-                    failedCount, cachedCount, skippedCount, status, game));
+                progress?.Report(new BatchProgress(processedCount, games.Count, successCount, failedCount, cachedCount, skippedCount, status, game));
             }
 
             foreach (var game in games)

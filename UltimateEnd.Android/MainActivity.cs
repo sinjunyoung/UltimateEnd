@@ -48,6 +48,8 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     public static MainActivity? Instance { get; private set; }
 
+    private TaskCompletionSource<bool>? _gameExitTcs;
+
     public Action<Uri?>? FolderPickerResult { get; set; }
 
     #endregion
@@ -177,13 +179,21 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             ScreenSaverManager.Instance.OnAppPaused();
 
-            if (mainVm.CurrentView is GameListViewModel gameListVm) gameListVm.StopVideo();
+            if (mainVm.CurrentView is GameListViewModel gameListVm) gameListVm.ForceStopVideo();
         }
+    }
+
+    public void SetGameExitWaiter(TaskCompletionSource<bool> tcs)
+    {
+        _gameExitTcs = tcs;
     }
 
     protected override async void OnResume()
     {
         base.OnResume();
+
+        _gameExitTcs?.TrySetResult(true);
+        _gameExitTcs = null;
 
         SetImmersiveFullScreen();
 
@@ -201,12 +211,15 @@ public class MainActivity : AvaloniaMainActivity<App>
                 await Dispatcher.UIThread.InvokeAsync(() => gameListVm.RefreshCurrentGamePlayHistory());
 
                 if (FilePickerDialog.IsOpen || OverlayHelper.IsAnyOverlayVisible(app.MainView)) return;
-
-                await Task.Delay(500);
-                gameListVm.StopVideo();
+                                
+                gameListVm.ForceStopVideo();
+                await Task.Delay(200);
 
                 if (gameListVm.ViewMode == GameViewMode.List && !gameListVm.IsLaunchingGame)
                 {
+                    gameListVm.IsVideoContainerVisible = true;
+                    gameListVm.EnableVideoPlayback();
+
                     await Task.Delay(50);
                     _ = gameListVm.ResumeVideoAsync();
                 }

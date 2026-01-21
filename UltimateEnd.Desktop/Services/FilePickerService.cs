@@ -18,10 +18,10 @@ namespace UltimateEnd.Desktop.Services
                            filterOptions.Extensions?.Select(ext => $"*{ext}").ToArray()
             };
 
-            IStorageFolder? startLocation = null;
+            //IStorageFolder? startLocation = null;
 
-            if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory))
-                startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
+            //if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory))
+            //    startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
 
             var files = await _storageProvider.OpenFilePickerAsync(
                 new FilePickerOpenOptions
@@ -29,7 +29,7 @@ namespace UltimateEnd.Desktop.Services
                     Title = title,
                     AllowMultiple = false,
                     FileTypeFilter = [fileType],
-                    SuggestedStartLocation = startLocation
+                    //SuggestedStartLocation = startLocation
                 });
 
             if (files.Count == 0) return null;

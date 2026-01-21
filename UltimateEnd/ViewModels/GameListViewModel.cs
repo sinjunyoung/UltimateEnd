@@ -672,6 +672,16 @@ namespace UltimateEnd.ViewModels
 
         public void StopVideo() => _videoCoordinator.Stop();
 
+        public void ForceStopVideo()
+        {
+            _selectionSubscription?.Dispose();
+            _selectionSubscription = null;
+
+            _videoCoordinator.ForceStop();
+
+            IsVideoContainerVisible = false;
+        }
+
         public async Task ResumeVideoAsync()
         {
             if (ViewMode == GameViewMode.List) await _videoCoordinator.ResumeAsync(SelectedGame);

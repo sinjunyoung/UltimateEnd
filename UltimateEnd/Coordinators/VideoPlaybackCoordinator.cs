@@ -93,5 +93,19 @@ namespace UltimateEnd.Coordinators
 
             _videoManager.Stop();
         }
+
+        public void ForceStop()
+        {
+            _videoManager.CancelDelay();
+
+            _videoManager.Stop();
+
+            _videoManager.ReleaseMedia();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                _videoManager.Stop();
+            }, DispatcherPriority.Send);
+        }
     }
 }

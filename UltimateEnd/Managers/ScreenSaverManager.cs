@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using UltimateEnd.Models;
+using UltimateEnd.Orchestrators;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
@@ -186,6 +187,9 @@ namespace UltimateEnd.Managers
             _idleDetectionService?.Disable();
             CleanupScreensaver();
 
+            var orchestrator = new GameLaunchOrchestrator(null);
+            await orchestrator.LaunchAsync(game);
+
             ViewChangeRequested?.Invoke(null);
             await Task.Delay(100);
 
@@ -205,8 +209,6 @@ namespace UltimateEnd.Managers
 
             LastSelectedPlatformChanged?.Invoke(platform);
 
-            await gameListViewModel.LaunchGameAsync(game);
-
             ViewChangeRequested?.Invoke(gameListViewModel);
 
             Dispatcher.UIThread.Post(() =>
@@ -215,18 +217,11 @@ namespace UltimateEnd.Managers
 
             }, DispatcherPriority.ApplicationIdle);
 
-            if (OperatingSystem.IsWindows())
+            Dispatcher.UIThread.Post(() =>
             {
-                Dispatcher.UIThread.Post(async () =>
-                {
-                    gameListViewModel.StopVideo();
-                    await Task.Delay(50);
-                    await gameListViewModel.ResumeVideoAsync();
-
-                    _idleDetectionService?.ResetIdleTimer();
-                    _idleDetectionService?.Enable();
-                }, DispatcherPriority.Background);
-            }
+                _idleDetectionService?.ResetIdleTimer();
+                _idleDetectionService?.Enable();
+            }, DispatcherPriority.Background);
         }
 
         #endregion

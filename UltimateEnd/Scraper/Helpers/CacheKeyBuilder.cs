@@ -11,15 +11,12 @@ namespace UltimateEnd.Scraper.Helpers
         {
             if (!string.IsNullOrEmpty(crc)) return $"crc_{(int)systemId}_{crc}";
 
+            var fileName = BuildSearchFileName(romPath, isArcade);
+
             if (isArcade)
-            {
-                var fileName = GetArcadeSearchFileName(romPath);
                 return $"arcade_{(int)systemId}_{fileName}";
-            }
 
-            var name = Path.GetFileName(romPath);
-
-            return $"name_{(int)systemId}_{name}";
+            return $"name_{(int)systemId}_{fileName}";
         }
 
         public static string BuildSearchFileName(string romPath, bool isArcade)

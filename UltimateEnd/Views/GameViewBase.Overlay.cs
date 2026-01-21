@@ -286,6 +286,13 @@ namespace UltimateEnd.Views
             {
                 _isLoadingMetadata = false;
                 await Task.Delay(50);
+
+                if(ViewModel != null)
+                {
+                    ViewModel.IsVideoContainerVisible = false;
+                    ViewModel.IsVideoContainerVisible = true;
+                }
+
                 GameScrollViewerFocusLoaded();
             }
         }

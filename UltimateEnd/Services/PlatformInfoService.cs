@@ -173,7 +173,7 @@ namespace UltimateEnd.Services
 
             if (_aliasMap.TryGetValue(normalized, out var platform)) return new HashSet<string>(platform.Extensions, StringComparer.OrdinalIgnoreCase);
 
-            return [".zip", ".iso", ".chd"];
+            return [];
         }
 
         public PlatformInfo? GetPlatformInfo(string platformIdOrAlias)
