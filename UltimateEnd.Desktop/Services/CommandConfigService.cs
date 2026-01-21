@@ -16,8 +16,7 @@ namespace UltimateEnd.Desktop.Services
             {
                 var path = Path.Combine(AppContext.BaseDirectory, "settings");
 
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
                 return path;
             }
@@ -222,6 +221,7 @@ namespace UltimateEnd.Desktop.Services
                     CoreName = props.GetValueOrDefault("coreName"),
                     PrelaunchScript = props.GetValueOrDefault("prelaunchScript"),
                     PostlaunchScript = props.GetValueOrDefault("postlaunchScript"),
+                    PostStartScript = props.GetValueOrDefault("postStartScript"),
                     SupportedPlatforms = [.. (props.GetValueOrDefault("platforms") ?? string.Empty)
                         .Split(',')
                         .Select(p => p.Trim())
@@ -240,8 +240,7 @@ namespace UltimateEnd.Desktop.Services
 
             foreach (var emulator in config.Emulators.Values)
             {
-                if (emulator is not Command cmd)
-                    continue;
+                if (emulator is not Command cmd) continue;
 
                 var props = new Dictionary<string, string>
                 {
@@ -250,26 +249,22 @@ namespace UltimateEnd.Desktop.Services
                     ["launchCommand"] = cmd.LaunchCommand
                 };
 
-                if (!string.IsNullOrEmpty(cmd.WorkingDirectory))
-                    props["workingDirectory"] = cmd.WorkingDirectory;
+                if (!string.IsNullOrEmpty(cmd.WorkingDirectory)) props["workingDirectory"] = cmd.WorkingDirectory;
 
-                if (cmd.IsRetroArch)
-                    props["isRetroArch"] = "true";
+                if (cmd.IsRetroArch) props["isRetroArch"] = "true";
 
-                if (!string.IsNullOrEmpty(cmd.CoreName))
-                    props["coreName"] = cmd.CoreName;
+                if (!string.IsNullOrEmpty(cmd.CoreName)) props["coreName"] = cmd.CoreName;
 
-                if (!string.IsNullOrEmpty(cmd.PrelaunchScript))
-                    props["prelaunchScript"] = cmd.PrelaunchScript;
+                if (!string.IsNullOrEmpty(cmd.PrelaunchScript)) props["prelaunchScript"] = cmd.PrelaunchScript;
 
-                if (!string.IsNullOrEmpty(cmd.PostlaunchScript))
-                    props["postlaunchScript"] = cmd.PostlaunchScript;
+                if (!string.IsNullOrEmpty(cmd.PostlaunchScript)) props["postlaunchScript"] = cmd.PostlaunchScript;
+
+                if (!string.IsNullOrEmpty(cmd.PostStartScript)) props["postStartScript"] = cmd.PostStartScript;
 
                 data[cmd.Id] = props;
             }
 
-            if (config.DefaultEmulators.Count > 0)
-                data["DefaultEmulators"] = new Dictionary<string, string>(config.DefaultEmulators);
+            if (config.DefaultEmulators.Count > 0) data["DefaultEmulators"] = new Dictionary<string, string>(config.DefaultEmulators);
 
             return data;
         }

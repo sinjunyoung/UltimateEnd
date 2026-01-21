@@ -128,6 +128,13 @@ namespace UltimateEnd.Desktop.Views
             e.Handled = true;
         }
 
+        private void OnInsertPostStartVariableClicked(object? sender, RoutedEventArgs e)
+        {
+            _currentScriptTextBox = PostStartScriptTextBox;
+            TemplateVariablePickerOverlay.Show();
+            e.Handled = true;
+        }
+
         private void OnTemplateVariableSelected(object? sender, string variable)
         {
             if (_currentScriptTextBox != null)

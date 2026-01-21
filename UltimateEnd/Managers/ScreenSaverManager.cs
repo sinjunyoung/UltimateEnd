@@ -208,15 +208,13 @@ namespace UltimateEnd.Managers
             gameListViewModel.PlatformImageChangeRequested += (s, e) => PlatformImageChangeRequested?.Invoke(s, e);
 
             LastSelectedPlatformChanged?.Invoke(platform);
-
             ViewChangeRequested?.Invoke(gameListViewModel);
 
             await Task.Delay(100);
 
             Dispatcher.UIThread.Post(() =>
             {
-                if (GetCurrentView() == gameListViewModel && game != null)
-                    gameListViewModel.ScrollToGame(game);
+                if (GetCurrentView() == gameListViewModel && game != null) gameListViewModel.ScrollToGame(game);
             }, DispatcherPriority.Loaded);
 
             Dispatcher.UIThread.Post(() =>

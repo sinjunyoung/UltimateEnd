@@ -13,6 +13,7 @@ namespace UltimateEnd.Desktop.Models
         private string? _workingDirectory;
         private string? _prelaunchScript;
         private string? _postlaunchScript;
+        private string? _postStartScript;
         private bool _isRetroArch = false;
 
         [JsonPropertyName("id")]
@@ -72,6 +73,14 @@ namespace UltimateEnd.Desktop.Models
         {
             get => _postlaunchScript;
             set => this.RaiseAndSetIfChanged(ref _postlaunchScript, value);
+        }
+
+        [JsonPropertyName("postStartScript")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? PostStartScript
+        {
+            get => _postStartScript;
+            set => this.RaiseAndSetIfChanged(ref _postStartScript, value);
         }
 
         [JsonIgnore]

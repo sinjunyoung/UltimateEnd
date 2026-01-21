@@ -18,11 +18,19 @@ namespace UltimateEnd.Desktop.ViewModels
         private IStorageProvider _storageProvider;
 
         public ICommand BrowseExecutableCommand { get; }
+        
         public ICommand BrowseWorkingDirCommand { get; }
+        
         public ICommand BrowsePrelaunchScriptCommand { get; }
+        
         public ICommand BrowsePostlaunchScriptCommand { get; }
+
+        public ICommand BrowsePostStartScriptCommand { get; }
+
         public ICommand GoBackCommand { get; }
+        
         public ICommand SaveCommand { get; }
+        
         public ICommand ClearSearchCommand { get; }
 
         public EmulatorSettingViewModel()
@@ -31,6 +39,8 @@ namespace UltimateEnd.Desktop.ViewModels
             BrowseWorkingDirCommand = ReactiveCommand.CreateFromTask(BrowseWorkingDirAsync);
             BrowsePrelaunchScriptCommand = ReactiveCommand.CreateFromTask(BrowsePrelaunchScriptAsync);
             BrowsePostlaunchScriptCommand = ReactiveCommand.CreateFromTask(BrowsePostlaunchScriptAsync);
+            BrowsePostStartScriptCommand = ReactiveCommand.CreateFromTask(BrowsePostStartScriptAsync);
+
             SaveCommand = ReactiveCommand.CreateFromTask(async () =>
             {
                 Save();
@@ -120,7 +130,10 @@ namespace UltimateEnd.Desktop.ViewModels
             });
 
             if (files.Count > 0 && SelectedCommand is Command cmd)
-                cmd.Executable = files[0].Path.LocalPath;
+            {
+                var path = files[0].Path.LocalPath;
+                cmd.Executable = path.Contains(' ') ? $"\"{path}\"" : path;
+            }
         }
 
         private async Task BrowseWorkingDirAsync()
@@ -135,7 +148,10 @@ namespace UltimateEnd.Desktop.ViewModels
             });
 
             if (folders.Count > 0 && SelectedCommand is Command cmd)
-                cmd.WorkingDirectory = folders[0].Path.LocalPath;
+            {
+                var path = folders[0].Path.LocalPath;
+                cmd.WorkingDirectory = path.Contains(' ') ? $"\"{path}\"" : path;
+            }
         }
 
         private async Task BrowsePrelaunchScriptAsync()
@@ -161,7 +177,10 @@ namespace UltimateEnd.Desktop.ViewModels
             });
 
             if (files.Count > 0 && SelectedCommand is Command cmd)
-                cmd.PrelaunchScript = files[0].Path.LocalPath;
+            {
+                var path = files[0].Path.LocalPath;
+                cmd.PrelaunchScript = path.Contains(' ') ? $"\"{path}\"" : path;
+            }
         }
 
         private async Task BrowsePostlaunchScriptAsync()
@@ -187,7 +206,39 @@ namespace UltimateEnd.Desktop.ViewModels
             });
 
             if (files.Count > 0 && SelectedCommand is Command cmd)
-                cmd.PostlaunchScript = files[0].Path.LocalPath;
+            {
+                var path = files[0].Path.LocalPath;
+                cmd.PostlaunchScript = path.Contains(' ') ? $"\"{path}\"" : path;
+            }
+        }
+
+        private async Task BrowsePostStartScriptAsync()
+        {
+            if (_storageProvider == null || SelectedCommand == null)
+                return;
+
+            var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Post-start 스크립트 선택",
+                AllowMultiple = false,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("스크립트 파일")
+            {
+                Patterns = ["*.bat", "*.cmd", "*.ps1", "*.exe", "*.vbs"]
+            },
+            new FilePickerFileType("모든 파일")
+            {
+                Patterns = ["*.*"]
+            }
+                ]
+            });
+
+            if (files.Count > 0 && SelectedCommand is Command cmd)
+            {
+                var path = files[0].Path.LocalPath;
+                cmd.PostStartScript = path.Contains(' ') ? $"\"{path}\"" : path;
+            }
         }
     }
 }

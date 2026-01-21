@@ -355,6 +355,21 @@ namespace UltimateEnd.Desktop.Services
                 if (process == null)
                     throw new InvalidOperationException("프로세스를 시작할 수 없습니다.");
 
+                if (!string.IsNullOrEmpty(command.PostStartScript))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await ExecuteScriptAsync(command.PostStartScript, romPath, workingDir);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Post-start script 실행 실패: {ex.Message}");
+                        }
+                    });
+                }
+
                 await process.WaitForExitAsync();
             }
             catch (Exception ex)
