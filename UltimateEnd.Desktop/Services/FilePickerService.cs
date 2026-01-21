@@ -1,4 +1,5 @@
 ﻿using Avalonia.Platform.Storage;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,14 +15,21 @@ namespace UltimateEnd.Desktop.Services
         {
             var fileType = new FilePickerFileType(filterOptions.DisplayName)
             {
-                Patterns = filterOptions.FileNamePatterns ??
-                           filterOptions.Extensions?.Select(ext => $"*{ext}").ToArray()
+                Patterns = filterOptions.FileNamePatterns ?? filterOptions.Extensions?.Select(ext => $"*{ext}").ToArray()
             };
 
-            //IStorageFolder? startLocation = null;
+            IStorageFolder? startLocation = null;
 
-            //if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory))
-            //    startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
+            if (initialDirectory != null)
+            {
+                Uri uri = new(initialDirectory);
+
+                // unc 에서 오동작이 발생함
+                if (!uri.IsUnc)
+                {
+                    if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory)) startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
+                }
+            }
 
             var files = await _storageProvider.OpenFilePickerAsync(
                 new FilePickerOpenOptions
@@ -29,7 +37,7 @@ namespace UltimateEnd.Desktop.Services
                     Title = title,
                     AllowMultiple = false,
                     FileTypeFilter = [fileType],
-                    //SuggestedStartLocation = startLocation
+                    SuggestedStartLocation = startLocation
                 });
 
             if (files.Count == 0) return null;

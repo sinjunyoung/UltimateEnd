@@ -187,11 +187,11 @@ namespace UltimateEnd.Managers
             _idleDetectionService?.Disable();
             CleanupScreensaver();
 
-            var orchestrator = new GameLaunchOrchestrator(null);
-            await orchestrator.LaunchAsync(game);
-
             ViewChangeRequested?.Invoke(null);
             await Task.Delay(100);
+
+            var orchestrator = new GameLaunchOrchestrator(null);
+            await orchestrator.LaunchAsync(game);
 
             var gameListViewModel = new GameListViewModel(platform, game)
             {
@@ -211,11 +211,13 @@ namespace UltimateEnd.Managers
 
             ViewChangeRequested?.Invoke(gameListViewModel);
 
+            await Task.Delay(100);
+
             Dispatcher.UIThread.Post(() =>
             {
-                if (GetCurrentView() == gameListViewModel && game != null) gameListViewModel.ScrollToGame(game);
-
-            }, DispatcherPriority.ApplicationIdle);
+                if (GetCurrentView() == gameListViewModel && game != null)
+                    gameListViewModel.ScrollToGame(game);
+            }, DispatcherPriority.Loaded);
 
             Dispatcher.UIThread.Post(() =>
             {

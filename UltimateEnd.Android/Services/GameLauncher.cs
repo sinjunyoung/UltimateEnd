@@ -106,8 +106,6 @@ namespace UltimateEnd.Android.Services
             var converter = PathConverterFactory.Create?.Invoke();
             var friendlyPath = converter?.RealPathToFriendlyPath(romPath) ?? romPath;
 
-            bool gameStarted = false;
-
             try
             {
                 var command = GetEmulatorCommand(game.PlatformId!, game.EmulatorId);
@@ -116,24 +114,17 @@ namespace UltimateEnd.Android.Services
                 var intent = await _intentBuilder.BuildAsync(command, romPath);
 
                 await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Start);
-                gameStarted = true;
-
                 await LaunchIntent(intent);
-
                 await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Stop);
             }
             catch (ActivityNotFoundException ex)
             {
-                if (gameStarted)
-                    await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Stop);
-
+                await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Stop);
                 throw new InvalidOperationException("에뮬레이터 앱이 설치되어 있지 않습니다.", ex);
             }
             catch (Exception ex)
             {
-                if (gameStarted)
-                    await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Stop);
-
+                await PlayTimeHistoryFactory.Instance.Update(friendlyPath, PlayState.Stop);
                 throw new InvalidOperationException($"게임 실행에 실패했습니다: {ex.Message}", ex);
             }
         }
@@ -202,45 +193,20 @@ namespace UltimateEnd.Android.Services
 
         private async Task LaunchNativeAppAsync(GameMetadata game)
         {
-            bool gameStarted = false;
+            var romPath = game.GetRomFullPath();
+            var fileContent = File.ReadAllText(romPath);
+            var packageName = fileContent.Split('|')[0];
 
             try
             {
-                var romPath = game.GetRomFullPath();
-                var fileContent = File.ReadAllText(romPath);
-                var parts = fileContent.Split('|');
-                var packageName = parts.Length > 0 ? parts[0] : string.Empty;
-                var activityName = parts.Length > 1 ? parts[1] : string.Empty;
-
-                var tempGame = new GameMetadata
-                {
-                    PlatformId = game.PlatformId,
-                    RomFile = packageName,
-                    EmulatorId = activityName
-                };
-
                 await PlayTimeHistoryFactory.Instance.Update(packageName, PlayState.Start);
-
-                gameStarted = true;
-
-                _appProvider.LaunchApp(tempGame);
-
-                await Task.Delay(100);
+                await _appProvider.LaunchAppAsync(game);
+                await PlayTimeHistoryFactory.Instance.Update(packageName, PlayState.Stop);
             }
             catch (Exception ex)
             {
+                await PlayTimeHistoryFactory.Instance.Update(packageName, PlayState.Stop);
                 throw new InvalidOperationException($"앱 실행에 실패했습니다: {ex.Message}", ex);
-            }
-            finally
-            {
-                if (gameStarted)
-                {
-                    var romPath = game.GetRomFullPath();
-                    var fileContent = File.ReadAllText(romPath);
-                    var packageName = fileContent.Split('|')[0];
-
-                    await PlayTimeHistoryFactory.Instance.Update(packageName, PlayState.Stop);
-                }
             }
         }
 
@@ -312,11 +278,18 @@ namespace UltimateEnd.Android.Services
             var tcs = new TaskCompletionSource<bool>();
             activity.SetGameExitWaiter(tcs);
 
-            activity.Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
-            activity.StartActivity(intent);
-            activity.OverridePendingTransition(0, 0);
+            try
+            {
+                activity.Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
+                activity.StartActivity(intent);
+                activity.OverridePendingTransition(0, 0);
 
-            await tcs.Task;
+                await tcs.Task;
+            }
+            catch (OperationCanceledException)
+            {
+                throw new InvalidOperationException("게임 실행이 취소되었습니다.");
+            }
         }
     }
 }

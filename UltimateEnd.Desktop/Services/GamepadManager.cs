@@ -4,7 +4,6 @@ using Avalonia.Threading;
 using SharpDX.DirectInput;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;

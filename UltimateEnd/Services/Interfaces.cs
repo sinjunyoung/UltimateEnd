@@ -39,7 +39,7 @@ namespace UltimateEnd.Services
 
         Task<NativeAppInfo> BrowseAppsAsync();
 
-        void LaunchApp(GameMetadata game);
+        Task LaunchAppAsync(GameMetadata game);
     }
 
     public interface IAssetPathProvider

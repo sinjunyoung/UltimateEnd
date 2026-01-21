@@ -275,8 +275,7 @@ namespace UltimateEnd.Views
             var converter = PathConverterFactory.Create?.Invoke();
             var initialDirectory = converter?.FriendlyPathToRealPath(ViewModel.Platform.FolderPath) ?? ViewModel.Platform.FolderPath;
 
-            _isLoadingMetadata = true;
-            SettingsMenuOverlayBase.Hide(HiddenState.Silent);
+            _isLoadingMetadata = true;            
 
             try
             {
@@ -285,13 +284,10 @@ namespace UltimateEnd.Views
             finally
             {
                 _isLoadingMetadata = false;
+
                 await Task.Delay(50);
 
-                if(ViewModel != null)
-                {
-                    ViewModel.IsVideoContainerVisible = false;
-                    ViewModel.IsVideoContainerVisible = true;
-                }
+                SettingsMenuOverlayBase.Hide(HiddenState.Silent);
 
                 GameScrollViewerFocusLoaded();
             }

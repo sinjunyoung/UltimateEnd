@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using UltimateEnd.Models;
 
 namespace UltimateEnd.Services
 {
     public static class GameMetadataParser
     {
+        private static readonly Lock _writeLock = new();
+
         private const int InitialCapacity = 100;
         private const int StringBuilderCapacity = 256;
 
@@ -282,55 +285,56 @@ namespace UltimateEnd.Services
 
         public static void Write(string filePath, IEnumerable<GameMetadata> games)
         {
-            var sb = new StringBuilder(4096);
-            sb.Append("# UltimateEnd Game Metadata\n\n");
-
-            foreach (var game in games)
+            lock (_writeLock)
             {
-                var sectionName = !string.IsNullOrEmpty(game.Title)
-                    ? game.Title
-                    : Path.GetFileNameWithoutExtension(game.RomFile);
+                var sb = new StringBuilder(4096);
+                sb.Append("# UltimateEnd Game Metadata\n\n");
 
-                sb.Append('[').Append(sectionName).Append("]\n");
-                sb.Append("romFile=").Append(game.RomFile).Append('\n');
+                foreach (var game in games)
+                {
+                    var sectionName = !string.IsNullOrEmpty(game.Title) ? game.Title : Path.GetFileNameWithoutExtension(game.RomFile);
 
-                if (!string.IsNullOrEmpty(game.Title))
-                    sb.Append("title=").Append(game.Title).Append('\n');
+                    sb.Append('[').Append(sectionName).Append("]\n");
+                    sb.Append("romFile=").Append(game.RomFile).Append('\n');
 
-                if (!string.IsNullOrEmpty(game.EmulatorId))
-                    sb.Append("emulatorId=").Append(game.EmulatorId).Append('\n');
+                    if (!string.IsNullOrEmpty(game.Title))
+                        sb.Append("title=").Append(game.Title).Append('\n');
 
-                if (!string.IsNullOrEmpty(game.Developer))
-                    sb.Append("developer=").Append(game.Developer).Append('\n');
+                    if (!string.IsNullOrEmpty(game.EmulatorId))
+                        sb.Append("emulatorId=").Append(game.EmulatorId).Append('\n');
 
-                if (!string.IsNullOrEmpty(game.Genre))
-                    sb.Append("genre=").Append(game.Genre).Append('\n');
+                    if (!string.IsNullOrEmpty(game.Developer))
+                        sb.Append("developer=").Append(game.Developer).Append('\n');
 
-                if (game.HasKorean)
-                    sb.Append("hasKorean=true\n");
+                    if (!string.IsNullOrEmpty(game.Genre))
+                        sb.Append("genre=").Append(game.Genre).Append('\n');
 
-                if (game.IsFavorite)
-                    sb.Append("isFavorite=true\n");
+                    if (game.HasKorean)
+                        sb.Append("hasKorean=true\n");
 
-                if (game.Ignore)
-                    sb.Append("ignore=true\n");
+                    if (game.IsFavorite)
+                        sb.Append("isFavorite=true\n");
 
-                if (!string.IsNullOrEmpty(game.CoverImagePath))
-                    sb.Append("coverImagePath=").Append(game.CoverImagePath).Append('\n');
+                    if (game.Ignore)
+                        sb.Append("ignore=true\n");
 
-                if (!string.IsNullOrEmpty(game.LogoImagePath))
-                    sb.Append("logoImagePath=").Append(game.LogoImagePath).Append('\n');
+                    if (!string.IsNullOrEmpty(game.CoverImagePath))
+                        sb.Append("coverImagePath=").Append(game.CoverImagePath).Append('\n');
 
-                if (!string.IsNullOrEmpty(game.VideoPath))
-                    sb.Append("videoPath=").Append(game.VideoPath).Append('\n');
+                    if (!string.IsNullOrEmpty(game.LogoImagePath))
+                        sb.Append("logoImagePath=").Append(game.LogoImagePath).Append('\n');
 
-                if (!string.IsNullOrEmpty(game.Description))
-                    sb.Append("description=").Append(game.Description).Append('\n');
+                    if (!string.IsNullOrEmpty(game.VideoPath))
+                        sb.Append("videoPath=").Append(game.VideoPath).Append('\n');
 
-                sb.Append('\n');
+                    if (!string.IsNullOrEmpty(game.Description))
+                        sb.Append("description=").Append(game.Description).Append('\n');
+
+                    sb.Append('\n');
+                }
+
+                File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
             }
-
-            File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
         }
     }
 }

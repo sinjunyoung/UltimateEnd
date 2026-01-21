@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using UltimateEnd.Enums;
 using UltimateEnd.Services;
 
@@ -10,7 +11,7 @@ namespace UltimateEnd.Scraper.Models
     public class ScreenScraperConfig
     {
         private static readonly Lazy<ScreenScraperConfig> _instance = new(() => Load());
-        private static readonly object _lockObject = new();
+        private static readonly Lock _lockObject = new();
 
         [JsonIgnore]
         public string ApiDevU { get; } = Environment.GetEnvironmentVariable("SCREENSCRAPER_DEV_U") ?? "cdh5";

@@ -212,30 +212,35 @@ namespace UltimateEnd.Desktop.Services
 
         private async Task LaunchNativeAppAsync(GameMetadata game)
         {
-            var exePath = game.GetRomFullPath();
-            bool gameStarted = false;
+            var dummyPath = game.GetRomFullPath();
+
+            if (!File.Exists(dummyPath)) throw new FileNotFoundException($"앱 정보 파일을 찾을 수 없습니다: {dummyPath}");
+
+            var exePath = File.ReadAllText(dummyPath).Trim();
+
+            if (!File.Exists(exePath)) throw new FileNotFoundException($"실행 파일을 찾을 수 없습니다: {exePath}");
 
             try
             {
                 await PlayTimeHistoryFactory.Instance.Update(exePath, PlayState.Start);
 
-                gameStarted = true;
-
                 _onDeactivate?.Invoke();
-                _appProvider.LaunchApp(game);
+
+                await _appProvider.LaunchAppAsync(game);
+
+                _onActivate?.Invoke();
+
+                await PlayTimeHistoryFactory.Instance.Update(exePath, PlayState.Stop);
 
                 await Task.Delay(100);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"앱 실행에 실패했습니다: {ex.Message}", ex);
-            }
-            finally
-            {
-                if (gameStarted)
-                    await PlayTimeHistoryFactory.Instance.Update(exePath, PlayState.Stop);
-
                 _onActivate?.Invoke();
+
+                await PlayTimeHistoryFactory.Instance.Update(exePath, PlayState.Stop);
+
+                throw new InvalidOperationException($"앱 실행에 실패했습니다: {ex.Message}", ex);
             }
         }
 

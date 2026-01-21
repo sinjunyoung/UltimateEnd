@@ -1,7 +1,6 @@
 ﻿using Android.Content;
 using Avalonia.Controls.ApplicationLifetimes;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UltimateEnd.Android.Models;
 using UltimateEnd.Android.Views.Overlays;
@@ -89,30 +88,48 @@ namespace UltimateEnd.Android.Services
             return await tcs.Task;
         }
 
-        public void LaunchApp(GameMetadata game)
+        public async Task LaunchAppAsync(GameMetadata game)
         {
-            var context = AndroidApplication.AppContext;
-            var packageName = game.RomFile;
-            var activityName = game.EmulatorId;
+            var activity = MainActivity.Instance;
 
-            if (string.IsNullOrEmpty(activityName))
+            if (activity == null || activity.IsFinishing || activity.IsDestroyed) throw new InvalidOperationException("MainActivity를 사용할 수 없습니다.");
+
+            var tcs = new TaskCompletionSource<bool>();
+            activity.SetGameExitWaiter(tcs);
+
+            try
             {
-                var intent = context.PackageManager?.GetLaunchIntentForPackage(packageName);
-                if (intent != null)
+                var context = AndroidApplication.AppContext;
+                var packageName = game.RomFile;
+                var activityName = game.EmulatorId;
+
+                Intent? intent;
+
+                if (string.IsNullOrEmpty(activityName))
                 {
+                    intent = context.PackageManager?.GetLaunchIntentForPackage(packageName);
+
+                    if (intent == null) throw new InvalidOperationException($"앱을 실행할 수 없습니다: {packageName}");
+
                     intent.AddFlags(ActivityFlags.NewTask);
-                    context.StartActivity(intent);
                 }
-            }
-            else
-            {
-                var intent = new Intent(Intent.ActionMain);
-                intent.SetComponent(new ComponentName(packageName, activityName));
-                intent.AddFlags(ActivityFlags.NewTask);
-                intent.AddFlags(ActivityFlags.ClearTask | ActivityFlags.ClearTop | ActivityFlags.NoHistory);
+                else
+                {
+                    intent = new Intent(Intent.ActionMain);
+                    intent.SetComponent(new ComponentName(packageName, activityName));
+                    intent.AddFlags(ActivityFlags.NewTask);
+                    intent.AddFlags(ActivityFlags.ClearTask | ActivityFlags.ClearTop | ActivityFlags.NoHistory);
+                }
+
+                activity.Window?.SetFlags(global::Android.Views.WindowManagerFlags.Secure, global::Android.Views.WindowManagerFlags.Secure);
                 context.StartActivity(intent);
+
+                await tcs.Task;
+            }
+            catch (OperationCanceledException)
+            {
+                throw new InvalidOperationException("앱 실행이 취소되었습니다.");
             }
         }
     }
 }
-    

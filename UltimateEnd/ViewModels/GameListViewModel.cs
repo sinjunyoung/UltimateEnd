@@ -363,20 +363,12 @@ namespace UltimateEnd.ViewModels
             _launchOrchestrator.VideoContainerVisibilityRequested += visible => Dispatcher.UIThread.Post(() => IsVideoContainerVisible = visible);
             _launchOrchestrator.LaunchCompleted += () => Dispatcher.UIThread.Post(() =>
             {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    RequestExplicitScroll?.Invoke(this, SelectedGame);
-                }, DispatcherPriority.Background);
-
+                Dispatcher.UIThread.Post(() => RequestExplicitScroll?.Invoke(this, SelectedGame), DispatcherPriority.Background);
                 IsLaunchingGame = false;
             });
             _launchOrchestrator.LaunchFailed += () => Dispatcher.UIThread.Post(() =>
             {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    RequestExplicitScroll?.Invoke(this, SelectedGame);
-                }, DispatcherPriority.Background);
-
+                Dispatcher.UIThread.Post(() => RequestExplicitScroll?.Invoke(this, SelectedGame), DispatcherPriority.Background);
                 IsLaunchingGame = false;
                 TryResumeVideo();
             });                
@@ -523,8 +515,6 @@ namespace UltimateEnd.ViewModels
             _videoCoordinator.Stop();
 
             await _launchOrchestrator.LaunchAsync(game);
-
-            game.RefreshPlayHistory();
         }
 
         public static void RenameGame(GameMetadata game)
@@ -769,8 +759,7 @@ namespace UltimateEnd.ViewModels
             {
                 var appProvider = AppProviderFactory.Create?.Invoke();
 
-                if (appProvider == null)
-                    return;
+                if (appProvider == null) return;
 
                 var app = await appProvider.BrowseAppsAsync();
 
@@ -967,9 +956,6 @@ namespace UltimateEnd.ViewModels
 
         #endregion
 
-        public void CommitSearch()
-        {
-            _collectionManager.CommittedSearchText = SearchText;
-        }
+        public void CommitSearch() => _collectionManager.CommittedSearchText = SearchText;
     }
 }

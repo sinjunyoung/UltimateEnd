@@ -185,6 +185,7 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     public void SetGameExitWaiter(TaskCompletionSource<bool> tcs)
     {
+        _gameExitTcs?.TrySetCanceled();
         _gameExitTcs = tcs;
     }
 
@@ -231,6 +232,9 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     protected override void OnDestroy()
     {
+        _gameExitTcs?.TrySetCanceled();
+        _gameExitTcs = null;
+
         ScreenScraperCache.Shutdown();
         base.OnDestroy();
     }

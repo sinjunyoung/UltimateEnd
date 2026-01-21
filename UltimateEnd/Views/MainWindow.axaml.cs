@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using System;
-using System.Diagnostics;
 using UltimateEnd.Managers;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
@@ -28,8 +27,9 @@ public partial class MainWindow : Window
     private void OnWindowActivated(object? sender, EventArgs e)
     {
         ScreenSaverManager.Instance.OnWindowActivated();
+        InputManager.LoadKeyBindings();
 
-        if (OverlayHelper.IsAnyOverlayVisible(this)) return;
+        if (OverlayHelper.IsAnyOverlayVisible(this)) return;        
 
         var gameListViewModel = FindGameListViewModel();
         _ = gameListViewModel?.ResumeVideoAsync();

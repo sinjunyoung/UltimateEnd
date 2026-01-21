@@ -71,7 +71,7 @@ namespace UltimateEnd.Desktop.Services
                 };
         }
 
-        public void LaunchApp(GameMetadata game)
+        public async Task LaunchAppAsync(GameMetadata game)
         {
             var dummyPath = game.GetRomFullPath();
 
@@ -88,7 +88,24 @@ namespace UltimateEnd.Desktop.Services
                 UseShellExecute = true
             };
 
-            Process.Start(startInfo);
+            Process? process = null;
+
+            try
+            {
+                process = Process.Start(startInfo);
+
+                if (process == null) throw new InvalidOperationException("프로세스를 시작할 수 없습니다.");
+
+                await process.WaitForExitAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"앱 실행에 실패했습니다: {ex.Message}", ex);
+            }
+            finally
+            {
+                process?.Dispose();
+            }
         }
     }
 }

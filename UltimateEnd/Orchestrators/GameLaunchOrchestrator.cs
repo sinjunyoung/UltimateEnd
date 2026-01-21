@@ -12,7 +12,6 @@ namespace UltimateEnd.Orchestrators
 {
     public class GameLaunchOrchestrator(VideoPlaybackCoordinator videoCoordinator)
     {
-        private const int LaunchDelayMs = 50;
         private readonly VideoPlaybackCoordinator _videoCoordinator = videoCoordinator;
 
         public event Func<Task>? AppActivated;
@@ -44,41 +43,38 @@ namespace UltimateEnd.Orchestrators
                         if (!validation.IsValid)
                         {
                             LaunchFailed?.Invoke();
-                            IdleDetectionEnabled?.Invoke(true);
-                            VideoContainerVisibilityRequested?.Invoke(true);
                             return;
                         }
                     }
                     else
                     {
                         LaunchFailed?.Invoke();
-                        IdleDetectionEnabled?.Invoke(true);
-                        VideoContainerVisibilityRequested?.Invoke(true);
                         return;
                     }
                 }
 
                 await DeactivateApp();
+
                 await launcher.LaunchGameAsync(game);
+
+                ActivateApp();
+                game.RefreshPlayHistory();
+                await Task.Delay(100);
+
+                IdleDetectionEnabled?.Invoke(true);
+                LaunchCompleted?.Invoke();           
             }
             catch (Exception ex)
             {
                 await HandleError(ex);
                 LaunchFailed?.Invoke();
+            }
+            finally
+            {
                 IdleDetectionEnabled?.Invoke(true);
                 VideoContainerVisibilityRequested?.Invoke(true);
-                return;
+                ScreenSaverManager.Instance.ResumeScreenSaver();
             }
-
-            ActivateApp();
-            game.RefreshPlayHistory();
-            await Task.Delay(100);
-
-            IdleDetectionEnabled?.Invoke(true);
-            LaunchCompleted?.Invoke();
-            VideoContainerVisibilityRequested?.Invoke(true);
-
-            ScreenSaverManager.Instance.ResumeScreenSaver();
         }
 
         private async Task<EmulatorValidationAction> HandleValidationFailure(EmulatorValidationResult validation)
@@ -95,7 +91,6 @@ namespace UltimateEnd.Orchestrators
         {
             _videoCoordinator?.CancelDelay();
             _videoCoordinator?.Stop();
-            //Task.Delay(LaunchDelayMs).Wait();
         }
 
         private async Task HandleError(Exception ex)
