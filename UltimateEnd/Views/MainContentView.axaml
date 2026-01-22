@@ -6,6 +6,7 @@
              xmlns:overlays="using:UltimateEnd.Views.Overlays"
 			 xmlns:behaviors="using:UltimateEnd.Behaviors"
              xmlns:selectors="using:UltimateEnd.DataTemplateSelectors"
+			 xmlns:controls="using:UltimateEnd.Controls"
              x:Class="UltimateEnd.Views.MainContentView"
              x:DataType="vm:MainViewModel"
 			 Background="{DynamicResource Background.Primary}">
@@ -33,5 +34,8 @@
 		<overlays:MessageOverlay x:Name="MessageOverlay" ZIndex="10000"/>
 		<overlays:LoadingOverlay x:Name="LoadingOverlay" ZIndex="9999"/>
 		<overlays:BatchScrapOverlay x:Name="BatchScrapOverlay" ZIndex="9998"/>
+
+		<controls:TouchKeyboard x:Name="TouchKeyboard" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" ZIndex="9999"/>
 	</Grid>
+	
 </UserControl>

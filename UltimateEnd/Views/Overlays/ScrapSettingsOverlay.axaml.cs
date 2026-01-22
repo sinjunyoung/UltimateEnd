@@ -44,10 +44,6 @@ namespace UltimateEnd.Views.Overlays
             InitializeComponent();
             DelaySlider.ValueChanged += OnDelayChanged;
             HttpTimeoutSlider.ValueChanged += OnHttpTimeoutChanged;
-
-            if (OperatingSystem.IsAndroid())
-                 SearchMethodSection.IsVisible = false;
-
         }
 
         public override void Show()

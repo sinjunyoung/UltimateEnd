@@ -305,8 +305,8 @@ namespace UltimateEnd.Scraper.Models
         { 
             get
             {
-                if (OperatingSystem.IsAndroid()) // 안드로이드 제한
-                    return 10;
+                if (OperatingSystem.IsAndroid())
+                    return 256;
 
                 return 99999999;
             }

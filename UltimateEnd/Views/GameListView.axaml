@@ -754,6 +754,6 @@
 		<overlays:BackupListOverlay x:Name="BackupListOverlay" Focusable="True"/>
 		<overlays:PlaylistSelectionOverlay x:Name="PlaylistOverlay" Focusable="True"/>
 		<overlays:FolderContextMenuOverlay x:Name="FolderContextMenuOverlay" Focusable="True"/>
-
+		
 	</Panel>
 </UserControl>

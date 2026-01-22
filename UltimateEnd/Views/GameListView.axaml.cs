@@ -26,6 +26,7 @@ namespace UltimateEnd.Views
         private bool _isResizing = false;
         private bool _isScrollViewerInitialized = false;
         private double _cachedHeight = 0;
+        private IDisposable? _keyboardSubscription;
 
         #endregion
 
@@ -141,6 +142,20 @@ namespace UltimateEnd.Views
         #endregion
 
         #region Hook Method Overrides
+
+        protected override void OnLoaded(RoutedEventArgs e)
+        {
+            base.OnLoaded(e);
+
+            _keyboardSubscription = KeyboardEventBus.KeyboardVisibility
+                .Subscribe(isVisible => VideoContainerVisible = !isVisible);
+        }
+
+        protected override void OnUnloaded(RoutedEventArgs e)
+        {
+            base.OnUnloaded(e);
+            _keyboardSubscription?.Dispose();
+        }
 
         protected override void OnAttachedToVisualTreeCore(VisualTreeAttachmentEventArgs e)
         {

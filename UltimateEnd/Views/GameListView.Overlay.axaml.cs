@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls;
-using System;
+﻿using System;
 using System.Reactive.Linq;
 using UltimateEnd.Enums;
 using UltimateEnd.Services;
@@ -30,11 +29,7 @@ namespace UltimateEnd.Views
 
         protected override FolderContextMenuOverlay FolderContextMenuOverlayBase => FolderContextMenuOverlay;
 
-        #endregion
-
-        #region ListView-Specific Overlay Properties
-
-        #endregion
+        #endregion        
 
         #region Video Container Management
 

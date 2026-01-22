@@ -381,12 +381,19 @@
 													   FontWeight="SemiBold"
 													   HorizontalAlignment="Center"
 													   Foreground="{DynamicResource Text.Primary}"/>
-											<TextBlock Grid.Row="1"
-													   Text="⚡ 빠름"
-													   FontSize="11"
-													   HorizontalAlignment="Center"
-													   Foreground="{DynamicResource Accent.Green}"
-													   Margin="0,2,0,0"/>
+											<StackPanel Grid.Row="1"
+														Orientation="Horizontal"
+														HorizontalAlignment="Center"
+														Margin="0,2,0,0"
+														Spacing="4">
+												<!-- 번개 아이콘 -->
+												<PathIcon Data="M 8 2 L 3 10 L 7 10 L 5 18 L 13 8 L 9 8 L 12 2 Z"
+														  Width="14" Height="14"
+														  Foreground="{DynamicResource Accent.Green}"/>
+												<TextBlock Text="빠름"
+														   FontSize="11"
+														   Foreground="{DynamicResource Accent.Green}"/>
+											</StackPanel>
 											<PathIcon Name="SearchByNameCheck"
 													  Grid.Row="2"
 													  Data="M 2 8 L 8 14 L 18 2"
@@ -412,12 +419,19 @@
 													   FontWeight="SemiBold"
 													   HorizontalAlignment="Center"
 													   Foreground="{DynamicResource Text.Primary}"/>
-											<TextBlock Grid.Row="1"
-													   Text="🎯 정확"
-													   FontSize="11"
-													   HorizontalAlignment="Center"
-													   Foreground="{DynamicResource Accent.Blue}"
-													   Margin="0,2,0,0"/>
+											<StackPanel Grid.Row="1"
+														Orientation="Horizontal"
+														HorizontalAlignment="Center"
+														Margin="0,2,0,0"
+														Spacing="4">
+												<!-- 다트판 + 화살 아이콘 -->
+												<PathIcon Data="M 10 4 A 6 6 0 1 0 10 16 A 6 6 0 1 0 10 4 M 10 2 L 9 10 L 11 10 Z M 10 10 L 8 12 M 10 10 L 12 12"
+														  Width="14" Height="14"
+														  Foreground="{DynamicResource Accent.Blue}"/>
+												<TextBlock Text="정확"
+														   FontSize="11"
+														   Foreground="{DynamicResource Accent.Blue}"/>
+											</StackPanel>
 											<PathIcon Name="SearchByCrcCheck"
 													  Grid.Row="2"
 													  Data="M 2 8 L 8 14 L 18 2"
