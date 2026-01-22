@@ -332,11 +332,17 @@ namespace UltimateEnd.Managers
                     }
                     else
                     {
-                        metadataService.TryLoadFromCache(appId, game);
+                        SteamMetadataService.TryLoadFromCache(appId, game);
                         lock (_gamesLock) _allGames[key] = game;
                         gamesToFetch.Add((appId, game));
                     }
                 }
+
+                var steamGamesList = new List<GameMetadata>();
+
+                lock (_gamesLock) steamGamesList = [.. _allGames.Values.Where(g => g.PlatformId == GameMetadataManager.SteamKey)];
+
+                MetadataService.SaveMetadata(GameMetadataManager.SteamKey, systemAppsPath, steamGamesList);
 
                 if (gamesToFetch.Count > 0) _ = FetchSteamMetadataInBackgroundAsync(gamesToFetch, _fetchCancellationTokenSource.Token);
             }
@@ -345,22 +351,22 @@ namespace UltimateEnd.Managers
 
         private static async Task FetchSteamMetadataInBackgroundAsync(List<(string appId, GameMetadata game)> gamesToFetch, CancellationToken cancellationToken)
         {
-            var metadataService = SteamMetadataService.Instance;
-
             foreach (var (appId, game) in gamesToFetch)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
+                    var basePath = game.GetBasePath();
+                    var logoPath = Path.Combine(basePath, "logos", $"{appId}.jpg");
+                    var coverPath = Path.Combine(basePath, "covers", $"{appId}.jpg");
+
                     var cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UltimateEnd", "Cache", "Steam");
                     var jsonPath = Path.Combine(cacheDir, $"{appId}.json");
-                    var headerPath = Path.Combine(cacheDir, "Images", $"{appId}_header.jpg");
-                    var coverPath = Path.Combine(cacheDir, "Images", $"{appId}_cover.jpg");
 
-                    if (File.Exists(jsonPath) && File.Exists(headerPath) && File.Exists(coverPath)) continue;
+                    if (File.Exists(jsonPath) && File.Exists(logoPath) && File.Exists(coverPath)) continue;
 
-                    await metadataService.FetchMetadataAsync(appId, game);
+                    await SteamMetadataService.FetchMetadataAsync(appId, game);
                     await Task.Delay(1500, cancellationToken);
                 }
                 catch (OperationCanceledException)
@@ -372,6 +378,23 @@ namespace UltimateEnd.Managers
 
         public List<GameMetadata> GetPlatformGames(string platformId)
         {
+            if (platformId == GameMetadataManager.SteamKey && !IsPlatformLoaded(platformId))
+            {
+                var systemAppsPath = AppSettings.SystemAppsPath;
+
+                if (!string.IsNullOrEmpty(systemAppsPath) && OperatingSystem.IsWindows())
+                {
+                    lock (_gamesLock)
+                    {
+                        if (!_loadedPlatforms.Contains(GameMetadataManager.SteamKey))
+                        {
+                            LoadSteamGames(systemAppsPath);
+                            _loadedPlatforms.Add(GameMetadataManager.SteamKey);
+                        }
+                    }
+                }
+            }
+
             lock (_gamesLock) return [.. _allGames.Values.Where(g => g.PlatformId == platformId)];
         }
 

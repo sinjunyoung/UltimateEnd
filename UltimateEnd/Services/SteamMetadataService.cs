@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using UltimateEnd.Models;
 
@@ -12,13 +13,9 @@ namespace UltimateEnd.Services
     public class SteamMetadataService
     {
         private static readonly HttpClient _httpClient = new();
-        private static readonly string _cacheDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "UltimateEnd", "Cache", "Steam");
-        private static readonly string _imageDirectory = Path.Combine(_cacheDirectory, "Images");
-
+        private static readonly string _cacheDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UltimateEnd", "Cache", "Steam");        
         private static SteamMetadataService? _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
 
         public static SteamMetadataService Instance
         {
@@ -33,27 +30,21 @@ namespace UltimateEnd.Services
 
         private SteamMetadataService()
         {
-            if (!Directory.Exists(_cacheDirectory))
-                Directory.CreateDirectory(_cacheDirectory);
-
-            if (!Directory.Exists(_imageDirectory))
-                Directory.CreateDirectory(_imageDirectory);
+            if (!Directory.Exists(_cacheDirectory)) Directory.CreateDirectory(_cacheDirectory);
         }
 
-        public bool TryLoadFromCache(string appId, GameMetadata game)
+        public static bool TryLoadFromCache(string appId, GameMetadata game)
         {
             var cachePath = Path.Combine(_cacheDirectory, $"{appId}.json");
 
-            if (!File.Exists(cachePath))
-                return false;
+            if (!File.Exists(cachePath)) return false;
 
             try
             {
                 var json = File.ReadAllText(cachePath);
                 var jsonDoc = JsonDocument.Parse(json);
 
-                if (!jsonDoc.RootElement.TryGetProperty(appId, out var appElement))
-                    return false;
+                if (!jsonDoc.RootElement.TryGetProperty(appId, out var appElement)) return false;
 
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var appDetails = JsonSerializer.Deserialize<SteamAppDetails>(appElement.GetRawText(), options);
@@ -61,6 +52,7 @@ namespace UltimateEnd.Services
                 if (appDetails?.Success == true && appDetails.Data != null)
                 {
                     ApplyApiMetadata(game, appDetails.Data, appId);
+
                     return true;
                 }
             }
@@ -72,19 +64,18 @@ namespace UltimateEnd.Services
             return false;
         }
 
-        public async Task<bool> FetchMetadataAsync(string appId, GameMetadata game)
+        public static async Task<bool> FetchMetadataAsync(string appId, GameMetadata game)
         {
             try
             {
-                var url = $"https://store.steampowered.com/api/appdetails/?appids={appId}&l=korean";
+                var url = $"https://store.steampowered.com/api/appdetails/?appids={appId}&l=korean&cc=kr";
                 var response = await _httpClient.GetStringAsync(url);
 
                 await SaveToCacheAsync(appId, response);
 
                 var jsonDoc = JsonDocument.Parse(response);
 
-                if (!jsonDoc.RootElement.TryGetProperty(appId, out var appElement))
-                    return false;
+                if (!jsonDoc.RootElement.TryGetProperty(appId, out var appElement)) return false;
 
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var appDetails = JsonSerializer.Deserialize<SteamAppDetails>(appElement.GetRawText(), options);
@@ -92,6 +83,7 @@ namespace UltimateEnd.Services
                 if (appDetails?.Success == true && appDetails.Data != null)
                 {
                     await ApplyApiMetadataWithDownloadAsync(game, appDetails.Data, appId);
+
                     return true;
                 }
             }
@@ -100,57 +92,51 @@ namespace UltimateEnd.Services
             return false;
         }
 
-        private void ApplyApiMetadata(GameMetadata game, SteamAppData data, string appId)
+        private static void ApplyApiMetadata(GameMetadata game, SteamAppData data, string appId)
         {
-            if (string.IsNullOrEmpty(game.Title) && !string.IsNullOrEmpty(data.Name))
-                game.Title = data.Name;
+            if (string.IsNullOrEmpty(game.Title) && !string.IsNullOrEmpty(data.Name)) game.Title = data.Name;
 
             if (string.IsNullOrEmpty(game.Description))
             {
-                if (!string.IsNullOrEmpty(data.ShortDescription))
-                    game.Description = data.ShortDescription;
-                else if (!string.IsNullOrEmpty(data.AboutTheGame))
-                    game.Description = StripHtmlTags(data.AboutTheGame);
+                if (!string.IsNullOrEmpty(data.ShortDescription)) game.Description = data.ShortDescription;
+                else if (!string.IsNullOrEmpty(data.AboutTheGame)) game.Description = StripHtmlTags(data.AboutTheGame);
             }
 
-            if (string.IsNullOrEmpty(game.Developer) && data.Developers != null && data.Developers.Length > 0)
-                game.Developer = string.Join(", ", data.Developers);
+            if (string.IsNullOrEmpty(game.Developer) && data.Developers != null && data.Developers.Length > 0) game.Developer = string.Join(", ", data.Developers);
 
             if (string.IsNullOrEmpty(game.Genre) && data.Genres != null && data.Genres.Length > 0)
             {
                 var genres = new List<string>();
-                foreach (var genre in data.Genres)
-                    if (!string.IsNullOrEmpty(genre.Description))
-                        genres.Add(genre.Description);
 
-                if (genres.Count > 0)
-                    game.Genre = string.Join(", ", genres);
+                foreach (var genre in data.Genres)
+                    if (!string.IsNullOrEmpty(genre.Description)) genres.Add(genre.Description);
+
+                if (genres.Count > 0) game.Genre = string.Join(", ", genres);
             }
 
-            var coverImagePath = Path.Combine(_imageDirectory, $"{appId}_cover.jpg");
-            if (File.Exists(coverImagePath))
-                game.CoverImagePath = coverImagePath;
+            var basePath = game.GetBasePath();
 
-            var logoImagePath = Path.Combine(_imageDirectory, $"{appId}_logo.jpg");
-            if (File.Exists(logoImagePath))
-                game.LogoImagePath = logoImagePath;
+            var coverImagePath = Path.Combine(basePath, "covers", $"{appId}.jpg");
 
-            var videoPath = Path.Combine(_imageDirectory, $"{appId}_video.webm");
-            if (File.Exists(videoPath))
-                game.VideoPath = videoPath;
+            if (File.Exists(coverImagePath)) game.CoverImagePath = coverImagePath;
+
+            var logoImagePath = Path.Combine(basePath, "logos", $"{appId}.jpg");
+
+            if (File.Exists(logoImagePath)) game.LogoImagePath = logoImagePath;
+
+            var videoPath = Path.Combine(basePath, "videos", $"{appId}.webm");
+
+            if (File.Exists(videoPath)) game.VideoPath = videoPath;
         }
 
-        private async Task ApplyApiMetadataWithDownloadAsync(GameMetadata game, SteamAppData data, string appId)
+        private static async Task ApplyApiMetadataWithDownloadAsync(GameMetadata game, SteamAppData data, string appId)
         {
-            if (!string.IsNullOrEmpty(data.Name))
-                game.Title = data.Name;
+            if (!string.IsNullOrEmpty(data.Name)) game.Title = data.Name;
 
             if (string.IsNullOrEmpty(game.Description))
             {
-                if (!string.IsNullOrEmpty(data.ShortDescription))
-                    game.Description = data.ShortDescription;
-                else if (!string.IsNullOrEmpty(data.AboutTheGame))
-                    game.Description = StripHtmlTags(data.AboutTheGame);
+                if (!string.IsNullOrEmpty(data.ShortDescription)) game.Description = data.ShortDescription;
+                else if (!string.IsNullOrEmpty(data.AboutTheGame)) game.Description = StripHtmlTags(data.AboutTheGame);
             }
 
             if (string.IsNullOrEmpty(game.Developer) && data.Developers != null && data.Developers.Length > 0)
@@ -159,29 +145,29 @@ namespace UltimateEnd.Services
             if (string.IsNullOrEmpty(game.Genre) && data.Genres != null && data.Genres.Length > 0)
             {
                 var genres = new List<string>();
-                foreach (var genre in data.Genres)
-                    if (!string.IsNullOrEmpty(genre.Description))
-                        genres.Add(genre.Description);
 
-                if (genres.Count > 0)
-                    game.Genre = string.Join(", ", genres);
+                foreach (var genre in data.Genres)
+                    if (!string.IsNullOrEmpty(genre.Description)) genres.Add(genre.Description);
+
+                if (genres.Count > 0) game.Genre = string.Join(", ", genres);
             }
 
             if (string.IsNullOrEmpty(game.LogoImagePath) && !string.IsNullOrEmpty(data.HeaderImage))
             {
                 var logoPath = await DownloadImageAsync(data.HeaderImage, appId, "logo");
-                if (!string.IsNullOrEmpty(logoPath))
-                    game.LogoImagePath = logoPath;
+
+                if (!string.IsNullOrEmpty(logoPath)) game.LogoImagePath = logoPath;
             }
 
             if (string.IsNullOrEmpty(game.CoverImagePath) && data.Screenshots != null && data.Screenshots.Length > 0)
             {
                 var firstScreenshot = data.Screenshots[0];
+
                 if (!string.IsNullOrEmpty(firstScreenshot.PathFull))
                 {
                     var coverPath = await DownloadImageAsync(firstScreenshot.PathFull, appId, "cover");
-                    if (!string.IsNullOrEmpty(coverPath))
-                        game.CoverImagePath = coverPath;
+
+                    if (!string.IsNullOrEmpty(coverPath)) game.CoverImagePath = coverPath;
                 }
             }
 
@@ -193,29 +179,32 @@ namespace UltimateEnd.Services
                 if (!string.IsNullOrEmpty(videoUrl) && !videoUrl.Contains(".m3u8"))
                 {
                     var localPath = await DownloadVideoAsync(videoUrl, appId);
-                    if (!string.IsNullOrEmpty(localPath))
-                        game.VideoPath = localPath;
+
+                    if (!string.IsNullOrEmpty(localPath)) game.VideoPath = localPath;
                 }
             }
         }
 
-        private async Task<string?> DownloadImageAsync(string url, string appId, string suffix)
+        private static async Task<string?> DownloadImageAsync(string url, string appId, string suffix)
         {
             try
             {
                 var extension = Path.GetExtension(url).Split('?')[0];
 
-                if (string.IsNullOrEmpty(extension))
-                    extension = ".jpg";
+                if (string.IsNullOrEmpty(extension)) extension = ".jpg";
 
-                var fileName = $"{appId}_{suffix}{extension}";
-                var localPath = Path.Combine(_imageDirectory, fileName);
+                var steamBasePath = Path.Combine(AppSettings.SystemAppsPath, "steam");
+                string folderName = suffix == "cover" ? "covers" : "logos";
+                var targetFolder = Path.Combine(steamBasePath, folderName);
 
-                if (File.Exists(localPath))
-                    return localPath;
+                if (!Directory.Exists(targetFolder)) Directory.CreateDirectory(targetFolder);
+
+                var fileName = $"{appId}{extension}";
+                var localPath = Path.Combine(targetFolder, fileName);
+
+                if (File.Exists(localPath)) return localPath;
 
                 var imageData = await _httpClient.GetByteArrayAsync(url);
-
                 await File.WriteAllBytesAsync(localPath, imageData);
 
                 return localPath;
@@ -226,19 +215,22 @@ namespace UltimateEnd.Services
             }
         }
 
-        private async Task<string?> DownloadVideoAsync(string url, string appId)
+        private static async Task<string?> DownloadVideoAsync(string url, string appId)
         {
             try
             {
                 var extension = url.Contains(".webm") ? ".webm" : ".mp4";
-                var fileName = $"{appId}_video{extension}";
-                var localPath = Path.Combine(_imageDirectory, fileName);
+                var steamBasePath = Path.Combine(AppSettings.SystemAppsPath, "steam");
+                var videosFolder = Path.Combine(steamBasePath, "videos");
 
-                if (File.Exists(localPath))
-                    return localPath;
+                if (!Directory.Exists(videosFolder)) Directory.CreateDirectory(videosFolder);
+
+                var fileName = $"{appId}{extension}";
+                var localPath = Path.Combine(videosFolder, fileName);
+
+                if (File.Exists(localPath)) return localPath;
 
                 var videoData = await _httpClient.GetByteArrayAsync(url);
-
                 await File.WriteAllBytesAsync(localPath, videoData);
 
                 return localPath;
@@ -249,10 +241,9 @@ namespace UltimateEnd.Services
             }
         }
 
-        private string StripHtmlTags(string html)
+        private static string StripHtmlTags(string html)
         {
-            if (string.IsNullOrEmpty(html))
-                return string.Empty;
+            if (string.IsNullOrEmpty(html)) return string.Empty;
 
             var result = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", string.Empty);
             result = System.Net.WebUtility.HtmlDecode(result);
@@ -260,7 +251,7 @@ namespace UltimateEnd.Services
             return result.Trim();
         }
 
-        private async Task SaveToCacheAsync(string appId, string json)
+        private static async Task SaveToCacheAsync(string appId, string json)
         {
             try
             {
@@ -271,16 +262,12 @@ namespace UltimateEnd.Services
             catch { }
         }
 
-        public void ClearCache()
+        public static void ClearCache()
         {
             try
             {
                 if (Directory.Exists(_cacheDirectory))
                     foreach (var file in Directory.GetFiles(_cacheDirectory, "*.json"))
-                        try { File.Delete(file); } catch { }
-
-                if (Directory.Exists(_imageDirectory))
-                    foreach (var file in Directory.GetFiles(_imageDirectory))
                         try { File.Delete(file); } catch { }
             }
             catch { }
@@ -381,11 +368,12 @@ namespace UltimateEnd.Services
     }
 
     #endregion
+
+    public static class GameMetadataExtensions
+    {
+        public static bool IsSteamGame(this GameMetadata game) => game.PlatformId == "steam";
+
+        public static string GetSteamAppId(this GameMetadata game) => game.RomFile;
+    }
 }
 
-public static class GameMetadataExtensions
-{
-    public static bool IsSteamGame(this GameMetadata game) => game.PlatformId == "steam";
-
-    public static string GetSteamAppId(this GameMetadata game) => game.RomFile;
-}
