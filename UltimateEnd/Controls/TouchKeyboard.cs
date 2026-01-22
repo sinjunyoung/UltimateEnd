@@ -108,8 +108,6 @@ namespace UltimateEnd.Controls
 
         private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            _isTouchDevice = true;
-
             if (!_hasDetectedInput && !OperatingSystem.IsAndroid())
             {
                 _hasDetectedInput = true;
@@ -315,8 +313,9 @@ namespace UltimateEnd.Controls
             border.PointerEntered += (s, e) => border.Background = hoverBg;
             border.PointerExited += (s, e) => border.Background = normalBg;
 
-            border.PointerReleased += (s, e) =>
+            border.PointerReleased += async (s, e) => 
             {
+                await WavSounds.Keyboard();
                 if (action != null) action();
                 else InsertChar(text);
             };

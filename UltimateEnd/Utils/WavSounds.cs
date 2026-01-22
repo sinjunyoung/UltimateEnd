@@ -58,6 +58,8 @@ namespace UltimateEnd.Utils
 
         public static async Task Success() => await PlaySound("launch.wav");
 
+        public static async Task Keyboard() => await PlaySound("keyboard.wav");
+
         public static async Task PlaySound(string fileName)
         {
             if (_pathProvider == null) throw new InvalidOperationException("WavSounds가 초기화되지 않았습니다. Initialize()를 먼저 호출하세요.");
