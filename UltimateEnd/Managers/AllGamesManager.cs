@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -292,7 +293,10 @@ namespace UltimateEnd.Managers
                     }
                 }
             }
-            catch { }
+            catch(Exception e)
+            {
+                Debug.WriteLine($"Error loading native apps for platform {platformId}: {e}");
+            }
         }
 
         private void LoadSteamGames(string systemAppsPath)

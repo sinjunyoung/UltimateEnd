@@ -75,6 +75,18 @@ namespace UltimateEnd.Controls
 
         #endregion
 
+        #region Color Helpers
+
+        private IBrush GetBackgroundSecondary() => Application.Current?.FindResource("Background.Primary") as IBrush ?? new SolidColorBrush(Color.Parse("#22283A"));
+
+        private IBrush GetBackgroundInput() => Application.Current?.FindResource("Background.Card") as IBrush ?? new SolidColorBrush(Color.Parse("#2C3347"));
+
+        private IBrush GetBackgroundHover() => Application.Current?.FindResource("Background.Hover") as IBrush ?? new SolidColorBrush(Color.Parse("#313847"));
+
+        private IBrush GetTextPrimary() => Application.Current?.FindResource("Text.Primary") as IBrush ?? Brushes.White;
+
+        #endregion
+
         public TouchKeyboard()
         {
             _keyboardGrid = new Grid
@@ -85,7 +97,7 @@ namespace UltimateEnd.Controls
             UpdateKeyboardLayout();
             Content = _keyboardGrid;
             IsVisible = false;
-            Background = Application.Current?.FindResource("Background.Secondary") as IBrush ?? new SolidColorBrush(Color.Parse("#22283A"));
+            Background = GetBackgroundSecondary();
 
             Focusable = false;
             IsHitTestVisible = true;
@@ -122,7 +134,9 @@ namespace UltimateEnd.Controls
 
             if (e.Source is TextBox textBox)
             {
-                _targetTextBox = textBox;                
+                _targetTextBox = textBox;
+                Background = GetBackgroundSecondary();
+                UpdateKeyboardLayout();
                 IsVisible = true;
                 KeyboardEventBus.NotifyKeyboardVisibility(true);
             }
@@ -170,8 +184,7 @@ namespace UltimateEnd.Controls
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == BoundsProperty)
-                UpdateResponsiveSizes();
+            if (change.Property == BoundsProperty) UpdateResponsiveSizes();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -211,7 +224,7 @@ namespace UltimateEnd.Controls
 
         private void CreateEnglishLayout()
         {
-            string[][] rows = [            
+            string[][] rows = [
                 ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
                 ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
                 ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
@@ -223,7 +236,7 @@ namespace UltimateEnd.Controls
 
         private void CreateNumberLayout()
         {
-            string[][] rows = [            
+            string[][] rows = [
                 ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
                 ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"],
                 ["-", "_", "=", "+", "[", "]", "{", "}", "\\", "|"],
@@ -286,13 +299,14 @@ namespace UltimateEnd.Controls
 
         private Border CreateButton(string text, double width, Action? action = null)
         {
-            var normalBg = Application.Current?.FindResource("Background.Input") as IBrush ?? new SolidColorBrush(Color.Parse("#2C3347"));
-            var hoverBg = Application.Current?.FindResource("Background.Hover") as IBrush ?? new SolidColorBrush(Color.Parse("#313847"));
+            var normalBg = GetBackgroundInput();
+            var hoverBg = GetBackgroundHover();
+            var textColor = GetTextPrimary();
 
             var textBlock = new TextBlock
             {
                 Text = text,
-                Foreground = Application.Current?.FindResource("Text.Primary") as IBrush ?? Brushes.White,
+                Foreground = textColor,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = ButtonFontSize,
@@ -313,7 +327,7 @@ namespace UltimateEnd.Controls
             border.PointerEntered += (s, e) => border.Background = hoverBg;
             border.PointerExited += (s, e) => border.Background = normalBg;
 
-            border.PointerReleased += async (s, e) => 
+            border.PointerReleased += async (s, e) =>
             {
                 await WavSounds.Keyboard();
                 if (action != null) action();

@@ -173,6 +173,12 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         base.OnPause();
 
+        try
+        {
+            Window?.ClearFlags(WindowManagerFlags.Secure);
+        }
+        catch { }
+
         var app = Avalonia.Application.Current?.ApplicationLifetime as ISingleViewApplicationLifetime;
 
         if (app?.MainView?.DataContext is MainViewModel mainVm)
@@ -193,8 +199,18 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         base.OnResume();
 
-        _gameExitTcs?.TrySetResult(true);
-        _gameExitTcs = null;
+        if (_gameExitTcs != null && !_gameExitTcs.Task.IsCompleted) 
+        {
+            var tcs = _gameExitTcs;
+            _gameExitTcs = null;
+            await Task.Run(() => tcs.TrySetResult(true));
+        }
+
+        try
+        {
+            Window?.ClearFlags(WindowManagerFlags.Secure);
+        }
+        catch { }
 
         SetImmersiveFullScreen();
 
@@ -234,6 +250,12 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         _gameExitTcs?.TrySetCanceled();
         _gameExitTcs = null;
+
+        try
+        {
+            Window?.ClearFlags(WindowManagerFlags.Secure);
+        }
+        catch { }
 
         ScreenScraperCache.Shutdown();
         base.OnDestroy();

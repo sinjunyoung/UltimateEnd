@@ -1,0 +1,114 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!-- ============================================ -->
+	<!-- 앰버 오렌지 테마 색상 정의 (Warm & Premium) -->
+	<!-- ============================================ -->
+
+	<!-- 배경 색상 -->
+	<SolidColorBrush x:Key="Background.Primary">#1A1410</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Secondary">#241C16</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Tertiary">#1C1612</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Card">#2A221C</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Input">#332A22</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Hover">#3D322A</SolidColorBrush>
+	<SolidColorBrush x:Key="Background.Border">#4A3D32</SolidColorBrush>
+
+	<!-- 텍스트 색상 -->
+	<SolidColorBrush x:Key="Text.Primary">#FFEEDD</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Secondary">#FFE4C4</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Tertiary">#D4B896</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Disabled">#8A7A6A</SolidColorBrush>
+	<SolidColorBrush x:Key="Text.Muted">#A69681</SolidColorBrush>
+
+	<!-- 액센트 색상 -->
+	<SolidColorBrush x:Key="Accent.Blue">#FFA726</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Red">#FF5252</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Green">#66BB6A</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Yellow">#FFCA28</SolidColorBrush>
+
+	<!-- 반투명 액센트 -->
+	<SolidColorBrush x:Key="Accent.Blue.Transparent">#40FFA726</SolidColorBrush>
+	<SolidColorBrush x:Key="Accent.Red.Transparent">#40FF5252</SolidColorBrush>
+
+	<!-- 메인 프라이머리 그라디언트 (밝은 오렌지 → 진한 오렌지) -->
+	<LinearGradientBrush x:Key="Gradient.Primary" StartPoint="0%,0%" EndPoint="100%,100%">
+		<GradientStop Color="#FFB74D" Offset="0"/>
+		<GradientStop Color="#FFA726" Offset="0.33"/>
+		<GradientStop Color="#FF9800" Offset="0.66"/>
+		<GradientStop Color="#FB8C00" Offset="1"/>
+	</LinearGradientBrush>
+
+	<!-- 배경 그라디언트 (따뜻한 다크 브라운 톤) -->
+	<LinearGradientBrush x:Key="Gradient.Background" StartPoint="0,0" EndPoint="1,1">
+		<GradientStop Color="#0F0C0A" Offset="0.0"/>
+		<GradientStop Color="#1A1410" Offset="0.25"/>
+		<GradientStop Color="#241C16" Offset="0.5"/>
+		<GradientStop Color="#221A14" Offset="0.75"/>
+		<GradientStop Color="#1C1612" Offset="1.0"/>
+	</LinearGradientBrush>
+
+	<!-- 블루 글로우 (따뜻한 오렌지 확산) -->
+	<RadialGradientBrush x:Key="Gradient.Glow.Blue">
+		<GradientStop Color="#FFB74D" Offset="0"/>
+		<GradientStop Color="#FFA726" Offset="0.3"/>
+		<GradientStop Color="#FF9800" Offset="0.6"/>
+		<GradientStop Color="Transparent" Offset="1"/>
+	</RadialGradientBrush>
+
+	<!-- 레드 글로우 (레드 확산) -->
+	<RadialGradientBrush x:Key="Gradient.Glow.Red">
+		<GradientStop Color="#FF6B6B" Offset="0"/>
+		<GradientStop Color="#FF5252" Offset="0.3"/>
+		<GradientStop Color="#E53935" Offset="0.6"/>
+		<GradientStop Color="Transparent" Offset="1"/>
+	</RadialGradientBrush>
+
+	<!-- 컴포넌트별 색상 -->
+	<!-- TextBox -->
+	<SolidColorBrush x:Key="TextBox.Background">#332A22</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.Foreground">#FFEEDD</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.BorderBrush">#6A5A4A</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.CaretBrush">#FFA726</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.SelectionBrush">#50493D</SolidColorBrush>
+	<SolidColorBrush x:Key="TextBox.SelectionForegroundBrush">#FFEEDD</SolidColorBrush>
+
+	<!-- Description -->
+	<SolidColorBrush x:Key="Description.Foreground">#D4B896</SolidColorBrush>
+	<SolidColorBrush x:Key="Description.PlaceholderForeground">#8A7A6A</SolidColorBrush>
+
+	<!-- Button -->
+	<SolidColorBrush x:Key="Button.Primary.Background">#FF9800</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Danger.Background">#FF5252</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Foreground">#000000</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Hover.Foreground">#FFEEDD</SolidColorBrush>
+	<SolidColorBrush x:Key="Button.Hover.Background">#3D322A</SolidColorBrush>
+
+	<!-- ComboBox -->
+	<SolidColorBrush x:Key="ComboBox.Background">#332A22</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Foreground">#FFEEDD</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Border">#6A5A4A</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Item.Background">#2A221C</SolidColorBrush>
+	<SolidColorBrush x:Key="ComboBox.Item.Hover">#3D322A</SolidColorBrush>
+
+	<!-- CheckBox -->
+	<SolidColorBrush x:Key="CheckBox.Foreground">#FFEEDD</SolidColorBrush>
+	<SolidColorBrush x:Key="CheckBox.Box.BorderBrush">#FFEEDD</SolidColorBrush>
+
+	<!-- Shadow/Effect 색상 -->
+	<Color x:Key="Shadow.Color">#000000</Color>
+	<Color x:Key="Logo.Shadow.Color">#FFEEDD</Color>
+	<Color x:Key="Glow.Blue">#FFA726</Color>
+	<Color x:Key="Glow.Red">#FF5252</Color>
+
+	<!-- Focus 색상 -->
+	<SolidColorBrush x:Key="Focus.BorderBrush">#FFA726</SolidColorBrush>
+	<Thickness x:Key="Focus.BorderThickness">2</Thickness>
+
+	<SolidColorBrush x:Key="Selection.BorderBrush">#FFEEDD</SolidColorBrush>
+
+	<!-- 토글바 색상 -->
+	<SolidColorBrush x:Key="Toggle.Background">#8A7A6A</SolidColorBrush>
+	<SolidColorBrush x:Key="Toggle.SelectionBackground">#FF9800</SolidColorBrush>
+
+</ResourceDictionary>

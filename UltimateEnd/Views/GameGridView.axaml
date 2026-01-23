@@ -247,26 +247,45 @@
 												  VerticalAlignment="Center"/>
 									</Border>
 
-									<!-- 게임명 (선택된 항목만 표시) -->
-									<Border Background="#DD000000"
-											VerticalAlignment="Bottom"
+									<!-- 게임명 (항상 표시, 호버/선택 시 강조) -->
+									<Border VerticalAlignment="Bottom"
 											HorizontalAlignment="Stretch"
-											Padding="8,5"
-											IsVisible="{Binding IsSelected}">
-										<local:ScrollingTextBlock
-											Text="{Binding Game.DisplayTitle}"
-											FontSize="{StaticResource FontSize.BackButton}"
-											FontWeight="SemiBold"
-											ScrollSpeed="40"
-											Height="25"
-											Foreground="White"/>
+											Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}, ConverterParameter='#E6000000;#DD1976D2'}"
+											Padding="10,8">
+										<Border.Effect>
+											<DropShadowEffect Color="{DynamicResource Shadow.Color}"
+															 BlurRadius="8"
+															 OffsetY="2"
+															 Opacity="0.5"/>
+										</Border.Effect>
+										<Grid ColumnDefinitions="*">
+											<!-- 게임명 텍스트 (2줄 표시) -->
+											<TextBlock Grid.Column="0"
+													   Text="{Binding Game.DisplayTitle}"
+													   FontSize="{StaticResource FontSize.BackButton}"
+													   Foreground="{DynamicResource Text.Primary}"
+													   TextWrapping="Wrap"
+													   TextTrimming="CharacterEllipsis"
+													   MaxLines="2"
+													   HorizontalAlignment="Center"
+													   VerticalAlignment="Center"
+													   Margin="0,0,8,0">
+												<TextBlock.Effect>
+													<DropShadowEffect Color="{DynamicResource Shadow.Color}"
+																	 BlurRadius="4"
+																	 Opacity="0.8"/>
+												</TextBlock.Effect>
+											</TextBlock>
+										</Grid>
 									</Border>
 
-									<!-- 선택 오버레이 (전체를 덮음, 맨 위에 배치) -->
-									<Border BorderBrush="#2196F3"
-											BorderThickness="4"
-											Background="#66007ACC"
-											IsVisible="{Binding IsSelected}"/>
+									<!-- 선택 오버레이 (테두리만) -->
+									<Border BorderThickness="4"
+											IsVisible="{Binding IsSelected}">
+										<Border.BorderBrush>
+											<DynamicResource ResourceKey="Gradient.Primary"/>
+										</Border.BorderBrush>
+									</Border>
 								</Grid>
 							</Grid>
 						</Border>

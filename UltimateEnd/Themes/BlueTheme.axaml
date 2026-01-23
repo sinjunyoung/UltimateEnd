@@ -31,27 +31,40 @@
 	<SolidColorBrush x:Key="Accent.Blue.Transparent">#4042A5F5</SolidColorBrush>
 	<SolidColorBrush x:Key="Accent.Red.Transparent">#40EF5350</SolidColorBrush>
 
-	<!-- 그라디언트 정의 -->
+
+	<!-- 메인 프라이머리 그라디언트 (밝은 블루 → 진한 블루) -->
 	<LinearGradientBrush x:Key="Gradient.Primary" StartPoint="0%,0%" EndPoint="100%,100%">
-		<GradientStop Color="#42A5F5" Offset="0"/>
+		<GradientStop Color="#64B5F6" Offset="0"/>
+		<GradientStop Color="#42A5F5" Offset="0.33"/>
+		<GradientStop Color="#2196F3" Offset="0.66"/>
 		<GradientStop Color="#1E88E5" Offset="1"/>
 	</LinearGradientBrush>
 
+	<!-- 배경 그라디언트 (깊은 다크 블루 톤) -->
 	<LinearGradientBrush x:Key="Gradient.Background" StartPoint="0,0" EndPoint="1,1">
-		<GradientStop Color="#0A1929" Offset="0.0"/>
+		<GradientStop Color="#071318" Offset="0.0"/>
+		<GradientStop Color="#0A1929" Offset="0.25"/>
 		<GradientStop Color="#132F4C" Offset="0.5"/>
+		<GradientStop Color="#1A3A52" Offset="0.75"/>
 		<GradientStop Color="#1A2332" Offset="1.0"/>
 	</LinearGradientBrush>
 
+	<!-- 블루 글로우 (밝고 강렬한 블루 확산) -->
 	<RadialGradientBrush x:Key="Gradient.Glow.Blue">
-		<GradientStop Color="#42A5F5" Offset="0"/>
+		<GradientStop Color="#64B5F6" Offset="0"/>
+		<GradientStop Color="#42A5F5" Offset="0.3"/>
+		<GradientStop Color="#2196F3" Offset="0.6"/>
 		<GradientStop Color="Transparent" Offset="1"/>
 	</RadialGradientBrush>
 
+	<!-- 레드 글로우 (따뜻한 레드 확산) -->
 	<RadialGradientBrush x:Key="Gradient.Glow.Red">
-		<GradientStop Color="#EF5350" Offset="0"/>
+		<GradientStop Color="#FF6B6B" Offset="0"/>
+		<GradientStop Color="#EF5350" Offset="0.3"/>
+		<GradientStop Color="#E53935" Offset="0.6"/>
 		<GradientStop Color="Transparent" Offset="1"/>
 	</RadialGradientBrush>
+
 
 	<!-- 컴포넌트별 색상 -->
 	<!-- TextBox -->

@@ -290,6 +290,14 @@ namespace UltimateEnd.Android.Services
             {
                 throw new InvalidOperationException("게임 실행이 취소되었습니다.");
             }
+            finally
+            {
+                try
+                {
+                    activity.Window?.ClearFlags(WindowManagerFlags.Secure);
+                }
+                catch { }
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;

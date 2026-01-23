@@ -100,8 +100,11 @@ namespace UltimateEnd.Android.Services
             try
             {
                 var context = AndroidApplication.AppContext;
-                var packageName = game.RomFile;
-                var activityName = game.EmulatorId;
+                var romPath = game.GetRomFullPath();
+                var fileContent = File.ReadAllText(romPath);
+                var parts = fileContent.Split('|');
+                var packageName = parts[0];
+                var activityName = parts.Length > 1 ? parts[1] : string.Empty;
 
                 Intent? intent;
 
