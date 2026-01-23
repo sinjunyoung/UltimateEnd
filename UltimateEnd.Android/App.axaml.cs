@@ -6,6 +6,7 @@ using UltimateEnd.Android.Services;
 using UltimateEnd.Android.ViewModels;
 using UltimateEnd.SaveFile;
 using UltimateEnd.Services;
+using UltimateEnd.Updater;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 using UltimateEnd.Views;
@@ -47,10 +48,11 @@ public partial class App : Application
         TemplateVariableManagerFactory.Create = () => new TemplateVariableManager();
         UiBehaviorFactory.Create = () => new UiBehavior();
         VideoPlayerFactory.CreateVideoPlayer = () => new VideoPlayer();
-        VideoViewInitializerFactory.Create = () => new VideoViewInitializer();
+        VideoViewInitializerFactory.Create = () => new VideoViewInitializer();        
         WavSounds.Initialize(AssetPathProviderFactory.Create.Invoke());
+        UpdaterFactory.Create = () => new Services.Updater(MainActivity.Instance);
 
-        if(ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+        if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
         {
             singleView.MainView ??= new MainContentView
                 {

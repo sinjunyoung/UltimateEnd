@@ -262,7 +262,7 @@
 											<!-- 게임명 텍스트 (2줄 표시) -->
 											<TextBlock Grid.Column="0"
 													   Text="{Binding Game.DisplayTitle}"
-													   FontSize="{StaticResource FontSize.BackButton}"
+													   FontSize="{StaticResource FontSize.GameTitle}"
 													   Foreground="{DynamicResource Text.Primary}"
 													   TextWrapping="Wrap"
 													   TextTrimming="CharacterEllipsis"

@@ -1,8 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using System;
 using System.Threading.Tasks;
+using UltimateEnd.Enums;
 using UltimateEnd.Services;
+using UltimateEnd.Updater;
 using UltimateEnd.ViewModels;
 using UltimateEnd.Views.Overlays;
 
@@ -39,6 +42,44 @@ namespace UltimateEnd.Views
 
             this.AddHandler(KeyDownEvent, OnInputDetected, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
             this.AddHandler(PointerPressedEvent, OnInputDetected, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+        }
+
+        protected async override void OnLoaded(RoutedEventArgs e)
+        {
+            base.OnLoaded(e);
+
+            var updater = UpdaterFactory.Create();
+            var manager = new UpdateManager(updater);
+
+            var currentVersion = VersionHelper.GetCurrentVersion();
+            var latestVersion = await manager.GetLatestVersionAsync();
+
+            if (latestVersion != null && VersionHelper.IsNewerVersion(currentVersion, latestVersion))
+            {
+                bool result = await DialogService.Instance.ShowConfirm($"새 버전이 있습니다: {latestVersion}\n업데이트 하시겠습니까?", "업데이트");
+
+                if (result)
+                {
+                    var progress = new Progress<UpdateProgress>(p =>
+                    {
+                        var percentage = (int)(p.Progress * 100);
+                        var message = $"{p.Status}\n{p.Details}\n{percentage}%";
+                        DialogService.Instance.UpdateLoading(message);
+                    });
+
+                    await DialogService.Instance.ShowLoading("업데이트 준비 중...");
+
+                    try
+                    {
+                        await manager.CheckAndUpdateAsync(progress);
+                    }
+                    catch (Exception ex)
+                    {
+                        await DialogService.Instance.HideLoading();
+                        await DialogService.Instance.ShowMessage("업데이트 실패", ex.Message, MessageType.Error);
+                    }
+                }
+            }
         }
 
         public void ShowLoading(string message = "로딩 중...") => LoadingOverlay.Show(message);

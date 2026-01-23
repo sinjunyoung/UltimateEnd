@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using System.Reflection;
+﻿using System.Reflection;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Desktop.Services

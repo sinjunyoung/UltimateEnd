@@ -8,6 +8,7 @@ using UltimateEnd.Desktop.ViewModels;
 using UltimateEnd.SaveFile;
 using UltimateEnd.Scraper;
 using UltimateEnd.Services;
+using UltimateEnd.Updater;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 using UltimateEnd.Views;
@@ -51,8 +52,8 @@ namespace UltimateEnd.Desktop
             UiBehaviorFactory.Create = () => new UiBehavior();
             VideoPlayerFactory.CreateVideoPlayer = () => new VideoPlayer();
             VideoViewInitializerFactory.Create = () => new VideoViewInitializer();
-
             WavSounds.Initialize(AssetPathProviderFactory.Create.Invoke());
+            UpdaterFactory.Create = () => new Services.Updater();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

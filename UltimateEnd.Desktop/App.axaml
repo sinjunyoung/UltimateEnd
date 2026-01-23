@@ -34,6 +34,7 @@
 		<x:Double x:Key="FontSize.PlatformTitle">35</x:Double>
 		<x:Double x:Key="FontSize.PlatformName">56</x:Double>
 		<x:Double x:Key="FontSize.SettingsButton">12</x:Double>
+		<x:Double x:Key="FontSize.GameTitle">20</x:Double>
 		<x:Double x:Key="FontSize.GameDetailTitle">23</x:Double>
 		<x:Double x:Key="FontSize.Tag">14</x:Double>
 		<x:Double x:Key="FontSize.Description">15</x:Double>
