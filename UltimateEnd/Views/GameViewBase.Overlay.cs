@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using Avalonia.VisualTree;
 using System;
 using System.IO;
 using System.Linq;
@@ -80,6 +81,7 @@ namespace UltimateEnd.Views
             SettingsMenuOverlayBase.EmulatorClicked += OnSettingsMenu_EmulatorClick;
             SettingsMenuOverlayBase.ScrapClicked += OnSettingsMenu_ScrapClicked;
             SettingsMenuOverlayBase.PlaylistClicked += OnSettingsMenu_PlaylistClicked;
+            SettingsMenuOverlayBase.GridColumnsChanged += OnSettingsMenu_GridColumnsChanged;
             SettingsMenuOverlayBase.ManageIgnoreGameClicked += (sender, e) =>
             {
                 ViewModel.IgnoreGameToggle();
@@ -252,6 +254,12 @@ namespace UltimateEnd.Views
         {
             await WavSounds.OK();
             PlaylistSelectionOverlayBase.ShowForGames(ViewModel.Games);
+        }
+
+        private void OnSettingsMenu_GridColumnsChanged(object? sender, EventArgs e)
+        {
+            if (this is GameGridView gridView)
+                Dispatcher.UIThread.Post(() => gridView.CalculateGridLayout(), DispatcherPriority.Background);
         }
 
         private async void OnSettingsMenu_PlatformImageClick(object? sender, EventArgs e)

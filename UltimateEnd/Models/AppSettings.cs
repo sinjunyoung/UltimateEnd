@@ -32,6 +32,8 @@ namespace UltimateEnd.Models
 
         public int ActiveGamepadIndex { get; set; } = 0;
 
+        public int GridColumns { get; set; } = 7;
+
         #region ROM Base Paths
 
         [JsonIgnore]

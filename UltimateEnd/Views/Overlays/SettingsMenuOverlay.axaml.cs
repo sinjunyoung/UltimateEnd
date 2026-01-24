@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UltimateEnd.Enums;
+using UltimateEnd.Utils;
 
 namespace UltimateEnd.Views.Overlays
 {
@@ -17,8 +19,8 @@ namespace UltimateEnd.Views.Overlays
         public event EventHandler? ScrapClicked;
         public event EventHandler? PlaylistClicked;
         public event EventHandler? ManageIgnoreGameClicked;
+        public event EventHandler? GridColumnsChanged;
         public event EventHandler? ResetLayoutClicked;
-        //public event EventHandler? PlatformTemplateClicked;
         public event EventHandler? PlatformImageClicked;
         public event EventHandler? PegasusMetadataClicked;
         public event EventHandler? EsDeMetadataClicked;
@@ -27,32 +29,43 @@ namespace UltimateEnd.Views.Overlays
 
         private int _selectedIndex = 0;
         private readonly List<Border> _menuItems = [];
-        private Dictionary<string, Action> _menuActions = [];
+        private readonly Dictionary<int, Action> _menuActions = [];
 
         private bool _isShowingDeleted = false;
-
         private GameViewMode _currentViewMode;
 
-        public SettingsMenuOverlay()
+        public SettingsMenuOverlay() => InitializeComponent();
+
+        public void UpdateViewMode(GameViewMode viewMode)
         {
-            InitializeComponent();
-            InitializeMenuActions();            
+            _currentViewMode = viewMode;
+            UpdateResetLayoutVisibility();
+            UpdateGridColumnsVisibility();
         }
 
-        private void InitializeMenuActions()
+        private void UpdateMenuActions()
         {
-            _menuActions = new Dictionary<string, Action>
+            _menuActions.Clear();
+
+            for (int i = 0; i < _menuItems.Count; i++)
             {
-                ["EmulatorMenuItem"] = () => EmulatorClicked?.Invoke(this, EventArgs.Empty),
-                ["ScrapMenuItem"] = () => ScrapClicked?.Invoke(this, EventArgs.Empty),
-                ["PlaylistMenuItem"] = () => PlaylistClicked?.Invoke(this, EventArgs.Empty),
-                ["ManageIgnoreGameMenuItem"] = () => ManageIgnoreGameClicked?.Invoke(this, EventArgs.Empty),
-                ["ResetLayoutMenuItem"] = () => ResetLayoutClicked?.Invoke(this, EventArgs.Empty),
-                //["PlatformTemplateMenuItem"] = () => PlatformTemplateClicked?.Invoke(this, EventArgs.Empty),
-                ["PlatformImageMenuItem"] = () => PlatformImageClicked?.Invoke(this, EventArgs.Empty),
-                ["PegasusMetadataMenuItem"] = () => PegasusMetadataClicked?.Invoke(this, EventArgs.Empty),
-                ["EsDeMetadataMenuItem"] = () => EsDeMetadataClicked?.Invoke(this, EventArgs.Empty)
-            };
+                var item = _menuItems[i];
+                int index = i;
+
+                _menuActions[index] = item.Name switch
+                {
+                    "EmulatorMenuItem" => () => EmulatorClicked?.Invoke(this, EventArgs.Empty),
+                    "ScrapMenuItem" => () => ScrapClicked?.Invoke(this, EventArgs.Empty),
+                    "PlaylistMenuItem" => () => PlaylistClicked?.Invoke(this, EventArgs.Empty),
+                    "ManageIgnoreGameMenuItem" => () => ManageIgnoreGameClicked?.Invoke(this, EventArgs.Empty),
+                    "GridColumnsMenuItem" => () => { },
+                    "ResetLayoutMenuItem" => () => ResetLayoutClicked?.Invoke(this, EventArgs.Empty),
+                    "PlatformImageMenuItem" => () => PlatformImageClicked?.Invoke(this, EventArgs.Empty),
+                    "PegasusMetadataMenuItem" => () => PegasusMetadataClicked?.Invoke(this, EventArgs.Empty),
+                    "EsDeMetadataMenuItem" => () => EsDeMetadataClicked?.Invoke(this, EventArgs.Empty),
+                    _ => () => { }
+                };
+            }
         }
 
         private void UpdateSelectedIndexFromSender(object? sender)
@@ -60,6 +73,7 @@ namespace UltimateEnd.Views.Overlays
             if (sender is Border border && _menuItems.Count > 0)
             {
                 var index = _menuItems.IndexOf(border);
+
                 if (index >= 0)
                 {
                     _selectedIndex = index;
@@ -68,28 +82,71 @@ namespace UltimateEnd.Views.Overlays
             }
         }
 
+        protected async override void OnKeyDown(KeyEventArgs e)
+        {
+            if (!this.Visible)
+            {
+                base.OnKeyDown(e);
+                return;
+            }
+
+            if (_selectedIndex >= 0 && _selectedIndex < _menuItems.Count &&
+                _menuItems[_selectedIndex].Name == "GridColumnsMenuItem")
+            {
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
+                {
+                    await WavSounds.Click();
+                    if (GridColumnsSlider != null)
+                        GridColumnsSlider.Value = Math.Max(GridColumnsSlider.Minimum, GridColumnsSlider.Value - 1);
+                    e.Handled = true;
+                    return;
+                }
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
+                {
+                    await WavSounds.Click();
+                    if (GridColumnsSlider != null)
+                        GridColumnsSlider.Value = Math.Min(GridColumnsSlider.Maximum, GridColumnsSlider.Value + 1);
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            base.OnKeyDown(e);
+        }
+
         protected override void MovePrevious()
         {
             if (_menuItems.Count == 0) return;
-            _selectedIndex = (_selectedIndex - 1 + _menuItems.Count) % _menuItems.Count;
+
+            int attempts = 0;
+            do
+            {
+                _selectedIndex = (_selectedIndex - 1 + _menuItems.Count) % _menuItems.Count;
+                attempts++;
+            }
+            while (_menuItems[_selectedIndex].IsVisible == false && attempts < _menuItems.Count);
+
             UpdateSelection();
         }
 
         protected override void MoveNext()
         {
             if (_menuItems.Count == 0) return;
-            _selectedIndex = (_selectedIndex + 1) % _menuItems.Count;
+
+            int attempts = 0;
+            do
+            {
+                _selectedIndex = (_selectedIndex + 1) % _menuItems.Count;
+                attempts++;
+            }
+            while (_menuItems[_selectedIndex].IsVisible == false && attempts < _menuItems.Count);
+
             UpdateSelection();
         }
 
         protected override void SelectCurrent()
         {
-            if (_menuItems.Count > 0 && _selectedIndex >= 0 && _selectedIndex < _menuItems.Count)
-            {
-                var selected = _menuItems[_selectedIndex];
-                if (selected.Name != null && _menuActions.TryGetValue(selected.Name, out var action))
-                    action?.Invoke();
-            }
+            if (_menuActions.TryGetValue(_selectedIndex, out var action)) action?.Invoke();
         }
 
         private void UpdateSelection()
@@ -97,6 +154,7 @@ namespace UltimateEnd.Views.Overlays
             for (int i = 0; i < _menuItems.Count; i++)
             {
                 var item = _menuItems[i];
+
                 if (i == _selectedIndex)
                 {
                     item.Background = this.FindResource("Background.Hover") as IBrush;
@@ -111,13 +169,19 @@ namespace UltimateEnd.Views.Overlays
         {
             if (_menuItems.Count > 0) return;
 
-            var items = SettingsMenuPanel?.GetVisualDescendants()
-                .OfType<Border>()
-                .Where(b => b.Name != null && b.Name.EndsWith("MenuItem"))
-                .ToList();
+            var stackPanel = SettingsMenuPanel?.GetVisualDescendants()
+                .OfType<StackPanel>()
+                .FirstOrDefault();
 
-            if (items != null)
+            if (stackPanel != null)
+            {
+                var items = stackPanel.Children
+                    .OfType<Border>()
+                    .Where(b => b.CornerRadius.TopLeft == 8)
+                    .ToList();
+
                 _menuItems.AddRange(items);
+            }
         }
 
         public override void Show()
@@ -128,12 +192,13 @@ namespace UltimateEnd.Views.Overlays
             this.Focusable = true;
             this.Focus();
 
-            UpdateDeletedGamesToggle(this._isShowingDeleted);
+            UpdateDeletedGamesToggle(_isShowingDeleted);
             UpdateResetLayoutVisibility();
 
             Dispatcher.UIThread.Post(() =>
             {
                 InitializeMenuItems();
+                UpdateMenuActions();
                 UpdateSelection();
             }, DispatcherPriority.Loaded);
         }
@@ -179,13 +244,6 @@ namespace UltimateEnd.Views.Overlays
             e.Handled = true;
         }
 
-        //private void OnPlatformTemplateClick(object? sender, RoutedEventArgs e)
-        //{
-        //    UpdateSelectedIndexFromSender(sender);
-        //    PlatformTemplateClicked?.Invoke(this, EventArgs.Empty);
-        //    e.Handled = true;
-        //}
-
         private void OnPlatformImageClick(object? sender, RoutedEventArgs e)
         {
             UpdateSelectedIndexFromSender(sender);
@@ -215,33 +273,21 @@ namespace UltimateEnd.Views.Overlays
 
         private void OnBackgroundClick(object? sender, PointerPressedEventArgs e)
         {
-            if (e.Source == sender)
-                Hide(HiddenState.Close);
+            if (e.Source == sender) Hide(HiddenState.Close);
         }
 
         private static void UpdateToggle(Border toggleBack, Border toggle, bool value)
         {
             string resourceKey = value ? "Toggle.SelectionBackground" : "Toggle.Background";
 
-            if (Avalonia.Application.Current != null &&
-                Avalonia.Application.Current.Resources.TryGetResource(resourceKey,
-                    Avalonia.Application.Current?.ActualThemeVariant, out object? resourceObj))
-                toggleBack.Background = resourceObj as IBrush;
+            if (Avalonia.Application.Current != null && Avalonia.Application.Current.Resources.TryGetResource(resourceKey, Avalonia.Application.Current?.ActualThemeVariant, out object? resourceObj)) toggleBack.Background = resourceObj as IBrush;
 
-            toggle.HorizontalAlignment = value
-                ? Avalonia.Layout.HorizontalAlignment.Right
-                : Avalonia.Layout.HorizontalAlignment.Left;
+            toggle.HorizontalAlignment = value ? Avalonia.Layout.HorizontalAlignment.Right : Avalonia.Layout.HorizontalAlignment.Left;
         }
 
         public void UpdateDeletedGamesToggle(bool isShowingDeleted)
         {
-            var toggleBack = this.FindControl<Border>("DeletedGamesToggle");
-            var toggle = this.FindControl<Border>("DeletedGamesToggleThumb");
-
-            if (toggleBack != null && toggle != null)
-            {
-                UpdateToggle(toggleBack, toggle, isShowingDeleted);
-            }
+            if (DeletedGamesToggle != null && DeletedGamesToggleThumb != null) UpdateToggle(DeletedGamesToggle, DeletedGamesToggleThumb, isShowingDeleted);
         }
 
         public void SetDeletedGamesMode(bool isShowingDeleted)
@@ -250,26 +296,54 @@ namespace UltimateEnd.Views.Overlays
             UpdateDeletedGamesToggle(isShowingDeleted);
         }
 
-        public void UpdateViewMode(GameViewMode viewMode)
-        {
-            _currentViewMode = viewMode;
-            UpdateResetLayoutVisibility();
-        }
-
         private void UpdateResetLayoutVisibility()
         {
-            var resetLayoutItem = this.FindControl<Border>("ResetLayoutMenuItem");
+            ResetLayoutMenuItem.IsVisible = _currentViewMode == GameViewMode.List;
+            RefreshMenuItems();
+        }
 
-            if (resetLayoutItem != null)
-                resetLayoutItem.IsVisible = _currentViewMode == GameViewMode.List;
+        private void UpdateGridColumnsVisibility()
+        {
+            GridColumnsMenuItem.IsVisible = _currentViewMode == GameViewMode.Grid;
+
+            if (_currentViewMode == GameViewMode.Grid && GridColumnsSlider != null)
+            {
+                var settings = Services.SettingsService.LoadSettings();
+
+                GridColumnsSlider.Minimum = 2;
+                GridColumnsSlider.Maximum = OperatingSystem.IsAndroid() ? 7 : 10;
+                GridColumnsSlider.Value = settings.GridColumns;
+                UpdateGridColumnsText(settings.GridColumns);
+            }
 
             RefreshMenuItems();
+        }
+
+        private void OnGridColumnsSliderChanged(object? sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (sender is Slider slider)
+            {
+                int value = (int)slider.Value;
+                UpdateGridColumnsText(value);
+
+                var settings = Services.SettingsService.LoadSettings();
+                settings.GridColumns = value;
+                Services.SettingsService.SaveGameListSettings(settings);
+
+                GridColumnsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private void UpdateGridColumnsText(int value)
+        {
+            if (GridColumnsValue != null) GridColumnsValue.Text = value == 2 ? "ÀÚµ¿" : $"{value}¿­";
         }
 
         private void RefreshMenuItems()
         {
             _menuItems.Clear();
             InitializeMenuItems();
+            UpdateMenuActions();
 
             if (_selectedIndex >= _menuItems.Count)
                 _selectedIndex = Math.Max(0, _menuItems.Count - 1);

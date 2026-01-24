@@ -10,6 +10,7 @@ using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
 using UltimateEnd.Views.Overlays;
+using static SQLite.TableMapping;
 
 namespace UltimateEnd.Views
 {
@@ -130,16 +131,24 @@ namespace UltimateEnd.Views
 
         #region Grid Layout Calculation
 
-        private void CalculateGridLayout()
+        public void CalculateGridLayout()
         {
             double availableWidth = GameScrollViewer.Bounds.Width;
 
             if (availableWidth <= 0) return;
 
             int MIN_ITEM_WIDTH = ThumbnailSettings.GetMaxCoverWidth();
-
             const double SPACING = 5;
-            int columns = Math.Max(3, (int)((availableWidth + SPACING) / (MIN_ITEM_WIDTH + SPACING)));
+
+            int columns;
+
+            var settings = Services.SettingsService.LoadSettings();
+
+            if (settings.GridColumns > 2)
+                columns = settings.GridColumns;
+            else
+                columns = Math.Max(3, (int)((availableWidth + SPACING) / (MIN_ITEM_WIDTH + SPACING)));
+
             double actualItemWidth = (availableWidth - (SPACING * (columns + 1))) / columns;
             double actualItemHeight = actualItemWidth * 1.4;
 
@@ -183,8 +192,6 @@ namespace UltimateEnd.Views
         {
             if (ViewModel?.Games.Count == 0 || index < 0) return;
 
-            int row = index / _columns;
-
             double availableWidth = GameScrollViewer.Bounds.Width;
 
             if (availableWidth <= 0) return;
@@ -192,7 +199,17 @@ namespace UltimateEnd.Views
             int MIN_ITEM_WIDTH = ThumbnailSettings.GetMaxCoverWidth();
             const double SPACING = 5;
 
-            int columns = Math.Max(3, (int)((availableWidth + SPACING) / (MIN_ITEM_WIDTH + SPACING)));
+            var settings = Services.SettingsService.LoadSettings();
+
+            int columns;
+
+            if (settings.GridColumns > 2)
+                columns = settings.GridColumns;
+            else
+                columns = Math.Max(3, (int)((availableWidth + SPACING) / (MIN_ITEM_WIDTH + SPACING)));
+
+            int row = index / columns;
+
             double actualItemWidth = (availableWidth - (SPACING * (columns + 1))) / columns;
             double actualItemHeight = actualItemWidth * 1.4;
 

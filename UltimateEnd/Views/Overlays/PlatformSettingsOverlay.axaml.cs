@@ -47,16 +47,16 @@ namespace UltimateEnd.Views.Overlays
         {
             _menuActions = new Dictionary<int, Action>
             {
-                [0] = () => OnThemeClickAction(),           // 테마 설정
-                [1] = () => OnBackgroundImageClickAction(), // 배경 이미지 설정
-                [2] = () => OnEmulatorClickAction(),        // 에뮬레이터 설정
-                [3] = () => OnKeyBindingClickAction(),      // 키 설정
-                [4] = () => OnScrapClickAction(),           // 스크랩 설정
-                [5] = () => OnPlaylistClickAction(),        // 플레이리스트 관리
-                [6] = () => OnSaveBackupModeClickAction(),  // 세이브 백업 모드
-                [7] = () => OnGenreClickAction(),           // 장르 관리
-                [8] = () => OnToggleNativeAppPlatformAction(), // Desktop 플랫폼 표시
-                [9] = () => OnScreensaverTimeoutClickAction()  // 화면보호기 대기시간
+                [0] = () => OnThemeClickAction(),
+                [1] = () => OnBackgroundImageClickAction(),
+                [2] = () => OnEmulatorClickAction(),
+                [3] = () => OnKeyBindingClickAction(),
+                [4] = () => OnScrapClickAction(),
+                [5] = () => OnPlaylistClickAction(),
+                [6] = () => OnSaveBackupModeClickAction(),
+                [7] = () => OnGenreClickAction(),
+                [8] = () => OnToggleNativeAppPlatformAction(),
+                [9] = () => { }
             };
         }
 
@@ -308,8 +308,6 @@ namespace UltimateEnd.Views.Overlays
 
             SettingsService.SavePlatformSettings(settings);
         }
-
-        private void OnScreensaverTimeoutClickAction() { }
 
         private void OnScreensaverTimeoutChanged(object? sender, Avalonia.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
