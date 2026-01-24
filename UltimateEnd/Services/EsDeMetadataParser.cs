@@ -12,6 +12,7 @@ namespace UltimateEnd.Services
         {
             var result = new List<GameMetadata>();
             var basePath = Path.GetDirectoryName(filePath);
+            var mediaBasePath = GetMediaBasePath(filePath);
 
             try
             {
@@ -25,7 +26,7 @@ namespace UltimateEnd.Services
                 {
                     if (reader.NodeType == XmlNodeType.Element && reader.Name == "game")
                     {
-                        var game = ParseGame(reader, basePath);
+                        var game = ParseGame(reader, basePath, mediaBasePath);
 
                         if (game != null) result.Add(game);
                     }
@@ -39,14 +40,22 @@ namespace UltimateEnd.Services
             return result;
         }
 
-        private static GameMetadata ParseGame(XmlReader reader, string basePath)
+        private static string GetMediaBasePath(string gamelistPath)
+        {
+            var gamelistDir = Path.GetDirectoryName(gamelistPath);
+            var systemName = Path.GetFileName(gamelistDir);
+            var esdeRoot = Path.GetDirectoryName(Path.GetDirectoryName(gamelistDir));
+
+            return Path.Combine(esdeRoot, "downloaded_media", systemName);
+        }
+
+        private static GameMetadata ParseGame(XmlReader reader, string basePath, string mediaBasePath)
         {
             var game = new GameMetadata();
 
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "game") break;
-
                 if (reader.NodeType != XmlNodeType.Element) continue;
 
                 var elementName = reader.Name.ToLower();
@@ -59,24 +68,20 @@ namespace UltimateEnd.Services
                 {
                     case "path":
                         if (value.StartsWith("./"))
-                            value = value.Substring(2);
+                            value = value[2..];
                         else if (value.StartsWith(".\\"))
-                            value = value.Substring(2);
+                            value = value[2..];
                         game.RomFile = Path.GetFileName(value);
                         break;
-
                     case "name":
                         game.Title = value;
                         break;
-
                     case "desc":
                         game.Description = value;
                         break;
-
                     case "developer":
                         game.Developer = value;
                         break;
-
                     case "genre":
                         game.Genre = value;
                         break;
@@ -86,11 +91,33 @@ namespace UltimateEnd.Services
             if (!string.IsNullOrEmpty(game.RomFile))
             {
                 game.SetBasePath(basePath);
-
+                SetDefaultMediaPaths(game, mediaBasePath);
                 return game;
             }
 
             return null;
+        }
+
+        private static void SetDefaultMediaPaths(GameMetadata game, string mediaBasePath)
+        {
+            var fileNameWithoutExt = Path.GetFileNameWithoutExtension(game.RomFile);
+
+            // CoverImagePath: covers 우선, 없으면 3dboxes
+            var coverPng = Path.Combine(mediaBasePath, "covers", $"{fileNameWithoutExt}.png");
+            //var coverJpg = Path.Combine(mediaBasePath, "covers", $"{fileNameWithoutExt}.jpg");
+            //var box3dPng = Path.Combine(mediaBasePath, "3dboxes", $"{fileNameWithoutExt}.png");
+            //var box3dJpg = Path.Combine(mediaBasePath, "3dboxes", $"{fileNameWithoutExt}.jpg");
+
+            game.CoverImagePath = coverPng; // 기본값으로 covers/png 설정
+                                            // 실제로는 covers/jpg, 3dboxes/png, 3dboxes/jpg 순으로 fallback 가능
+
+            // LogoImagePath: marquees
+            var marqueePng = Path.Combine(mediaBasePath, "marquees", $"{fileNameWithoutExt}.png");
+            //var marqueeJpg = Path.Combine(mediaBasePath, "marquees", $"{fileNameWithoutExt}.jpg");
+            game.LogoImagePath = marqueePng; // 기본값으로 png 설정
+
+            // VideoPath: videos
+            game.VideoPath = Path.Combine(mediaBasePath, "videos", $"{fileNameWithoutExt}.mp4");
         }
     }
 }

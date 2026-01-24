@@ -10,15 +10,15 @@ namespace UltimateEnd.Services
 {
     public class PegasusMetadataParser
     {
-        private static readonly Regex RxAssetKey = new Regex(@"^assets?\.(.+)$", RegexOptions.Compiled);
-        private static readonly Regex RxCountRange = new Regex(@"^(\d+)(-(\d+))?$", RegexOptions.Compiled);
-        private static readonly Regex RxPercent = new Regex(@"^\d+%$", RegexOptions.Compiled);
-        private static readonly Regex RxFloat = new Regex(@"^\d+(\.\d+)?$", RegexOptions.Compiled);
-        private static readonly Regex RxDate = new Regex(@"^(\d{4})(-(\d{1,2}))?(-(\d{1,2}))?$", RegexOptions.Compiled);
-        private static readonly Regex RxUnescapedNewline = new Regex(@"(?<!\\)\\n", RegexOptions.Compiled);
-        private static readonly Regex RxUri = new Regex(@"^[a-zA-Z][a-zA-Z0-9+\-.]+:.+", RegexOptions.Compiled);
+        private static readonly Regex RxAssetKey = new(@"^assets?\.(.+)$", RegexOptions.Compiled);
+        private static readonly Regex RxCountRange = new(@"^(\d+)(-(\d+))?$", RegexOptions.Compiled);
+        private static readonly Regex RxPercent = new(@"^\d+%$", RegexOptions.Compiled);
+        private static readonly Regex RxFloat = new(@"^\d+(\.\d+)?$", RegexOptions.Compiled);
+        private static readonly Regex RxDate = new(@"^(\d{4})(-(\d{1,2}))?(-(\d{1,2}))?$", RegexOptions.Compiled);
+        private static readonly Regex RxUnescapedNewline = new(@"(?<!\\)\\n", RegexOptions.Compiled);
+        private static readonly Regex RxUri = new(@"^[a-zA-Z][a-zA-Z0-9+\-.]+:.+", RegexOptions.Compiled);
 
-        private static readonly HashSet<string> CollectionKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> CollectionKeys = new(StringComparer.OrdinalIgnoreCase)
         {
             "shortname", "launch", "command", "workdir", "cwd",
             "directory", "directories", "extension", "extensions",
@@ -27,7 +27,7 @@ namespace UltimateEnd.Services
             "summary", "description", "sortby", "sort_by", "sort-by"
         };
 
-        private static readonly HashSet<string> GameKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> GameKeys = new(StringComparer.OrdinalIgnoreCase)
         {
             "file", "files", "launch", "command", "workdir", "cwd",
             "developer", "developers", "publisher", "publishers",
@@ -73,18 +73,16 @@ namespace UltimateEnd.Services
             {
                 var line = rawLine.Trim();
 
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
-                    continue;
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#')) continue;
 
                 var colonIndex = line.IndexOf(':');
 
                 if (colonIndex > 0)
                 {
-                    var key = line.Substring(0, colonIndex).Trim().ToLower();
-                    var value = line.Substring(colonIndex + 1).Trim();
+                    var key = line[..colonIndex].Trim().ToLower();
+                    var value = line[(colonIndex + 1)..].Trim();
 
-                    if (key == "collection" || key == "game" || CollectionKeys.Contains(key) || GameKeys.Contains(key) || key.StartsWith("x-") || RxAssetKey.IsMatch(key))
-                        FlushEntry();
+                    if (key == "collection" || key == "game" || CollectionKeys.Contains(key) || GameKeys.Contains(key) || key.StartsWith("x-") || RxAssetKey.IsMatch(key)) FlushEntry();
 
                     if (key == "collection")
                     {
@@ -92,6 +90,7 @@ namespace UltimateEnd.Services
                         currentGame = null;
                         result.Collections.Add(currentCollection);
                         lastKey = null;
+
                         continue;
                     }
 
@@ -100,17 +99,16 @@ namespace UltimateEnd.Services
                         currentGame = new PegasusGameMetadata { Title = value };
                         result.Games.Add(currentGame);
                         lastKey = null;
+
                         continue;
                     }
 
                     lastKey = key;
-                    if (!string.IsNullOrEmpty(value))
-                        currentValues.Add(value);
+
+                    if (!string.IsNullOrEmpty(value)) currentValues.Add(value);
                 }
                 else if (!string.IsNullOrWhiteSpace(line) && lastKey != null)
-                {
                     currentValues.Add(line);
-                }
             }
 
             FlushEntry();
@@ -136,14 +134,14 @@ namespace UltimateEnd.Services
                             Description = pg.Description ?? pg.Summary
                         };
 
-                        if (pg.Assets.ContainsKey(AssetType.BoxFront))
-                            game.CoverImagePath = pg.Assets[AssetType.BoxFront].FirstOrDefault();
+                        if (pg.Assets.TryGetValue(AssetType.BoxFront, out List<string>? value))
+                            game.CoverImagePath = value.FirstOrDefault();
 
-                        if (pg.Assets.ContainsKey(AssetType.Video))
-                            game.VideoPath = pg.Assets[AssetType.Video].FirstOrDefault();
+                        if (pg.Assets.TryGetValue(AssetType.Video, out value))
+                            game.VideoPath = value.FirstOrDefault();
 
-                        if (pg.Assets.ContainsKey(AssetType.Logo))
-                            game.LogoImagePath = pg.Assets[AssetType.Logo].FirstOrDefault();
+                        if (pg.Assets.TryGetValue(AssetType.Logo, out value))
+                            game.LogoImagePath = value.FirstOrDefault();
 
                         game.SetBasePath(basePath);
                         result.Add(game);
@@ -159,14 +157,14 @@ namespace UltimateEnd.Services
                         Description = pg.Description ?? pg.Summary
                     };
 
-                    if (pg.Assets.ContainsKey(AssetType.BoxFront))
-                        game.CoverImagePath = pg.Assets[AssetType.BoxFront].FirstOrDefault();
+                    if (pg.Assets.TryGetValue(AssetType.BoxFront, out List<string>? value))
+                        game.CoverImagePath = value.FirstOrDefault();
 
-                    if (pg.Assets.ContainsKey(AssetType.Video))
-                        game.VideoPath = pg.Assets[AssetType.Video].FirstOrDefault();
+                    if (pg.Assets.TryGetValue(AssetType.Video, out value))
+                        game.VideoPath = value.FirstOrDefault();
 
-                    if (pg.Assets.ContainsKey(AssetType.Logo))
-                        game.LogoImagePath = pg.Assets[AssetType.Logo].FirstOrDefault();
+                    if (pg.Assets.TryGetValue(AssetType.Logo, out value))
+                        game.LogoImagePath = value.FirstOrDefault();
 
                     game.SetBasePath(basePath);
                     result.Add(game);
@@ -177,8 +175,7 @@ namespace UltimateEnd.Services
 
             foreach (var collection in pegasus.Collections)
             {
-                foreach (var ignoreFile in collection.IgnoreFiles)
-                    ignoreFiles.Add(Path.GetFileName(ignoreFile));
+                foreach (var ignoreFile in collection.IgnoreFiles) ignoreFiles.Add(Path.GetFileName(ignoreFile));
             }
 
             foreach(var ignoreFile in ignoreFiles)
@@ -228,7 +225,7 @@ namespace UltimateEnd.Services
 
                 case "extension":
                 case "extensions":
-                    var exts = firstLine.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    var exts = firstLine.Split([','], StringSplitOptions.RemoveEmptyEntries)
                         .Select(e => e.Trim().ToLower()).ToList();
                     coll.Extensions.AddRange(exts);
                     break;
@@ -240,7 +237,7 @@ namespace UltimateEnd.Services
 
                 case "ignore-extension":
                 case "ignore-extensions":
-                    var ignoreExts = firstLine.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    var ignoreExts = firstLine.Split([','], StringSplitOptions.RemoveEmptyEntries)
                         .Select(e => e.Trim().ToLower()).ToList();
                     coll.IgnoreExtensions.AddRange(ignoreExts);
                     break;
@@ -275,13 +272,13 @@ namespace UltimateEnd.Services
                 default:
                     if (key.StartsWith("x-"))
                     {
-                        var extraKey = key.Substring(2);
-                        coll.ExtraFields[extraKey] = new List<string>(values);
+                        var extraKey = key[2..];
+                        coll.ExtraFields[extraKey] = [.. values];
                     }
                     else if (TryParseAsset(key, values, basePath, out var assetType, out var assetPaths))
                     {
                         if (!coll.Assets.ContainsKey(assetType))
-                            coll.Assets[assetType] = new List<string>();
+                            coll.Assets[assetType] = [];
                         coll.Assets[assetType].AddRange(assetPaths);
                     }
                     break;
@@ -302,8 +299,8 @@ namespace UltimateEnd.Services
                     foreach (var line in values)
                     {
                         var path = NormalizePath(line, basePath);
-                        if (!string.IsNullOrEmpty(path))
-                            game.Files.Add(path);
+
+                        if (!string.IsNullOrEmpty(path)) game.Files.Add(path);
                     }
                     break;
 
@@ -329,6 +326,7 @@ namespace UltimateEnd.Services
 
                 case "players":
                     var match = RxCountRange.Match(firstLine);
+
                     if (match.Success)
                     {
                         var a = int.Parse(match.Groups[1].Value);
@@ -365,13 +363,12 @@ namespace UltimateEnd.Services
                     if (RxPercent.IsMatch(firstLine))
                     {
                         var percentStr = firstLine.TrimEnd('%');
-                        if (float.TryParse(percentStr, out var percent))
-                            game.Rating = percent / 100f;
+
+                        if (float.TryParse(percentStr, out var percent)) game.Rating = percent / 100f;
                     }
                     else if (RxFloat.IsMatch(firstLine))
                     {
-                        if (float.TryParse(firstLine, out var rating))
-                            game.Rating = rating;
+                        if (float.TryParse(firstLine, out var rating)) game.Rating = rating;
                     }
                     break;
 
@@ -400,13 +397,12 @@ namespace UltimateEnd.Services
                 default:
                     if (key.StartsWith("x-"))
                     {
-                        var extraKey = key.Substring(2);
-                        game.ExtraFields[extraKey] = new List<string>(values);
+                        var extraKey = key[2..];
+                        game.ExtraFields[extraKey] = [.. values];
                     }
                     else if (TryParseAsset(key, values, basePath, out var assetType, out var assetPaths))
                     {
-                        if (!game.Assets.ContainsKey(assetType))
-                            game.Assets[assetType] = new List<string>();
+                        if (!game.Assets.ContainsKey(assetType)) game.Assets[assetType] = [];
                         game.Assets[assetType].AddRange(assetPaths);
                     }
                     break;
@@ -417,23 +413,22 @@ namespace UltimateEnd.Services
             out AssetType assetType, out List<string> paths)
         {
             assetType = AssetType.Unknown;
-            paths = new List<string>();
+            paths = [];
 
             var match = RxAssetKey.Match(key);
-            if (!match.Success)
-                return false;
+
+            if (!match.Success) return false;
 
             var assetKey = match.Groups[1].Value.ToLower();
             assetType = ParseAssetType(assetKey);
 
-            if (assetType == AssetType.Unknown)
-                return false;
+            if (assetType == AssetType.Unknown) return false;
 
             foreach (var value in values)
             {
                 var path = NormalizeAssetPath(value, basePath);
-                if (!string.IsNullOrEmpty(path))
-                    paths.Add(path);
+
+                if (!string.IsNullOrEmpty(path)) paths.Add(path);
             }
 
             return true;
@@ -511,13 +506,11 @@ namespace UltimateEnd.Services
                 ["titlescreen"] = AssetType.TitleScreen,
             };
 
-            if (exactMatches.TryGetValue(str, out var type))
-                return type;
+            if (exactMatches.TryGetValue(str, out var type)) return type;
 
             foreach (var kvp in exactMatches)
             {
-                if (str.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
-                    return kvp.Value;
+                if (str.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase)) return kvp.Value;
             }
 
             return AssetType.Unknown;
@@ -525,36 +518,30 @@ namespace UltimateEnd.Services
 
         private static string NormalizePath(string path, string basePath)
         {
-            if (string.IsNullOrWhiteSpace(path))
-                return path;
+            if (string.IsNullOrWhiteSpace(path)) return path;
 
             if (path.StartsWith("./"))
-                path = path.Substring(2);
+                path = path[2..];
             else if (path.StartsWith(".\\"))
-                path = path.Substring(2);
+                path = path[2..];
 
-            if (Path.IsPathRooted(path))
-                return path;
+            if (Path.IsPathRooted(path)) return path;
 
             return Path.Combine(basePath, path);
         }
 
         private static string NormalizeAssetPath(string path, string basePath)
         {
-            if (string.IsNullOrWhiteSpace(path))
-                return path;
+            if (string.IsNullOrWhiteSpace(path)) return path;
 
-            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                return path;
+            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return path;
 
             return NormalizePath(path, basePath);
         }
 
         private static string ReplaceNewlines(string text)
         {
-            if (string.IsNullOrEmpty(text))
-                return text;
+            if (string.IsNullOrEmpty(text)) return text;
 
             text = RxUnescapedNewline.Replace(text, "\n");
             text = text.Replace("\\\\n", "\\n");
