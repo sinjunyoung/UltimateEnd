@@ -12,7 +12,7 @@ namespace UltimateEnd.Android.Services
         private string _cachedSystemAppsFolder;
         private static bool _firstRunChecked = false;
 
-        public string GetAppBaseFolder()
+        public string GetSettingsFolder()
         {
             if (!string.IsNullOrEmpty(_cachedFolder)) return _cachedFolder;
 

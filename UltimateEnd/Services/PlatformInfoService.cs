@@ -37,7 +37,7 @@ namespace UltimateEnd.Services
         private static string GetConfigFilePath()
         {
             var provider = AppBaseFolderProviderFactory.Create?.Invoke();
-            return provider != null ? Path.Combine(provider.GetAppBaseFolder(), PlatformInfoFileName) : Path.Combine(AppContext.BaseDirectory, PlatformInfoFileName);
+            return provider != null ? Path.Combine(provider.GetSettingsFolder(), PlatformInfoFileName) : Path.Combine(AppContext.BaseDirectory, PlatformInfoFileName);
         }
 
         private static PlatformDatabase LoadDatabaseFromFile()

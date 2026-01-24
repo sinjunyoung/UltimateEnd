@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UltimateEnd.Enums;
 using UltimateEnd.Services;
 using UltimateEnd.Updater;
+using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 using UltimateEnd.Views.Overlays;
 
@@ -48,35 +49,42 @@ namespace UltimateEnd.Views
         {
             base.OnLoaded(e);
 
-            var updater = UpdaterFactory.Create();
-            var manager = new UpdateManager(updater);
+            if (await NetworkHelper.IsInternetAvailableAsync())
+            { 
 
-            var currentVersion = VersionHelper.GetCurrentVersion();
-            var latestVersion = await manager.GetLatestVersionAsync();
+                var updater = UpdaterFactory.Create();
+                var manager = new UpdateManager(updater);
 
-            if (latestVersion != null && VersionHelper.IsNewerVersion(currentVersion, latestVersion))
-            {
-                bool result = await DialogService.Instance.ShowConfirm($"새 버전이 있습니다: {latestVersion}\n업데이트 하시겠습니까?", "업데이트");
+                var currentVersion = VersionHelper.GetCurrentVersion();
+                var latestVersion = await manager.GetLatestVersionAsync();
 
-                if (result)
+                if (latestVersion != null && VersionHelper.IsNewerVersion(currentVersion, latestVersion))
                 {
-                    var progress = new Progress<UpdateProgress>(p =>
-                    {
-                        var percentage = (int)(p.Progress * 100);
-                        var message = $"{p.Status}\n{p.Details}\n{percentage}%";
-                        DialogService.Instance.UpdateLoading(message);
-                    });
+                    bool result = await DialogService.Instance.ShowConfirm($"새 버전이 있습니다: {latestVersion}\n업데이트 하시겠습니까?", "업데이트");
 
-                    await DialogService.Instance.ShowLoading("업데이트 준비 중...");
+                    if (result)
+                    {
+                        var progress = new Progress<UpdateProgress>(p =>
+                        {
+                            var percentage = (int)(p.Progress * 100);
+                            var message = $"{p.Status}\n{p.Details}\n{percentage}%";
+                            DialogService.Instance.UpdateLoading(message);
+                        });
 
-                    try
-                    {
-                        await manager.CheckAndUpdateAsync(progress);
-                    }
-                    catch (Exception ex)
-                    {
-                        await DialogService.Instance.HideLoading();
-                        await DialogService.Instance.ShowMessage("업데이트 실패", ex.Message, MessageType.Error);
+                        await DialogService.Instance.ShowLoading("업데이트 준비 중...");
+
+                        try
+                        {
+                            await manager.CheckAndUpdateAsync(progress);
+                        }
+                        catch (Exception ex)
+                        {
+                            await DialogService.Instance.ShowMessage("업데이트 실패", ex.Message, MessageType.Error);
+                        }
+                        finally
+                        {
+                            await DialogService.Instance.HideLoading();
+                        }
                     }
                 }
             }

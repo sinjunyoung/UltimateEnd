@@ -6,7 +6,7 @@ namespace UltimateEnd.Desktop.Services
 {
     public class AppBaseFolderProvider : IAppBaseFolderProvider
     {
-        public string GetAppBaseFolder()
+        public string GetSettingsFolder()
         {
             string path = Path.Combine(AppContext.BaseDirectory, "settings");
 

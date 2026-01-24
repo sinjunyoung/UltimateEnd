@@ -14,7 +14,7 @@ namespace UltimateEnd.Services
 {
     public interface IAppBaseFolderProvider
     {
-        string GetAppBaseFolder();
+        string GetSettingsFolder();
 
         string GetPlatformsFolder();
 

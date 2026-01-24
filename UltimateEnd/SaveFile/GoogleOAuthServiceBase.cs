@@ -39,7 +39,7 @@ namespace UltimateEnd.SaveFile
 
         public async Task<bool> TryAuthenticateFromStoredTokenAsync()
         {
-            string root = AppBaseFolderProviderFactory.Create?.Invoke().GetAppBaseFolder();
+            string root = AppBaseFolderProviderFactory.Create?.Invoke().GetSettingsFolder();
             var tokenPath = Path.Combine(root, TokenFilePath);
 
             if (!File.Exists(tokenPath))
@@ -186,7 +186,7 @@ namespace UltimateEnd.SaveFile
 
         protected async Task SaveTokensAsync()
         {
-            string root = AppBaseFolderProviderFactory.Create?.Invoke().GetAppBaseFolder();
+            string root = AppBaseFolderProviderFactory.Create?.Invoke().GetSettingsFolder();
             var tokenPath = Path.Combine(root, TokenFilePath);
             var tokens = new StoredTokens { RefreshToken = RefreshToken };
             var json = JsonSerializer.Serialize(tokens);

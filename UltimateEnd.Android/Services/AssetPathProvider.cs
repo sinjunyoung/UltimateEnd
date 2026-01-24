@@ -10,7 +10,7 @@ namespace UltimateEnd.Android.Services
 
         public AssetPathProvider()
         {
-            var settingsFolder = new AppBaseFolderProvider().GetAppBaseFolder();
+            var settingsFolder = new AppBaseFolderProvider().GetSettingsFolder();
             _ultimateEndFolder = Directory.GetParent(settingsFolder).FullName;
             _baseDir = Path.Combine(_ultimateEndFolder, "Assets");
 

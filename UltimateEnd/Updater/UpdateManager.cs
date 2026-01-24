@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace UltimateEnd.Updater
         private readonly string _githubRepo;
         private readonly HttpClient _httpClient;
         private readonly IUpdater _platformUpdater;
+        private const string BackupFolderName = "settings_backup";
 
         public UpdateManager(IUpdater platformUpdater, string githubRepo = "sinjunyoung/UltimateEnd")
         {
@@ -24,6 +26,14 @@ namespace UltimateEnd.Updater
         {
             try
             {
+                progress?.Report(new UpdateProgress
+                {
+                    Status = "설정 파일 백업 중...",
+                    Details = "기존 설정을 안전하게 보관합니다.",
+                    Progress = 0.05
+                });
+                BackupConfigFiles();
+
                 var release = await GetLatestReleaseAsync();
                 await _platformUpdater.PerformUpdateAsync(release, progress);
                 await DialogService.Instance.HideLoading();
@@ -35,6 +45,20 @@ namespace UltimateEnd.Updater
                 progress?.Report(new UpdateProgress { Status = $"오류: {ex.Message}", Progress = 0.0 });
 
                 return false;
+            }
+        }
+
+        private static void BackupConfigFiles()
+        {
+            var factory = AppBaseFolderProviderFactory.Create();
+            var settingsPath = factory.GetSettingsFolder();
+            var backupPath = Path.Combine(Directory.GetParent(settingsPath).FullName, BackupFolderName);
+
+            if (Directory.Exists(settingsPath))
+            {
+                if (Directory.Exists(backupPath)) Directory.Delete(backupPath, true);
+
+                Directory.Move(settingsPath, backupPath);
             }
         }
 

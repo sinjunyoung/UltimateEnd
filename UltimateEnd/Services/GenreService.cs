@@ -16,7 +16,7 @@ namespace UltimateEnd.Services
             var provider = AppBaseFolderProviderFactory.Create?.Invoke();
             if (provider != null)
             {
-                var directory = provider.GetAppBaseFolder();
+                var directory = provider.GetSettingsFolder();
                 return Path.Combine(directory!, GenreFileName);
             }
             return Path.Combine(AppContext.BaseDirectory, GenreFileName);

@@ -40,7 +40,7 @@ namespace UltimateEnd.Scraper
             get
             {
                 var provider = AppBaseFolderProviderFactory.Create?.Invoke();
-                var baseFolder = provider?.GetAppBaseFolder() ?? AppContext.BaseDirectory;
+                var baseFolder = provider?.GetSettingsFolder() ?? AppContext.BaseDirectory;
 
                 return Path.Combine(baseFolder, CACHE_FILE_NAME);
             }

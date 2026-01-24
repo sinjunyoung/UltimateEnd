@@ -42,7 +42,7 @@ namespace UltimateEnd.Services
             var provider = AppBaseFolderProviderFactory.Create?.Invoke();
 
             if (provider != null)
-                return Path.Combine(provider.GetAppBaseFolder(), DatabaseFileName);
+                return Path.Combine(provider.GetSettingsFolder(), DatabaseFileName);
 
             return Path.Combine(AppContext.BaseDirectory, DatabaseFileName);
         }

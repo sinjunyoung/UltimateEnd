@@ -24,7 +24,7 @@ namespace UltimateEnd.Services
             if (provider == null)
                 return "Themes";
 
-            var settingsFolder = provider.GetAppBaseFolder();
+            var settingsFolder = provider.GetSettingsFolder();
             var ultimateEndFolder = Directory.GetParent(settingsFolder)?.FullName;
 
             return ultimateEndFolder != null ? Path.Combine(ultimateEndFolder, "Themes") : "Themes";

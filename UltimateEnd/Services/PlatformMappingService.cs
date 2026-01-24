@@ -23,7 +23,7 @@ namespace UltimateEnd.Services
         {
             var provider = AppBaseFolderProviderFactory.Create?.Invoke();
             if (provider != null)
-                return Path.Combine(provider.GetAppBaseFolder(), SettingsFileName);
+                return Path.Combine(provider.GetSettingsFolder(), SettingsFileName);
 
             return Path.Combine(AppContext.BaseDirectory, SettingsFileName);
         }
