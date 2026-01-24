@@ -1,7 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UltimateEnd.Enums;
 using UltimateEnd.Scraper.Models;
 using UltimateEnd.Utils;
@@ -27,17 +31,20 @@ namespace UltimateEnd.Views.Overlays
         private bool _tempAllowScrapVideo;
         private ScrapCondition _tempScrapCondition;
         private SearchMethod _tempSearchMethod;
+        private bool _tempEnableAutoScrap;
 
         private bool _isLanguageExpanded = true;
         private bool _isRegionExpanded = true;
         private bool _isLogoTypeExpanded = true;
         private bool _isCoverTypeExpanded = true;
+        private bool _isSearchMethodExpanded = true;
         private bool _isZipSearchExpanded = false;
         private bool _isScrapTargetsExpanded = false;
         private bool _isScrapConditionExpanded = false;
         private bool _isAdvancedExpanded = false;
-        private bool _tempEnableAutoScrap;        
-        private bool _isSearchMethodExpanded = true;
+
+        private int _selectedIndex = 0;
+        private readonly List<Control> _focusableItems = [];
 
         public ScrapSettingsOverlay()
         {
@@ -49,13 +56,18 @@ namespace UltimateEnd.Views.Overlays
         public override void Show()
         {
             OnShowing(EventArgs.Empty);
-
             LoadSettings();
 
             this.IsVisible = true;
             if (MainGrid != null) MainGrid.IsVisible = true;
-            this.Focusable = true;
-            this.Focus();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                InitializeFocusableItems();
+                UpdateSelection();
+                this.Focusable = true;
+                this.Focus();
+            }, DispatcherPriority.Loaded);
         }
 
         public override void Hide(HiddenState state)
@@ -65,9 +77,249 @@ namespace UltimateEnd.Views.Overlays
             OnHidden(new HiddenEventArgs { State = state });
         }
 
-        protected override void MovePrevious() { }
-        protected override void MoveNext() { }
-        protected override void SelectCurrent() { }
+        protected override void MovePrevious()
+        {
+            if (_focusableItems.Count == 0) return;
+            _selectedIndex = (_selectedIndex - 1 + _focusableItems.Count) % _focusableItems.Count;
+            UpdateSelection();
+        }
+
+        protected override void MoveNext()
+        {
+            if (_focusableItems.Count == 0) return;
+            _selectedIndex = (_selectedIndex + 1) % _focusableItems.Count;
+            UpdateSelection();
+        }
+
+        protected override void SelectCurrent()
+        {
+            if (_focusableItems.Count == 0 || _selectedIndex < 0 || _selectedIndex >= _focusableItems.Count) return;
+
+            var selected = _focusableItems[_selectedIndex];
+
+            if (selected is Border border)
+                SimulateClick(border);
+            else if (selected is Button button)
+            {
+                if (button.Content?.ToString() == "초기화")
+                    OnResetClick(button, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (button.Content?.ToString() == "저장")
+                    OnSaveClick(button, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (button.Content?.ToString() == "캐시 초기화")
+                    OnClearCacheTapped(button, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+        }
+
+        private void InitializeFocusableItems()
+        {
+            _focusableItems.Clear();
+
+            var languageHeader = this.FindControl<Border>("LanguageHeader");
+            var regionHeader = this.FindControl<Border>("RegionHeader");
+            var logoTypeHeader = this.FindControl<Border>("LogoTypeHeader");
+            var coverTypeHeader = this.FindControl<Border>("CoverTypeHeader");
+            var searchMethodHeader = this.FindControl<Border>("SearchMethodHeader");
+            var zipSearchHeader = this.FindControl<Border>("ZipSearchHeader");
+            var scrapTargetsHeader = this.FindControl<Border>("ScrapTargetsHeader");
+            var scrapConditionHeader = this.FindControl<Border>("ScrapConditionHeader");
+            var advancedHeader = this.FindControl<Border>("AdvancedHeader");
+
+            if (languageHeader != null) _focusableItems.Add(languageHeader);
+            if (_isLanguageExpanded)
+            {
+                if (LanguageJpOption != null) _focusableItems.Add(LanguageJpOption);
+                if (LanguageEnOption != null) _focusableItems.Add(LanguageEnOption);
+            }
+
+            if (regionHeader != null) _focusableItems.Add(regionHeader);
+            if (_isRegionExpanded)
+            {
+                if (RegionJapaneseOption != null) _focusableItems.Add(RegionJapaneseOption);
+                if (RegionAmericanOption != null) _focusableItems.Add(RegionAmericanOption);
+            }
+
+            if (logoTypeHeader != null) _focusableItems.Add(logoTypeHeader);
+            if (_isLogoTypeExpanded)
+            {
+                if (LogoNormalOption != null) _focusableItems.Add(LogoNormalOption);
+                if (LogoSteelOption != null) _focusableItems.Add(LogoSteelOption);
+            }
+
+            if (coverTypeHeader != null) _focusableItems.Add(coverTypeHeader);
+            if (_isCoverTypeExpanded)
+            {
+                if (Cover2DOption != null) _focusableItems.Add(Cover2DOption);
+                if (Cover3DOption != null) _focusableItems.Add(Cover3DOption);
+            }
+
+            if (searchMethodHeader != null) _focusableItems.Add(searchMethodHeader);
+            if (_isSearchMethodExpanded)
+            {
+                if (SearchByNameOption != null) _focusableItems.Add(SearchByNameOption);
+                if (SearchByCrcOption != null) _focusableItems.Add(SearchByCrcOption);
+            }
+
+            if (zipSearchHeader != null) _focusableItems.Add(zipSearchHeader);
+            if (_isZipSearchExpanded)
+            {
+                if (ZipInternalOption != null) _focusableItems.Add(ZipInternalOption);
+                if (ZipExternalOption != null) _focusableItems.Add(ZipExternalOption);
+            }
+
+            if (scrapTargetsHeader != null) _focusableItems.Add(scrapTargetsHeader);
+            if (_isScrapTargetsExpanded)
+            {
+                var scrapTargetsContent = this.FindControl<StackPanel>("ScrapTargetsContent");
+                if (scrapTargetsContent != null)
+                {
+                    foreach (var child in scrapTargetsContent.Children)
+                        if (child is Border border) _focusableItems.Add(border);
+                }
+            }
+
+            if (scrapConditionHeader != null) _focusableItems.Add(scrapConditionHeader);
+            if (_isScrapConditionExpanded)
+            {
+                if (ConditionNoneOption != null) _focusableItems.Add(ConditionNoneOption);
+                if (ConditionAllMissingOption != null) _focusableItems.Add(ConditionAllMissingOption);
+                if (ConditionLogoMissingOption != null) _focusableItems.Add(ConditionLogoMissingOption);
+                if (ConditionCoverMissingOption != null) _focusableItems.Add(ConditionCoverMissingOption);
+                if (ConditionVideoMissingOption != null) _focusableItems.Add(ConditionVideoMissingOption);
+            }
+
+            if (advancedHeader != null) _focusableItems.Add(advancedHeader);
+            if (_isAdvancedExpanded)
+            {
+                var clearCacheBtn = this.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Content?.ToString() == "캐시 초기화");
+                if (clearCacheBtn != null) _focusableItems.Add(clearCacheBtn);
+
+                var autoScrapBorder = this.FindControl<Border>("AutoScrapBorder");
+                if (autoScrapBorder != null) _focusableItems.Add(autoScrapBorder);
+            }
+
+            var resetBtn = this.FindControl<Button>("ResetButton");
+            var saveBtn = this.FindControl<Button>("SaveButton");
+
+            if (resetBtn != null) _focusableItems.Add(resetBtn);
+            if (saveBtn != null) _focusableItems.Add(saveBtn);
+
+            if (_selectedIndex >= _focusableItems.Count)
+                _selectedIndex = Math.Max(0, _focusableItems.Count - 1);
+        }
+
+        private void UpdateSelection()
+        {
+            if (_focusableItems.Count == 0) return;
+
+            for (int i = 0; i < _focusableItems.Count; i++)
+            {
+                var item = _focusableItems[i];
+
+                if (i == _selectedIndex)
+                {
+                    if (item is Border border)
+                    {
+                        border.BorderBrush = this.FindResource("Accent.Blue") as IBrush;
+                        border.BorderThickness = new Avalonia.Thickness(2);
+                    }
+                    else if (item is Button button)
+                    {
+                        button.BorderBrush = this.FindResource("Accent.Blue") as IBrush;
+                        button.BorderThickness = new Avalonia.Thickness(2);
+                        button.Opacity = 0.8;
+                    }
+
+                    item.BringIntoView();
+                }
+                else
+                {
+                    if (item is Border border)
+                    {
+                        border.BorderBrush = Avalonia.Media.Brushes.Transparent;
+                        border.BorderThickness = new Avalonia.Thickness(0);
+                    }
+                    else if (item is Button button)
+                    {
+                        button.BorderBrush = null;
+                        button.BorderThickness = new Avalonia.Thickness(0);
+                        button.Opacity = 1.0;
+                    }
+                }
+            }
+        }
+
+        private void SimulateClick(Border border)
+        {
+            if (border.Name == "LanguageHeader") { OnToggleLanguage(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "RegionHeader") { OnToggleRegion(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "LogoTypeHeader") { OnToggleLogoType(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "CoverTypeHeader") { OnToggleCoverType(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "SearchMethodHeader") { OnToggleSearchMethod(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "ZipSearchHeader") { OnToggleZipSearch(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "ScrapTargetsHeader") { OnToggleScrapTargets(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "ScrapConditionHeader") { OnToggleScrapCondition(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "AdvancedHeader") { OnToggleAdvanced(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+
+            if (border.Name?.Contains("Language") == true)
+            {
+                if (border.Name == "LanguageJpOption") OnLanguageJpTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (border.Name == "LanguageEnOption") OnLanguageEnTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+            else if (border.Name?.Contains("Region") == true)
+            {
+                if (border.Name == "RegionJapaneseOption") OnRegionJapaneseTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (border.Name == "RegionAmericanOption") OnRegionAmericanTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+            else if (border.Name?.Contains("Logo") == true)
+            {
+                if (border.Name == "LogoNormalOption") OnLogoNormalTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (border.Name == "LogoSteelOption") OnLogoSteelTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+            else if (border.Name?.Contains("Cover") == true)
+            {
+                if (border.Name == "Cover2DOption") OnCover2DTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (border.Name == "Cover3DOption") OnCover3DTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+            else if (border.Name?.Contains("Search") == true)
+            {
+                if (border.Name == "SearchByNameOption") OnSearchByNameTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (border.Name == "SearchByCrcOption") OnSearchByCrcTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+            else if (border.Name?.Contains("Zip") == true)
+            {
+                if (border.Name == "ZipInternalOption") OnZipInternalTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                else if (border.Name == "ZipExternalOption") OnZipExternalTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+            }
+            else if (border.Name?.StartsWith("Condition") == true)
+            {
+                switch (border.Name)
+                {
+                    case "ConditionNoneOption": OnConditionNoneTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                    case "ConditionAllMissingOption": OnConditionAllMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                    case "ConditionLogoMissingOption": OnConditionLogoMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                    case "ConditionCoverMissingOption": OnConditionCoverMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                    case "ConditionVideoMissingOption": OnConditionVideoMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                }
+            }
+            else
+            {
+                var textBlocks = border.GetVisualDescendants().OfType<TextBlock>().ToList();
+                var firstText = textBlocks.FirstOrDefault()?.Text;
+
+                if (firstText != null)
+                {
+                    switch (firstText)
+                    {
+                        case "게임명": OnToggleScrapTitle(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                        case "게임 설명": OnToggleScrapDescription(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                        case "로고": OnToggleScrapLogo(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                        case "커버": OnToggleScrapCover(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                        case "비디오": OnToggleScrapVideo(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                        case "자동 스크래핑 활성화": OnToggleAutoScrap(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                    }
+                }
+            }
+        }
 
         private void LoadSettings()
         {
@@ -158,8 +410,8 @@ namespace UltimateEnd.Views.Overlays
 
         private void UpdateSearchMethodUI()
         {
-             SearchByNameCheck.IsVisible = _tempSearchMethod == SearchMethod.ByFileName;
-             SearchByCrcCheck.IsVisible = _tempSearchMethod == SearchMethod.ByCrc;
+            SearchByNameCheck.IsVisible = _tempSearchMethod == SearchMethod.ByFileName;
+            SearchByCrcCheck.IsVisible = _tempSearchMethod == SearchMethod.ByCrc;
         }
 
         private void UpdateExpandersUI()
@@ -190,6 +442,9 @@ namespace UltimateEnd.Views.Overlays
 
             AdvancedContent.IsVisible = _isAdvancedExpanded;
             AdvancedExpandIcon.Data = Geometry.Parse(_isAdvancedExpanded ? ChevronUpPath : ChevronDownPath);
+
+            InitializeFocusableItems();
+            UpdateSelection();
         }
 
         private static void UpdateToggle(Border toggleBack, Border toggle, bool value)

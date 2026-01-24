@@ -81,7 +81,8 @@ namespace UltimateEnd.Utils
 
             if (IsTextInputFocused())
             {
-                bool isAllowedInTextBox = e.Key == Key.Escape || e.Key == Key.Enter;
+                bool isAllowedInTextBox = e.Key == Key.Escape || e.Key == Key.Enter || e.Key == Key.Up || e.Key == Key.Down;
+                
                 if (!isAllowedInTextBox) return false;
             }
 
@@ -130,7 +131,7 @@ namespace UltimateEnd.Utils
             {
                 var focused = desktop.MainWindow?.FocusManager?.GetFocusedElement();
 
-                return focused is TextBox || focused is ComboBox;
+                return focused is TextBox || focused is ComboBox || focused is Slider;
             }
             else if (app?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime single)
             {
@@ -138,7 +139,7 @@ namespace UltimateEnd.Utils
                 var topLevel = mainView?.GetVisualRoot() as TopLevel;
                 var focused = topLevel?.FocusManager?.GetFocusedElement();
 
-                return focused is TextBox || focused is ComboBox;
+                return focused is TextBox || focused is ComboBox || focused is Slider;
             }
 
             return false;

@@ -169,7 +169,7 @@ namespace UltimateEnd.Services
                     return;
                 }
 
-                var existingRomFiles = new HashSet<string>(existingMetadata.Select(g => $"{g.SubFolder ?? ""}|{g.RomFile}"), StringComparer.OrdinalIgnoreCase);
+                var existingRomFiles = new HashSet<string>(existingMetadata.Select(g => $"{g.SubFolder ?? string.Empty}|{g.RomFile}"), StringComparer.OrdinalIgnoreCase);
                 var addedCount = 0;
 
                 ScanFolder(platformPath, null, validExtensions, existingRomFiles, existingMetadata, ref addedCount);

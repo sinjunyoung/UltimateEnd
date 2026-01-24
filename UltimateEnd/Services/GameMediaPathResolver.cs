@@ -109,7 +109,7 @@ namespace UltimateEnd.Services
                 "Covers" => "-thumb",
                 "Logos" => "-marquee",
                 "Videos" => "-video",
-                _ => ""
+                _ => string.Empty
             };
         }
 

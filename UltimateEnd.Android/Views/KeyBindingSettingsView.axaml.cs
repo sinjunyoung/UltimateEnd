@@ -40,32 +40,31 @@ namespace UltimateEnd.Android.Views
             if (ViewModel.IsBinding)
             {
                 await WavSounds.OK();
-
                 ViewModel.HandleKeyPress(e.Key);
                 e.Handled = true;
+
                 return;
             }
 
             if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
-                ViewModel.GoBackCommand?.Execute(Unit.Default);
+                await WavSounds.Cancel();
+                ViewModel.GoBack();
             }
             else if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 e.Handled = true;
                 await WavSounds.Click();
                 
-                if (ButtonList.SelectedIndex > 0)
-                    ButtonList.SelectedIndex--;
+                if (ButtonList.SelectedIndex > 0) ButtonList.SelectedIndex--;
             }
             else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 e.Handled = true;
                 await WavSounds.Click();
 
-                if (ButtonList.SelectedIndex < ViewModel.ButtonItems.Count - 1)
-                    ButtonList.SelectedIndex++;
+                if (ButtonList.SelectedIndex < ViewModel.ButtonItems.Count - 1) ButtonList.SelectedIndex++;
             }
             else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {

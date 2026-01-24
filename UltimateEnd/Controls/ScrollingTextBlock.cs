@@ -17,24 +17,15 @@ namespace UltimateEnd.Controls
         private bool _isInitialized = false;
         private CancellationTokenSource _animationCts;
         private double _lastContainerWidth = 0;
-        private string _lastText = "";
+        private string _lastText = string.Empty;
         private double _lastFontSize = 0;
         private bool _isUpdating = false;
 
-        public static readonly StyledProperty<string> TextProperty =
-            AvaloniaProperty.Register<ScrollingTextBlock, string>(nameof(Text), "");
-
-        public static readonly StyledProperty<double> ScrollSpeedProperty =
-            AvaloniaProperty.Register<ScrollingTextBlock, double>(nameof(ScrollSpeed), 50.0);
-
-        public static readonly new StyledProperty<double> FontSizeProperty =
-            AvaloniaProperty.Register<ScrollingTextBlock, double>(nameof(FontSize), 14.0);
-
-        public static readonly new StyledProperty<IBrush> ForegroundProperty =
-            AvaloniaProperty.Register<ScrollingTextBlock, IBrush>(nameof(Foreground), Brushes.Black);
-
-        public static readonly StyledProperty<double> ScrollThresholdProperty =
-            AvaloniaProperty.Register<ScrollingTextBlock, double>(nameof(ScrollThreshold), 5.0);
+        public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<ScrollingTextBlock, string>(nameof(Text), string.Empty);
+        public static readonly StyledProperty<double> ScrollSpeedProperty = AvaloniaProperty.Register<ScrollingTextBlock, double>(nameof(ScrollSpeed), 50.0);
+        public static readonly new StyledProperty<double> FontSizeProperty = AvaloniaProperty.Register<ScrollingTextBlock, double>(nameof(FontSize), 14.0);
+        public static readonly new StyledProperty<IBrush> ForegroundProperty = AvaloniaProperty.Register<ScrollingTextBlock, IBrush>(nameof(Foreground), Brushes.Black);
+        public static readonly StyledProperty<double> ScrollThresholdProperty = AvaloniaProperty.Register<ScrollingTextBlock, double>(nameof(ScrollThreshold), 5.0);
 
         public string Text
         {
@@ -104,15 +95,9 @@ namespace UltimateEnd.Controls
             }
             else if (change.Property == ForegroundProperty)
             {
-                if (_textBlock != null)
-                {
-                    _textBlock.Foreground = Foreground;
-                }
+                if (_textBlock != null) _textBlock.Foreground = Foreground;
             }
-            else if (change.Property == BoundsProperty && _isInitialized)
-            {
-                RequestUpdateLayout();
-            }
+            else if (change.Property == BoundsProperty && _isInitialized) RequestUpdateLayout();
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -137,27 +122,26 @@ namespace UltimateEnd.Controls
 
         private void UpdateLayoutInternal()
         {
-            if (_textBlock == null || _canvas == null || !_isInitialized || _isUpdating)
-                return;
+            if (_textBlock == null || _canvas == null || !_isInitialized || _isUpdating) return;
 
             _isUpdating = true;
 
             try
             {
                 var containerWidth = Bounds.Width;
+
                 if (containerWidth <= 0)
                 {
                     _isUpdating = false;
+
                     return;
                 }
 
-                if (Math.Abs(containerWidth - _lastContainerWidth) < 1.0 &&
-                    _lastContainerWidth > 0 &&
-                    _lastText == Text &&
-                    Math.Abs(_lastFontSize - FontSize) < 0.1)
+                if (Math.Abs(containerWidth - _lastContainerWidth) < 1.0 && _lastContainerWidth > 0 && _lastText == Text && Math.Abs(_lastFontSize - FontSize) < 0.1)
                 {
                     _textBlock.Opacity = 1;
                     _isUpdating = false;
+
                     return;
                 }
 

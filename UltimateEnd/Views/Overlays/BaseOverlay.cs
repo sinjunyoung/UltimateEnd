@@ -45,10 +45,27 @@ namespace UltimateEnd.Views.Overlays
             }
             if (e.Source is TextBox)
             {
-                base.OnKeyDown(e);
-                return;
+                if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start) || InputManager.IsButtonPressed(e, GamepadButton.DPadUp) || InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
+                    e.Handled = true;
+                else
+                {             
+                    base.OnKeyDown(e);
+                    return;
+                }
             }
-            e.Handled = true;
+            else if (e.Source is Slider)
+            {   
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp) || InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
+                    e.Handled = true;
+                else
+                {
+                    base.OnKeyDown(e);
+                    return;
+                }
+            }
+            else
+                e.Handled = true;
+
             if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;

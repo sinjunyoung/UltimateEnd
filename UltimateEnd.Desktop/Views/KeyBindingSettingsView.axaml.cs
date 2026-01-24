@@ -162,7 +162,8 @@ namespace UltimateEnd.Desktop.Views
             if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
                 e.Handled = true;
-                ViewModel.GoBackCommand?.Execute(Unit.Default);
+                await WavSounds.Cancel();
+                ViewModel.GoBack();
             }
             else if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {

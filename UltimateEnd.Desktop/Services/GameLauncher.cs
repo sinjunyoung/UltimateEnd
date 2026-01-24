@@ -400,7 +400,7 @@ namespace UltimateEnd.Desktop.Services
         {
             string processedScript = script
                 .Replace("{romPath}", romPath)
-                .Replace("{romDir}", Path.GetDirectoryName(romPath) ?? "")
+                .Replace("{romDir}", Path.GetDirectoryName(romPath) ?? string.Empty)
                 .Replace("{romName}", Path.GetFileNameWithoutExtension(romPath));
 
             var (scriptExe, scriptArgs) = Utils.CommandParser.ParseCommand(processedScript);

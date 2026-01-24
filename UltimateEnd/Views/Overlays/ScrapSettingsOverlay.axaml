@@ -57,6 +57,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="LanguageHeader"
 								        Tapped="OnToggleLanguage">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -130,6 +131,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="RegionHeader"
 								        Tapped="OnToggleRegion">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -203,6 +205,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="LogoTypeHeader"
 								        Tapped="OnToggleLogoType">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -276,6 +279,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="CoverTypeHeader"
 								        Tapped="OnToggleCoverType">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -350,6 +354,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 										Cursor="Hand"
+										Name="SearchMethodHeader"
 										Tapped="OnToggleSearchMethod">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -453,6 +458,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 										Cursor="Hand"
+										Name="ZipSearchHeader"
 										Tapped="OnToggleZipSearch">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -531,6 +537,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="ScrapTargetsHeader"
 								        Tapped="OnToggleScrapTargets">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -648,6 +655,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="ScrapConditionHeader"
 								        Tapped="OnToggleScrapCondition">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -786,6 +794,7 @@
 							<StackPanel>
 								<Border Background="Transparent"
 								        Cursor="Hand"
+										Name="AdvancedHeader"
 								        Tapped="OnToggleAdvanced">
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
@@ -904,6 +913,7 @@
 												CornerRadius="6"
 												Padding="12,10"
 												Cursor="Hand"
+												Name="AutoScrapBorder"
 												Tapped="OnToggleAutoScrap">
 											<Grid ColumnDefinitions="*,Auto">
 												<TextBlock Grid.Column="0"
@@ -944,7 +954,8 @@
 					<StackPanel Orientation="Horizontal"
 					            HorizontalAlignment="Right"
 					            Spacing="10">
-						<Button Content="초기화"
+						<Button Name="ResetButton"
+								Content="초기화"
 						        Focusable="False"
 						        Click="OnResetClick"
 						        Padding="25,10"
@@ -953,7 +964,8 @@
 						        BorderThickness="0"
 						        CornerRadius="6"
 						        Cursor="Hand"/>
-						<Button Content="저장"
+						<Button Name="SaveButton"
+								Content="저장"
 						        Focusable="False"
 						        Click="OnSaveClick"
 						        Padding="25,10"

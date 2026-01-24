@@ -189,7 +189,7 @@ namespace UltimateEnd.Desktop.Services
         private static async Task<EmulatorValidationAction> UseExistingInstallation(EmulatorValidationResult validation, string targetDirectory, string installFolderName)
         {
             var existingExes = Directory.GetFiles(targetDirectory, "*.exe", SearchOption.AllDirectories);
-            var selectedExe = SelectBestExecutable(existingExes, validation.EmulatorName ?? "");
+            var selectedExe = SelectBestExecutable(existingExes, validation.EmulatorName ?? string.Empty);
 
             if (selectedExe == null)
             {
@@ -216,7 +216,7 @@ namespace UltimateEnd.Desktop.Services
 
             }
 
-            var selectedExe = SelectBestExecutable(exeFiles, validation.EmulatorName ?? "");
+            var selectedExe = SelectBestExecutable(exeFiles, validation.EmulatorName ?? string.Empty);
 
             if (selectedExe == null)
             {
