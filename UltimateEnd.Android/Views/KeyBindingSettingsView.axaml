@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:UltimateEnd.Android.ViewModels"
              x:Class="UltimateEnd.Android.Views.KeyBindingSettingsView"
+			 xmlns:behaviors="using:UltimateEnd.Behaviors"
              x:DataType="vm:KeyBindingSettingsViewModel"
              x:Name="KeyBindingSettingsRoot"
              Focusable="True"
@@ -180,6 +181,7 @@
                         HorizontalAlignment="Center"
                         Spacing="10">
 				<Button Content="기본값으로 리셋"
+						behaviors:SoundBehavior.ClickSound="OK"
                         Name="ResetButton"
                         Command="{Binding ResetToDefaultCommand}"
                         Padding="20,12"

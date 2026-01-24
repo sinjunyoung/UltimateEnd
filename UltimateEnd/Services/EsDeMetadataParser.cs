@@ -15,10 +15,9 @@ namespace UltimateEnd.Services
 
             try
             {
-                // XML 표준 위반 파일이므로 XmlReader로 순차 읽기
                 using var reader = XmlReader.Create(filePath, new XmlReaderSettings
                 {
-                    ConformanceLevel = ConformanceLevel.Fragment, // 다중 루트 허용
+                    ConformanceLevel = ConformanceLevel.Fragment,
                     IgnoreWhitespace = true
                 });
 
@@ -27,8 +26,8 @@ namespace UltimateEnd.Services
                     if (reader.NodeType == XmlNodeType.Element && reader.Name == "game")
                     {
                         var game = ParseGame(reader, basePath);
-                        if (game != null)
-                            result.Add(game);
+
+                        if (game != null) result.Add(game);
                     }
                 }
             }
@@ -46,16 +45,13 @@ namespace UltimateEnd.Services
 
             while (reader.Read())
             {
-                if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "game")
-                    break;
+                if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "game") break;
 
-                if (reader.NodeType != XmlNodeType.Element)
-                    continue;
+                if (reader.NodeType != XmlNodeType.Element) continue;
 
                 var elementName = reader.Name.ToLower();
 
-                if (!reader.Read() || reader.NodeType != XmlNodeType.Text)
-                    continue;
+                if (!reader.Read() || reader.NodeType != XmlNodeType.Text) continue;
 
                 var value = reader.Value.Trim();
 
@@ -90,6 +86,7 @@ namespace UltimateEnd.Services
             if (!string.IsNullOrEmpty(game.RomFile))
             {
                 game.SetBasePath(basePath);
+
                 return game;
             }
 

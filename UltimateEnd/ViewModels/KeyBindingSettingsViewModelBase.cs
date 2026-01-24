@@ -159,9 +159,9 @@ namespace UltimateEnd.ViewModels
         {
             LoadSettings();
 
-            ResetToDefaultCommand = ReactiveCommand.CreateFromTask(ResetToDefault);
+            ResetToDefaultCommand = ReactiveCommand.Create(ResetToDefault);
             SaveCommand = ReactiveCommand.CreateFromTask(SaveAndGoBack);
-            GoBackCommand = ReactiveCommand.CreateFromTask(GoBackAsync);
+            GoBackCommand = ReactiveCommand.Create(GoBack);
         }
 
         #endregion
@@ -200,15 +200,14 @@ namespace UltimateEnd.ViewModels
             IsBinding = true;
         }
 
-        public async void HandleKeyPress(Key key)
+        public void HandleKeyPress(Key key)
         {
             if (!IsBinding || string.IsNullOrEmpty(_currentBindingKey)) return;
+
             if (key == Key.None) return;
 
             string keyName = NormalizeKeyName(key);
             AssignKeyToButton(_currentBindingKey, keyName);
-
-            await WavSounds.OK();
 
             IsBinding = false;
             _currentBindingKey = string.Empty;
@@ -250,11 +249,9 @@ namespace UltimateEnd.ViewModels
             };
         }
 
-        protected virtual async Task ResetToDefault()
+        protected virtual void ResetToDefault()
         {
             var snap = FocusHelper.CreateSnapshot();
-
-            await WavSounds.OK();
 
             DPadUp = "Up";
             DPadDown = "Down";
@@ -288,7 +285,6 @@ namespace UltimateEnd.ViewModels
 
             if (HasDuplicateKeys() || HasDuplicateGamepadButtons())
             {
-                await WavSounds.Cancel();
                 await DialogService.Instance.ShowWarning("중복된 키가 있습니다.\n다른 키를 할당해주세요.");
                 snap.Restore();
 
@@ -324,13 +320,6 @@ namespace UltimateEnd.ViewModels
 
             GoBack();
         }
-
-        private async Task GoBackAsync()
-        {
-            await WavSounds.Cancel();
-            GoBack();
-        }
-
         private bool HasDuplicateKeys()
         {
             List<string> allKeys = [

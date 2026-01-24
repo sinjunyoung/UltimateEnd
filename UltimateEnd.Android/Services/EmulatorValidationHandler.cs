@@ -130,9 +130,9 @@ namespace UltimateEnd.Android.Services
 
             var totalBytes = response.Content.Headers.ContentLength ?? 0;
             await using var contentStream = await response.Content.ReadAsStreamAsync();
-            await using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 262144); // 256KB
+            await using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 262144);
 
-            var buffer = new byte[262144]; // 256KB
+            var buffer = new byte[262144];
             long totalRead = 0;
             int bytesRead;
             int lastPercent = 0;

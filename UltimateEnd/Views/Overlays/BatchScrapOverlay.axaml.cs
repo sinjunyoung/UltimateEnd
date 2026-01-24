@@ -179,14 +179,14 @@ namespace UltimateEnd.Views.Overlays
 
         public async Task<bool> StartBatchScrapAsync(ScreenScraperService service, List<GameMetadata> games)
         {
-            if (IsScrapInProgress)
-                return false;
+            if (IsScrapInProgress) return false;
 
             ArgumentNullException.ThrowIfNull(service);
 
             if (games == null || games.Count == 0)
             {
                 CurrentStatus = "스크랩할 게임이 없습니다";
+
                 return false;
             }
 
@@ -278,8 +278,7 @@ namespace UltimateEnd.Views.Overlays
                 else
                     CurrentStatus = $"작업 완료 (성공: {result.SuccessCount}, 건너뜀: {result.SkippedCount}, 실패: {result.FailedCount})";
 
-                if (hasAnySuccess)
-                    _= WavSounds.Complete();
+                if (hasAnySuccess) _= WavSounds.Complete();
 
                 return hasAnySuccess;
             }
@@ -375,8 +374,7 @@ namespace UltimateEnd.Views.Overlays
 
         private void UpdateElapsedTime()
         {
-            if (_stopwatch == null)
-                return;
+            if (_stopwatch == null) return;
 
             var elapsed = _stopwatch.Elapsed;
 
@@ -390,8 +388,7 @@ namespace UltimateEnd.Views.Overlays
 
         private async void Cancel()
         {
-            if (_cts == null || _cts.IsCancellationRequested)
-                return;
+            if (_cts == null || _cts.IsCancellationRequested) return;
 
             await WavSounds.Cancel();
 
@@ -399,15 +396,10 @@ namespace UltimateEnd.Views.Overlays
             CurrentStatus = "취소 중...";
         }
 
-        private async void Close()
+        private void Close()
         {
-            if (IsScrapInProgress)
-            {
-                await WavSounds.Cancel();
-                return;
-            }
+            if (IsScrapInProgress) return;
 
-            await WavSounds.Cancel();
             Hide(HiddenState.Close);
         }
 
@@ -420,6 +412,7 @@ namespace UltimateEnd.Views.Overlays
             if (!this.Visible)
             {
                 base.OnKeyDown(e);
+
                 return;
             }
             if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
@@ -429,6 +422,7 @@ namespace UltimateEnd.Views.Overlays
                 else
                     Close();
                 e.Handled = true;
+
                 return;
             }
             base.OnKeyDown(e);
@@ -470,11 +464,11 @@ namespace UltimateEnd.Views.Overlays
 
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
         {
-            if (Equals(field, value))
-                return false;
+            if (Equals(field, value)) return false;
 
             field = value;
             OnPropertyChanged(propertyName);
+
             return true;
         }
 

@@ -118,11 +118,6 @@ namespace UltimateEnd.Services
     {
         public static Func<ITemplateVariableManager>? Create { get; set; }
     }
-    
-    public static class UiBehaviorFactory
-    {
-        public static Func<IUiBehavior>? Create { get; set; }
-    }
 
     public static class VideoPlayerFactory
     {

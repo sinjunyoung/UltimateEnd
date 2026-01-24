@@ -192,8 +192,7 @@ namespace UltimateEnd.Managers
                     var allGames = AllGamesManager.Instance.GetAllGames();
                     var game = allGames.FirstOrDefault(g => g.GetBasePath() == reference.BasePath && g.RomFile == reference.RomFile);
 
-                    if (game != null)
-                        games.Add(game);
+                    if (game != null) games.Add(game);
                 }
 
                 return games;
@@ -205,6 +204,7 @@ namespace UltimateEnd.Managers
             lock (_playlistsLock)
             {
                 var playlist = _playlists.FirstOrDefault(p => p.Id == playlistId);
+
                 return playlist?.GameReferences.Any(r => r.PlatformId == platformId && r.RomFile == romFile) ?? false;
             }
         }
@@ -221,6 +221,7 @@ namespace UltimateEnd.Managers
         public static string ExtractPlaylistId(string platformId)
         {
             if (IsPlaylistPlatformId(platformId)) return platformId[PlaylistPrefix.Length..];
+
             return platformId;
         }
 

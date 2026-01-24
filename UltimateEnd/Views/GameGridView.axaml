@@ -263,6 +263,7 @@
 											<TextBlock Grid.Column="0"
 													   Text="{Binding Game.DisplayTitle}"
 													   FontSize="{StaticResource FontSize.GameTitle}"
+													   FontWeight="Bold"
 													   Foreground="{DynamicResource Text.Primary}"
 													   TextWrapping="Wrap"
 													   TextTrimming="CharacterEllipsis"

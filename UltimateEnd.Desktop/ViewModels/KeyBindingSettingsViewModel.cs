@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UltimateEnd.Desktop.Services;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
-using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 
 namespace UltimateEnd.Desktop.ViewModels
@@ -226,13 +225,11 @@ namespace UltimateEnd.Desktop.ViewModels
             GamepadManager.SetBindingMode(true);
         }
 
-        public async void HandleGamepadButtonPress(int buttonIndex)
+        public void HandleGamepadButtonPress(int buttonIndex)
         {
             if (!IsBinding || string.IsNullOrEmpty(_currentBindingKey)) return;
 
             AssignGamepadButtonToButton(_currentBindingKey, buttonIndex);
-
-            await WavSounds.OK();
 
             IsBinding = false;
             _currentBindingKey = string.Empty;

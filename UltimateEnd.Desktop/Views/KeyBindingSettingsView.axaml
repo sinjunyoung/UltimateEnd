@@ -3,6 +3,7 @@
              xmlns:vm="using:UltimateEnd.Desktop.ViewModels"
              x:Class="UltimateEnd.Desktop.Views.KeyBindingSettingsView"
 			 xmlns:converters="using:UltimateEnd.Converters"
+			 xmlns:behaviors="using:UltimateEnd.Behaviors"
              x:DataType="vm:KeyBindingSettingsViewModel"
              x:Name="KeyBindingSettingsRoot"
              Focusable="True"
@@ -498,6 +499,7 @@
 			            Spacing="15">
 				<Button Content="기본값으로 리셋"
 				        Name="ResetButton"
+						behaviors:SoundBehavior.ClickSound="OK"
 				        Command="{Binding ResetToDefaultCommand}"
 				        Padding="20,12"
 				        FontSize="16"

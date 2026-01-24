@@ -118,37 +118,25 @@ namespace UltimateEnd.Models
                     var converter = PathConverterFactory.Create?.Invoke();
                     var realPath = converter?.FriendlyPathToRealPath(ImagePath) ?? ImagePath;
 
-                    if (Uri.TryCreate(realPath, UriKind.Absolute, out var uri))
+                    if (realPath.StartsWith("avares://"))
                     {
+                        var uri = new Uri(realPath);
                         bool isSvg = realPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
 
-                        if (uri.Scheme == "avares")
+                        if (isSvg)
+                            _cachedImage = LoadSvgAsBitmap(realPath, uri);
+                        else
                         {
-                            if (isSvg)
-                                _cachedImage = LoadSvgAsBitmap(realPath, uri);
-                            else
-                            {
-                                using var stream = AssetLoader.Open(uri);
-                                _cachedImage = new Bitmap(stream);
-                            }
-
-                            return _cachedImage;
+                            using var stream = AssetLoader.Open(uri);
+                            _cachedImage = new Bitmap(stream);
                         }
-                        else if (uri.Scheme == "file")
-                        {
-                            if (isSvg)
-                                _cachedImage = LoadSvgAsBitmap(uri.LocalPath, uri);
-                            else
-                            {
-                                using var stream = File.OpenRead(uri.LocalPath);
-                                _cachedImage = new Bitmap(stream);
-                            }
 
-                            return _cachedImage;
-                        }
+                        return _cachedImage;
                     }
 
-                    return null;
+                    _cachedImage = new Bitmap(realPath);
+
+                    return _cachedImage;
                 }
                 catch
                 {

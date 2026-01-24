@@ -6,6 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using System;
+using System.Collections.Generic;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
@@ -20,6 +21,23 @@ namespace UltimateEnd.Controls
         private readonly HangulAutomata _automata = new();
         private bool _isTouchDevice = false;
         private bool _hasDetectedInput = false;
+        private readonly List<Border> _buttons = [];
+
+        private bool _isShiftActive = false;
+        private bool _isCapsLockActive = false;
+        private Border? _capsLockButton;
+        private Border? _shiftButton;
+
+        private readonly Dictionary<string, string> _doubleConsonantMap = new()
+        {
+            { "ㅂ", "ㅃ" }, { "ㅈ", "ㅉ" }, { "ㄷ", "ㄸ" },
+            { "ㄱ", "ㄲ" }, { "ㅅ", "ㅆ" }
+        };
+
+        private readonly Dictionary<string, string> _doubleVowelMap = new()
+        {
+            { "ㅑ", "ㅒ" }, { "ㅕ", "ㅖ" }
+        };
 
         #region Responsive Properties
 
@@ -77,13 +95,30 @@ namespace UltimateEnd.Controls
 
         #region Color Helpers
 
-        private IBrush GetBackgroundSecondary() => Application.Current?.FindResource("Background.Primary") as IBrush ?? new SolidColorBrush(Color.Parse("#22283A"));
+        private static IBrush GetBackgroundSecondary() => Application.Current?.FindResource("Background.Primary") as IBrush ?? new SolidColorBrush(Color.Parse("#22283A"));
 
-        private IBrush GetBackgroundInput() => Application.Current?.FindResource("Background.Card") as IBrush ?? new SolidColorBrush(Color.Parse("#2C3347"));
+        private static IBrush GetBackgroundInput() => Application.Current?.FindResource("Background.Card") as IBrush ?? new SolidColorBrush(Color.Parse("#2C3347"));
 
-        private IBrush GetBackgroundHover() => Application.Current?.FindResource("Background.Hover") as IBrush ?? new SolidColorBrush(Color.Parse("#313847"));
+        private static IBrush GetBackgroundHover() => Application.Current?.FindResource("Background.Hover") as IBrush ?? new SolidColorBrush(Color.Parse("#313847"));
 
-        private IBrush GetTextPrimary() => Application.Current?.FindResource("Text.Primary") as IBrush ?? Brushes.White;
+        private static IBrush GetBackgroundActive() => Application.Current?.FindResource("Accent.Primary") as IBrush ?? new SolidColorBrush(Color.Parse("#4A9EFF"));
+
+        private static IBrush GetTextPrimary() => Application.Current?.FindResource("Text.Primary") as IBrush ?? Brushes.White;
+
+        #endregion
+
+        #region Button State Class
+
+        private class ButtonState
+        {
+            public string Text { get; set; } = string.Empty;
+            public Action? Action { get; set; }
+            public IBrush NormalBg { get; set; } = Brushes.Transparent;
+            public IBrush HoverBg { get; set; } = Brushes.Transparent;
+            public IBrush ActiveBg { get; set; } = Brushes.Transparent;
+            public bool IsActive { get; set; }
+            public bool IsToggle { get; set; }
+        }
 
         #endregion
 
@@ -91,7 +126,8 @@ namespace UltimateEnd.Controls
         {
             _keyboardGrid = new Grid
             {
-                RowDefinitions = new RowDefinitions("*,*,*,*,*"),
+                RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto,Auto"),
+                RowSpacing = ButtonSpacing,
                 Focusable = false
             };
             UpdateKeyboardLayout();
@@ -130,27 +166,31 @@ namespace UltimateEnd.Controls
 
         private void OnAnyControlGotFocus(object? sender, GotFocusEventArgs e)
         {
+            if (OperatingSystem.IsAndroid()) return;
             if (!_isTouchDevice && _hasDetectedInput) return;
 
             if (e.Source is TextBox textBox)
             {
+                if(textBox.IsReadOnly) return;
+
                 _targetTextBox = textBox;
                 Background = GetBackgroundSecondary();
                 UpdateKeyboardLayout();
-                IsVisible = true;
-                KeyboardEventBus.NotifyKeyboardVisibility(true);
+
+                if (!IsVisible)
+                {
+                    IsVisible = true;
+                    KeyboardEventBus.NotifyKeyboardVisibility(true);
+                }
             }
-            else
+            else if (IsVisible)
             {
                 IsVisible = false;
                 KeyboardEventBus.NotifyKeyboardVisibility(false);
             }
         }
 
-        public void AttachToTextBox(TextBox textBox)
-        {
-            _targetTextBox = textBox;
-        }
+        public void AttachToTextBox(TextBox textBox) => _targetTextBox = textBox;
 
         private void UpdateResponsiveSizes()
         {
@@ -175,6 +215,8 @@ namespace UltimateEnd.Controls
 
             ButtonCornerRadius = new CornerRadius(Math.Max(4, Math.Min(8, ButtonWidth * 0.1)));
 
+            _keyboardGrid.RowSpacing = ButtonSpacing;
+
             UpdateKeyboardLayout();
         }
 
@@ -198,16 +240,55 @@ namespace UltimateEnd.Controls
                 root.RemoveHandler(GotFocusEvent, OnAnyControlGotFocus);
                 root.RemoveHandler(PointerPressedEvent, OnRootPointerPressed);
             }
+
+            ClearAllButtons();
+        }
+
+        private void ClearAllButtons()
+        {
+            foreach (var button in _buttons)
+            {
+                button.PointerEntered -= OnButtonPointerEntered;
+                button.PointerExited -= OnButtonPointerExited;
+                button.PointerReleased -= OnButtonPointerReleased;
+                button.Tag = null;
+            }
+            _buttons.Clear();
         }
 
         private void UpdateKeyboardLayout()
         {
+            ClearAllButtons();
             _keyboardGrid.Children.Clear();
+            _keyboardGrid.RowSpacing = ButtonSpacing;
             _keyboardGrid.Focusable = false;
+            _capsLockButton = null;
+            _shiftButton = null;
 
             if (_currentMode == KeyboardMode.Korean) CreateKoreanLayout();
             else if (_currentMode == KeyboardMode.English) CreateEnglishLayout();
             else CreateNumberLayout();
+        }
+
+        private string GetDisplayChar(string key)
+        {
+            if (_currentMode == KeyboardMode.Korean)
+            {   
+                if (_isShiftActive || _isCapsLockActive)
+                {
+                    if (_doubleConsonantMap.TryGetValue(key, out var doubleConsonant)) return doubleConsonant;
+                    if (_doubleVowelMap.TryGetValue(key, out var doubleVowel)) return doubleVowel;
+                }
+                return key;
+            }
+            else if (_currentMode == KeyboardMode.English)
+            {
+                if (_isShiftActive || _isCapsLockActive) return key.ToUpper();
+
+                return key;
+            }
+
+            return key;
         }
 
         private void CreateKoreanLayout()
@@ -219,7 +300,7 @@ namespace UltimateEnd.Controls
                 [ "ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ" ]];
 
             AddKeyRows(rows);
-            AddBottomRow("한/영", 1.4, () => SwitchMode(KeyboardMode.English));
+            AddBottomRowKorean();
         }
 
         private void CreateEnglishLayout()
@@ -231,7 +312,7 @@ namespace UltimateEnd.Controls
                 ["z", "x", "c", "v", "b", "n", "m"]];
 
             AddKeyRows(rows);
-            AddBottomRow("한/영", 1.4, () => SwitchMode(KeyboardMode.Korean));
+            AddBottomRowEnglish();
         }
 
         private void CreateNumberLayout()
@@ -253,8 +334,10 @@ namespace UltimateEnd.Controls
             };
 
             lastRow.Children.Add(CreateButton("ABC", ButtonWidth * 1.4, () => SwitchMode(KeyboardMode.English)));
-            lastRow.Children.Add(CreateButton("Space", ButtonWidth * 5, () => InsertChar(" ")));
+            lastRow.Children.Add(CreateButton("Tab", ButtonWidth * 1.2, () => InsertChar("\t")));
+            lastRow.Children.Add(CreateButton("Space", ButtonWidth * 4, () => InsertChar(" ")));
             lastRow.Children.Add(CreateButton("⌫", ButtonWidth * 1.2, Backspace));
+            lastRow.Children.Add(CreateButton("Enter", ButtonWidth * 1.4, () => SendKey(Key.Enter)));
             Grid.SetRow(lastRow, 4);
             _keyboardGrid.Children.Add(lastRow);
         }
@@ -278,7 +361,7 @@ namespace UltimateEnd.Controls
             }
         }
 
-        private void AddBottomRow(string switchLabel, double switchMultiplier, Action switchAction)
+        private void AddBottomRowKorean()
         {
             var lastRow = new StackPanel
             {
@@ -288,25 +371,69 @@ namespace UltimateEnd.Controls
                 Focusable = false
             };
 
-            lastRow.Children.Add(CreateButton(switchLabel, ButtonWidth * switchMultiplier, switchAction));
+            lastRow.Children.Add(CreateButton("한/영", ButtonWidth * 1.4, () => SwitchMode(KeyboardMode.English)));
+
+            _capsLockButton = CreateToggleButton("Caps", ButtonWidth * 1.3, ToggleCapsLock);
+            lastRow.Children.Add(_capsLockButton);
+
+            _shiftButton = CreateToggleButton("Shift", ButtonWidth * 1.3, ActivateShift);
+            lastRow.Children.Add(_shiftButton);
+
             lastRow.Children.Add(CreateButton("123", ButtonWidth * 1.2, () => SwitchMode(KeyboardMode.Numbers)));
-            lastRow.Children.Add(CreateButton("Space", ButtonWidth * 4, () => InsertChar(" ")));
+            lastRow.Children.Add(CreateButton("Tab", ButtonWidth * 1.2, () => InsertChar("\t")));
+            lastRow.Children.Add(CreateButton("Space", ButtonWidth * 3, () => InsertChar(" ")));
             lastRow.Children.Add(CreateButton("⌫", ButtonWidth * 1.2, Backspace));
             lastRow.Children.Add(CreateButton("Enter", ButtonWidth * 1.4, () => SendKey(Key.Enter)));
+
+            Grid.SetRow(lastRow, 4);
+            _keyboardGrid.Children.Add(lastRow);
+        }
+
+        private void AddBottomRowEnglish()
+        {
+            var lastRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Spacing = ButtonSpacing,
+                Focusable = false
+            };
+
+            lastRow.Children.Add(CreateButton("한/영", ButtonWidth * 1.4, () => SwitchMode(KeyboardMode.Korean)));
+
+            _capsLockButton = CreateToggleButton("Caps", ButtonWidth * 1.3, ToggleCapsLock);
+            lastRow.Children.Add(_capsLockButton);
+
+            _shiftButton = CreateToggleButton("Shift", ButtonWidth * 1.3, ActivateShift);
+            lastRow.Children.Add(_shiftButton);
+
+            lastRow.Children.Add(CreateButton("123", ButtonWidth * 1.2, () => SwitchMode(KeyboardMode.Numbers)));
+            lastRow.Children.Add(CreateButton("Tab", ButtonWidth * 1.2, () => InsertChar("\t")));
+            lastRow.Children.Add(CreateButton("Space", ButtonWidth * 3, () => InsertChar(" ")));
+            lastRow.Children.Add(CreateButton("⌫", ButtonWidth * 1.2, Backspace));
+            lastRow.Children.Add(CreateButton("Enter", ButtonWidth * 1.4, () => SendKey(Key.Enter)));
+
             Grid.SetRow(lastRow, 4);
             _keyboardGrid.Children.Add(lastRow);
         }
 
         private Border CreateButton(string text, double width, Action? action = null)
         {
-            var normalBg = GetBackgroundInput();
-            var hoverBg = GetBackgroundHover();
-            var textColor = GetTextPrimary();
+            var state = new ButtonState
+            {
+                Text = text,
+                Action = action ?? (() => InsertChar(text)),
+                NormalBg = GetBackgroundInput(),
+                HoverBg = GetBackgroundHover(),
+                ActiveBg = GetBackgroundActive(),
+                IsActive = false,
+                IsToggle = false
+            };
 
             var textBlock = new TextBlock
             {
                 Text = text,
-                Foreground = textColor,
+                Foreground = GetTextPrimary(),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = ButtonFontSize,
@@ -318,36 +445,145 @@ namespace UltimateEnd.Controls
             {
                 Width = width,
                 Height = ButtonHeight,
-                Background = normalBg,
+                Background = state.NormalBg,
                 CornerRadius = ButtonCornerRadius,
                 Focusable = false,
-                Child = textBlock
+                Child = textBlock,
+                Tag = state
             };
 
-            border.PointerEntered += (s, e) => border.Background = hoverBg;
-            border.PointerExited += (s, e) => border.Background = normalBg;
+            border.PointerEntered += OnButtonPointerEntered;
+            border.PointerExited += OnButtonPointerExited;
+            border.PointerReleased += OnButtonPointerReleased;
 
-            border.PointerReleased += async (s, e) =>
-            {
-                await WavSounds.Keyboard();
-                if (action != null) action();
-                else InsertChar(text);
-            };
+            _buttons.Add(border);
 
             return border;
+        }
+
+        private Border CreateToggleButton(string text, double width, Action action)
+        {
+            var state = new ButtonState
+            {
+                Text = text,
+                Action = action,
+                NormalBg = GetBackgroundInput(),
+                HoverBg = GetBackgroundHover(),
+                ActiveBg = GetBackgroundActive(),
+                IsActive = false,
+                IsToggle = true
+            };
+
+            var textBlock = new TextBlock
+            {
+                Text = text,
+                Foreground = GetTextPrimary(),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = ButtonFontSize,
+                Focusable = false,
+                IsHitTestVisible = false
+            };
+
+            var border = new Border
+            {
+                Width = width,
+                Height = ButtonHeight,
+                Background = state.NormalBg,
+                CornerRadius = ButtonCornerRadius,
+                Focusable = false,
+                Child = textBlock,
+                Tag = state
+            };
+
+            border.PointerEntered += OnButtonPointerEntered;
+            border.PointerExited += OnButtonPointerExited;
+            border.PointerReleased += OnButtonPointerReleased;
+
+            _buttons.Add(border);
+
+            return border;
+        }
+
+        private void OnButtonPointerEntered(object? sender, PointerEventArgs e)
+        {
+            if (sender is Border border && border.Tag is ButtonState state)
+            {
+                if (!state.IsActive)
+                    border.Background = state.HoverBg;
+            }
+        }
+
+        private void OnButtonPointerExited(object? sender, PointerEventArgs e)
+        {
+            if (sender is Border border && border.Tag is ButtonState state)
+                border.Background = state.IsActive ? state.ActiveBg : state.NormalBg;
+        }
+
+        private async void OnButtonPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (sender is Border border && border.Tag is ButtonState state)
+            {
+                await WavSounds.Keyboard();
+                state.Action?.Invoke();
+            }
+        }
+
+        private void ToggleCapsLock()
+        {
+            _isCapsLockActive = !_isCapsLockActive;
+            UpdateToggleButtonState(_capsLockButton, _isCapsLockActive);
+            UpdateAllButtonTexts();
+        }
+
+        private void ActivateShift()
+        {
+            _isShiftActive = !_isShiftActive;
+            UpdateToggleButtonState(_shiftButton, _isShiftActive);
+            UpdateAllButtonTexts();
+        }
+
+        private void UpdateAllButtonTexts()
+        {
+            foreach (var button in _buttons)
+            {
+                if (button.Tag is ButtonState state && button.Child is TextBlock textBlock)
+                {
+                    if (state.IsToggle) continue;
+
+                    textBlock.Text = GetDisplayChar(state.Text);
+                }
+            }
+        }
+
+        private static void UpdateToggleButtonState(Border? button, bool isActive)
+        {
+            if (button?.Tag is not ButtonState state) return;
+
+            state.IsActive = isActive;
+            button.Background = isActive ? state.ActiveBg : state.NormalBg;
         }
 
         private void InsertChar(string ch)
         {
             if (_targetTextBox == null) return;
 
+            string finalChar = GetDisplayChar(ch);
+
             if (_currentMode == KeyboardMode.Korean)
             {
-                var result = _automata.Input(ch);
+                var result = _automata.Input(finalChar);
                 ApplyHangulResult(result);
             }
             else
-                SendText(ch);
+                SendText(finalChar);
+
+            if (_isShiftActive)
+            {
+                _isShiftActive = false;
+                UpdateToggleButtonState(_shiftButton, false);
+                UpdateAllButtonTexts();
+            }
         }
 
         private void ApplyHangulResult(HangulResult result)
@@ -456,6 +692,8 @@ namespace UltimateEnd.Controls
         {
             _automata.Reset();
             _currentMode = mode;
+            _isShiftActive = false;
+            _isCapsLockActive = false;
             UpdateKeyboardLayout();
         }
     }

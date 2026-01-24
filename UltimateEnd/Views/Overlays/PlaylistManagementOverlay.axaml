@@ -138,7 +138,6 @@
                         BorderBrush="{DynamicResource Background.Border}">
 					<Button Content="닫기"
                             Focusable="False"
-                            behaviors:SoundBehavior.ClickSound="Cancel"
                             Click="OnCloseClicked"
                             Padding="25,10"
                             Background="{DynamicResource Background.Hover}"

@@ -45,7 +45,7 @@
 							          VerticalAlignment="Center"/>
 						</Border>
 						<TextBlock Grid.Column="1"
-						           Text="장르 설정 편집"
+						           Text="장르 관리"
 						           FontSize="20"
 						           FontWeight="Bold"
 						           Foreground="{DynamicResource Text.Primary}"
@@ -108,6 +108,7 @@
 										<Button Grid.Column="3"
 										        Content="삭제"
 										        Click="OnDeleteButtonClick"
+												behaviors:SoundBehavior.ClickSound="Cancel"
 												Background="{DynamicResource Background.Hover}"
 												Foreground="{DynamicResource Text.Primary}"
 										        Margin="2,2,2,2"
@@ -130,7 +131,6 @@
 					            Spacing="10">
 						<Button Content="취소"
 						        Focusable="False"
-						        behaviors:SoundBehavior.ClickSound="Cancel"
 						        Click="OnCancelClicked"
 						        Padding="25,10"
 						        Background="{DynamicResource Background.Hover}"
@@ -140,7 +140,6 @@
 						        Cursor="Hand"/>
 						<Button Content="저장"
 						        Focusable="False"
-						        behaviors:SoundBehavior.ClickSound="OK"
 						        Click="OnSaveClicked"
 						        Padding="25,10"
 						        Background="{DynamicResource Accent.Blue}"

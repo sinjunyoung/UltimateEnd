@@ -148,7 +148,26 @@ namespace UltimateEnd.Views
             base.OnLoaded(e);
 
             _keyboardSubscription = KeyboardEventBus.KeyboardVisibility
-                .Subscribe(isVisible => VideoContainerVisible = !isVisible);
+                .Subscribe(isVisible =>
+                {
+                    if (!isVisible)
+                    {
+                        if (IsAnyOverlayVisible()) return;
+                    }
+
+                    VideoContainerVisible = !isVisible;
+                });
+        }
+
+        private bool IsAnyOverlayVisible()
+        {
+            return _overlays?.Values.Any(overlay =>
+            {
+                if (overlay is BaseOverlay baseOverlay) return baseOverlay.Visible;
+
+                return false;
+
+            }) ?? false;
         }
 
         protected override void OnUnloaded(RoutedEventArgs e)
@@ -510,7 +529,25 @@ namespace UltimateEnd.Views
         {
             await WavSounds.OK();
 
-            if (ViewModel?.SelectedGame != null) UiBehaviorFactory.Create?.Invoke().BeginDescriptionEdit(ViewModel, this);
+            if (ViewModel?.SelectedGame != null)
+            {
+                VideoContainer.IsVisible = false;
+                ViewModel.IsEditingDescriptionOverlay = true;
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    var overlay = this.FindControl<DescriptionEditOverlay>("DescriptionEditOverlay");
+                    if (overlay != null)
+                    {
+                        var textBox = overlay.FindControl<TextBox>("OverlayDescriptionTextBox");
+                        if (textBox != null)
+                        {
+                            textBox.Text = ViewModel.SelectedGame?.Description ?? string.Empty;
+                            textBox.Focus();
+                        }
+                    }
+                }, DispatcherPriority.Render);
+            }
         }
 
         private void OnDescriptionSaveClick(object? sender, RoutedEventArgs e)

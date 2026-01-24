@@ -195,11 +195,11 @@ namespace UltimateEnd.Views.Overlays
 
                 EditOverlay.IsVisible = true;
 
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     NameTextBox.Focus();
                     NameTextBox.SelectAll();
-                }, Avalonia.Threading.DispatcherPriority.Loaded);
+                }, DispatcherPriority.Loaded);
             }
         }
 
@@ -218,7 +218,7 @@ namespace UltimateEnd.Views.Overlays
                     oldImage?.Dispose();
                 }
 
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => this.Focus(), Avalonia.Threading.DispatcherPriority.Loaded);
+                Dispatcher.UIThread.Post(() => this.Focus(), DispatcherPriority.Loaded);
             }
         }
 
@@ -255,6 +255,7 @@ namespace UltimateEnd.Views.Overlays
             if (string.IsNullOrEmpty(name))
             {
                 if (EditStatusText != null) EditStatusText.Text = "이름을 입력하세요";
+
                 return;
             }
 
@@ -263,6 +264,7 @@ namespace UltimateEnd.Views.Overlays
             if (isDuplicate)
             {
                 if (EditStatusText != null) EditStatusText.Text = $"'{name}' 플레이리스트는 이미 존재합니다";
+
                 return;
             }
 
@@ -312,7 +314,7 @@ namespace UltimateEnd.Views.Overlays
             {
                 DeleteOverlay.IsVisible = false;
                 _deletingItem = null;
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => this.Focus(), Avalonia.Threading.DispatcherPriority.Loaded);
+                Dispatcher.UIThread.Post(() => this.Focus(), DispatcherPriority.Loaded);
             }
         }
 

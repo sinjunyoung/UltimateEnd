@@ -210,11 +210,6 @@ namespace UltimateEnd.Services
         List<TemplateVariable> Variables { get; }
     }
 
-    public interface IUiBehavior
-    {
-        void BeginDescriptionEdit(GameListViewModel vm, Control root);
-    }
-
     public interface IVideoPlayer : IDisposable
     {
         void Play(string videoPath);

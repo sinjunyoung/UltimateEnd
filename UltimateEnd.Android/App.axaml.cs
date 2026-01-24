@@ -46,7 +46,6 @@ public partial class App : Application
         SoundPlayerFactory.Create = () => new SoundPlayer();
         StoragePathProviderFactory.Create = () => new StoragePathProvider();
         TemplateVariableManagerFactory.Create = () => new TemplateVariableManager();
-        UiBehaviorFactory.Create = () => new UiBehavior();
         VideoPlayerFactory.CreateVideoPlayer = () => new VideoPlayer();
         VideoViewInitializerFactory.Create = () => new VideoViewInitializer();        
         WavSounds.Initialize(AssetPathProviderFactory.Create.Invoke());

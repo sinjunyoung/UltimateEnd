@@ -107,7 +107,7 @@ namespace UltimateEnd.Desktop.Views
             UpdateSelection();
         }
 
-        private void OnKeyDown(object? sender, KeyEventArgs e)
+        private async void OnKeyDown(object? sender, KeyEventArgs e)
         {
             if (ViewModel == null) return;
 
@@ -118,12 +118,14 @@ namespace UltimateEnd.Desktop.Views
                 if (_coordsDisplay != null) _coordsDisplay.IsVisible = _isDesignMode;
 
                 e.Handled = true;
+
                 return;
             }
 
             if (_isDesignMode)
             {
                 e.Handled = true;
+
                 return;
             }
 
@@ -137,7 +139,11 @@ namespace UltimateEnd.Desktop.Views
                     {
                         int buttonIndex = GetPhysicalButtonIndex(gpe);
 
-                        if (buttonIndex >= 0) ViewModel.HandleGamepadButtonPress(buttonIndex);
+                        if (buttonIndex >= 0)
+                        {
+                            await WavSounds.OK();
+                            ViewModel.HandleGamepadButtonPress(buttonIndex);
+                        }
                     }
                 }
                 else
@@ -145,7 +151,10 @@ namespace UltimateEnd.Desktop.Views
                     if (e is GamepadKeyEventArgs gpe && gpe.IsFromGamepad && gpe.OriginalButton.HasValue)
                         return;
                     else
+                    {
+                        await WavSounds.OK();
                         ViewModel.HandleKeyPress(e.Key);
+                    }
                 }
                 return;
             }
@@ -329,9 +338,10 @@ namespace UltimateEnd.Desktop.Views
             _draggingBorder = null;
         }
 
-        private void OnBackClick(object? sender, PointerPressedEventArgs? e)
+        private async void OnBackClick(object? sender, PointerPressedEventArgs? e)
         {
-            ViewModel?.GoBackCommand?.Execute(Unit.Default);
+            await WavSounds.Cancel();
+            ViewModel?.GoBack();
 
             if (e != null) e.Handled = true;
         }

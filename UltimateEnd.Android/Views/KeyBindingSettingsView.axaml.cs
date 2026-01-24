@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using System.Reactive;
+using System.Threading.Tasks;
 using UltimateEnd.Android.ViewModels;
 using UltimateEnd.Enums;
 using UltimateEnd.Utils;
@@ -38,6 +39,8 @@ namespace UltimateEnd.Android.Views
 
             if (ViewModel.IsBinding)
             {
+                await WavSounds.OK();
+
                 ViewModel.HandleKeyPress(e.Key);
                 e.Handled = true;
                 return;
@@ -52,49 +55,63 @@ namespace UltimateEnd.Android.Views
             {
                 e.Handled = true;
                 await WavSounds.Click();
-                var listBox = this.FindControl<ListBox>("ButtonList");
-                if (listBox != null && listBox.SelectedIndex > 0)
-                    listBox.SelectedIndex--;
+                
+                if (ButtonList.SelectedIndex > 0)
+                    ButtonList.SelectedIndex--;
             }
             else if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 e.Handled = true;
                 await WavSounds.Click();
-                var listBox = this.FindControl<ListBox>("ButtonList");
-                if (listBox != null && listBox.SelectedIndex < ViewModel.ButtonItems.Count - 1)
-                    listBox.SelectedIndex++;
+
+                if (ButtonList.SelectedIndex < ViewModel.ButtonItems.Count - 1)
+                    ButtonList.SelectedIndex++;
             }
             else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
             {
                 e.Handled = true;
-                var listBox = this.FindControl<ListBox>("ButtonList");
-                if (listBox != null && listBox.SelectedIndex >= 0 && listBox.SelectedIndex < ViewModel.ButtonItems.Count)
+
+                if (ButtonList.SelectedIndex >= 0 && ButtonList.SelectedIndex < ViewModel.ButtonItems.Count)
                 {
                     await WavSounds.OK();
-                    var item = ViewModel.ButtonItems[listBox.SelectedIndex];
+
+                    var item = ViewModel.ButtonItems[ButtonList.SelectedIndex];
                     ViewModel.StartBinding(item.ButtonName);
                     FocusView();
                 }
             }
         }
 
+        private bool _isTapProcessing = false;
+
         private async void OnButtonItemTapped(object? sender, TappedEventArgs e)
         {
-            if (ViewModel == null) return;
+            e.Handled = true;
 
-            if (sender is Border border && border.Tag is string buttonName)
+            if (_isTapProcessing) return;
+
+            _isTapProcessing = true;
+
+            try
             {
-                await WavSounds.OK();
-                ViewModel.StartBinding(buttonName);
-                FocusView();
-                e.Handled = true;
+                if (ViewModel == null) return;
+
+                if (sender is Border border && border.Tag is string buttonName)
+                {
+                    await WavSounds.OK();
+
+                    ViewModel.StartBinding(buttonName);
+                    FocusView();
+                }
+            }
+            finally
+            {
+                await Task.Delay(500);
+                _isTapProcessing = false;
             }
         }
 
-        private void OnOverlayTapped(object? sender, TappedEventArgs e)
-        {
-            e.Handled = true;
-        }
+        private void OnOverlayTapped(object? sender, TappedEventArgs e) => e.Handled = true;
 
         private async void OnCancelBindingClick(object? sender, RoutedEventArgs e)
         {
@@ -110,14 +127,11 @@ namespace UltimateEnd.Android.Views
 
         private async void OnBackClick(object? sender, TappedEventArgs? e)
         {
-            if (ViewModel != null)
-            {
-                await WavSounds.Cancel();
-                ViewModel.GoBackCommand?.Execute(Unit.Default);
-            }
+            await WavSounds.Cancel();
 
-            if (e != null)
-                e.Handled = true;
+            ViewModel?.GoBack();
+
+            if (e != null) e.Handled = true;
         }
 
         private void FocusView()

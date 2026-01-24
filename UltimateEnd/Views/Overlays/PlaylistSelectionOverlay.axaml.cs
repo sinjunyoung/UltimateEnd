@@ -9,7 +9,6 @@ using UltimateEnd.Enums;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
-using UltimateEnd.Utils;
 
 namespace UltimateEnd.Views.Overlays
 {
@@ -21,17 +20,13 @@ namespace UltimateEnd.Views.Overlays
 
         public override bool Visible => OverlayMainGrid.IsVisible;
 
-        public PlaylistSelectionOverlay()
-        {
-            InitializeComponent();
-        }
+        public PlaylistSelectionOverlay() => InitializeComponent();
 
         public void ShowForGame(GameMetadata game)
         {
             _targetGame = game;
 
-            if (game?.PlatformId == null)
-                return;
+            if (game?.PlatformId == null) return;
 
             var playlists = PlaylistManager.Instance.GetAllPlaylists();
 
@@ -65,10 +60,10 @@ namespace UltimateEnd.Views.Overlays
             _isBatchMode = true;
             _targetGame = null;
 
-            if (games == null || !games.Any())
-                return;
+            if (games == null || !games.Any()) return;
 
             var playlists = PlaylistManager.Instance.GetAllPlaylists();
+
             if (playlists.Count == 0)
             {
                 EmptyPlaylistText.IsVisible = true;
@@ -112,8 +107,6 @@ namespace UltimateEnd.Views.Overlays
         {
             if (sender is Border border && border.DataContext is PlaylistSelectionItem item)
             {
-                await WavSounds.OK();
-
                 if (_isBatchMode && _targetGames != null)
                 {
                     foreach (var game in _targetGames)
@@ -126,7 +119,7 @@ namespace UltimateEnd.Views.Overlays
                     }
                     await DialogService.Instance.ShowSuccess($"{_targetGames.Count()}개 게임을 '{item.Name}' 플레이리스트에 추가했습니다.");
 
-                    Hide(HiddenState.Confirm);
+                    Hide(HiddenState.Silent);
                 }
                 else if (_targetGame?.PlatformId != null)
                 {
@@ -165,8 +158,7 @@ namespace UltimateEnd.Views.Overlays
 
         private void OnBackgroundClick(object? sender, PointerPressedEventArgs e)
         {
-            if (e.Source == sender)
-                Hide(HiddenState.Close);
+            if (e.Source == sender) Hide(HiddenState.Close);
         }
     }
 }

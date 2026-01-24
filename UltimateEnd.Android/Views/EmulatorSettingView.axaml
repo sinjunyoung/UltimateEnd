@@ -134,7 +134,6 @@
 				<Grid ColumnDefinitions="*,*">
 					<Button Grid.Column="0"
 							Content="취소"
-							behaviors:SoundBehavior.ClickSound="Cancel"
 							Focusable="False"
 							Command="{Binding GoBackCommand}"
 							Background="{DynamicResource Background.Hover}"

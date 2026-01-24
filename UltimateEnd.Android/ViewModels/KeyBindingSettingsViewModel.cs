@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using UltimateEnd.Android.Models;
-using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 
 namespace UltimateEnd.Android.ViewModels
@@ -86,10 +84,8 @@ namespace UltimateEnd.Android.ViewModels
             };
         }
 
-        protected override async Task ResetToDefault()
+        protected override void ResetToDefault()
         {
-            await WavSounds.OK();
-
             DPadUp = "Up";
             DPadDown = "Down";
             DPadLeft = "Left";

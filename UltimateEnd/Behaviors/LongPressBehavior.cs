@@ -13,22 +13,22 @@ namespace UltimateEnd.Behaviors
         private class LongPressState
         {
             public DispatcherTimer? Timer { get; set; }
+
             public object? CurrentItem { get; set; }
+
             public Point? PressPoint { get; set; }
+
             public bool WasLongPressed { get; set; }
+
             public PointerPressedEventArgs? PressedEventArgs { get; set; }
         }
 
         private const double MovementThresholdSquared = 25.0;
 
-        public static readonly AttachedProperty<int> DurationProperty =
-            AvaloniaProperty.RegisterAttached<Control, int>("Duration", typeof(LongPressBehavior), 300);
-        public static readonly AttachedProperty<string?> MethodNameProperty =
-            AvaloniaProperty.RegisterAttached<Control, string?>("MethodName", typeof(LongPressBehavior));
-        public static readonly AttachedProperty<object?> TargetProperty =
-            AvaloniaProperty.RegisterAttached<Control, object?>("Target", typeof(LongPressBehavior));
-        public static readonly AttachedProperty<bool> IsEnabledProperty =
-            AvaloniaProperty.RegisterAttached<Control, bool>("IsEnabled", typeof(LongPressBehavior), false);
+        public static readonly AttachedProperty<int> DurationProperty = AvaloniaProperty.RegisterAttached<Control, int>("Duration", typeof(LongPressBehavior), 300);
+        public static readonly AttachedProperty<string?> MethodNameProperty = AvaloniaProperty.RegisterAttached<Control, string?>("MethodName", typeof(LongPressBehavior));
+        public static readonly AttachedProperty<object?> TargetProperty = AvaloniaProperty.RegisterAttached<Control, object?>("Target", typeof(LongPressBehavior));
+        public static readonly AttachedProperty<bool> IsEnabledProperty = AvaloniaProperty.RegisterAttached<Control, bool>("IsEnabled", typeof(LongPressBehavior), false);
 
         static LongPressBehavior()
         {
@@ -39,51 +39,38 @@ namespace UltimateEnd.Behaviors
             });
         }
 
-        private static readonly AttachedProperty<LongPressState?> StateProperty =
-            AvaloniaProperty.RegisterAttached<Control, LongPressState?>("State", typeof(LongPressBehavior));
+        private static readonly AttachedProperty<LongPressState?> StateProperty = AvaloniaProperty.RegisterAttached<Control, LongPressState?>("State", typeof(LongPressBehavior));
 
-        public static void SetDuration(Control element, int value) =>
-            element.SetValue(DurationProperty, value);
+        public static void SetDuration(Control element, int value) => element.SetValue(DurationProperty, value);
 
-        public static int GetDuration(Control element) =>
-            element.GetValue(DurationProperty);
+        public static int GetDuration(Control element) => element.GetValue(DurationProperty);
 
-        public static void SetMethodName(Control element, string? value) =>
-            element.SetValue(MethodNameProperty, value);
+        public static void SetMethodName(Control element, string? value) => element.SetValue(MethodNameProperty, value);
 
-        public static string? GetMethodName(Control element) =>
-            element.GetValue(MethodNameProperty);
+        public static string? GetMethodName(Control element) => element.GetValue(MethodNameProperty);
 
-        public static void SetTarget(Control element, object? value) =>
-            element.SetValue(TargetProperty, value);
+        public static void SetTarget(Control element, object? value) => element.SetValue(TargetProperty, value);
 
-        public static object? GetTarget(Control element) =>
-            element.GetValue(TargetProperty);
+        public static object? GetTarget(Control element) => element.GetValue(TargetProperty);
 
-        public static void SetIsEnabled(Control element, bool value) =>
-            element.SetValue(IsEnabledProperty, value);
+        public static void SetIsEnabled(Control element, bool value) => element.SetValue(IsEnabledProperty, value);
 
-        public static bool GetIsEnabled(Control element) =>
-            element.GetValue(IsEnabledProperty);
+        public static bool GetIsEnabled(Control element) => element.GetValue(IsEnabledProperty);
 
-        private static void SetState(Control element, LongPressState? value) =>
-            element.SetValue(StateProperty, value);
+        private static void SetState(Control element, LongPressState? value) => element.SetValue(StateProperty, value);
 
-        private static LongPressState? GetState(Control element) =>
-            element.GetValue(StateProperty);
+        private static LongPressState? GetState(Control element) => element.GetValue(StateProperty);
 
-        // 롱프레스 발생 여부를 외부에서 확인할 수 있는 메서드
         public static bool WasLongPressed(Control element)
         {
             var state = GetState(element);
+            
             if (state == null) return false;
 
             bool result = state.WasLongPressed;
-            if (result)
-            {
-                // 확인 후 리셋
-                state.WasLongPressed = false;
-            }
+
+            if (result) state.WasLongPressed = false;
+
             return result;
         }
 
@@ -93,13 +80,11 @@ namespace UltimateEnd.Behaviors
             {
                 SetState(element, new LongPressState());
 
-                // Bubble 단계에서 가로채서 PointerPressed를 먼저 처리
                 element.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
                 element.AddHandler(InputElement.PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Tunnel);
                 element.AddHandler(InputElement.PointerCaptureLostEvent, OnPointerCaptureLost, RoutingStrategies.Tunnel);
                 element.AddHandler(InputElement.PointerMovedEvent, OnPointerMoved, RoutingStrategies.Tunnel);
 
-                // Tapped 이벤트를 Tunnel에서 가로채기 (XAML 핸들러보다 먼저 실행)
                 element.AddHandler(Gestures.TappedEvent, OnTapped, RoutingStrategies.Tunnel);
 
                 element.LostFocus += (s, e) => CancelLongPress(s as Control);
@@ -126,20 +111,16 @@ namespace UltimateEnd.Behaviors
             if (sender is not Control element) return;
 
             var state = GetState(element);
-            if (state?.WasLongPressed == true)
-            {
-                // 롱프레스가 발생했으면 Tapped 이벤트 완전히 차단
-                e.Handled = true;
 
-                // 다음 Tapped를 위해 플래그는 유지하고
-                // 실제 Tapped 핸들러가 체크할 수 있도록 함
-            }
+            if (state?.WasLongPressed == true) e.Handled = true;
         }
 
         private static void OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (sender is not Control element) return;
+
             var state = GetState(element);
+
             if (state == null) return;
 
             if (e.ClickCount >= 2)
@@ -160,6 +141,7 @@ namespace UltimateEnd.Behaviors
             state.PressedEventArgs = e;
 
             var dataContext = (element as IDataContextProvider)?.DataContext;
+
             if (dataContext == null)
             {
                 state.PressPoint = null;
@@ -170,9 +152,9 @@ namespace UltimateEnd.Behaviors
 
             state.Timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(GetDuration(element))
+                Interval = TimeSpan.FromMilliseconds(GetDuration(element)),
+                Tag = element
             };
-            state.Timer.Tag = element;
             state.Timer.Tick += TimerTick;
             state.Timer.Start();
         }
@@ -180,23 +162,21 @@ namespace UltimateEnd.Behaviors
         private static void TimerTick(object? sender, EventArgs e)
         {
             if (sender is not DispatcherTimer timer) return;
+
             timer.Stop();
             timer.Tick -= TimerTick;
 
             if (timer.Tag is not Control element) return;
+
             timer.Tag = null;
 
             var state = GetState(element);
+
             if (state?.CurrentItem == null) return;
 
-            // 롱프레스 발생 플래그 설정
             state.WasLongPressed = true;
 
-            // PointerPressed 이벤트를 처리했다고 마킹하여 후속 이벤트 차단
-            if (state.PressedEventArgs != null)
-            {
-                state.PressedEventArgs.Handled = true;
-            }
+            if (state.PressedEventArgs != null) state.PressedEventArgs.Handled = true;
 
             var methodName = GetMethodName(element);
             var target = GetTarget(element);
@@ -212,7 +192,7 @@ namespace UltimateEnd.Behaviors
                         System.Reflection.BindingFlags.Instance
                     );
                     var dataContext = (element as IDataContextProvider)?.DataContext;
-                    method?.Invoke(target, new[] { element, dataContext });
+                    method?.Invoke(target, [element, dataContext]);
                 }
                 catch { }
             }
@@ -226,7 +206,9 @@ namespace UltimateEnd.Behaviors
             if (sender is not Control element) return;
 
             var state = GetState(element);
+
             if (state?.Timer?.IsEnabled != true) return;
+
             if (state.PressPoint == null) return;
 
             var currentPoint = e.GetCurrentPoint(element).Position;
@@ -235,19 +217,12 @@ namespace UltimateEnd.Behaviors
             var dx = currentPoint.X - pressPoint.X;
             var dy = currentPoint.Y - pressPoint.Y;
 
-            if ((dx * dx + dy * dy) > MovementThresholdSquared)
-                CancelLongPress(element);
+            if ((dx * dx + dy * dy) > MovementThresholdSquared) CancelLongPress(element);
         }
 
-        private static void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-        {
-            CancelLongPress(sender as Control);
-        }
+        private static void OnPointerReleased(object? sender, PointerReleasedEventArgs e) => CancelLongPress(sender as Control);
 
-        private static void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-        {
-            CancelLongPress(sender as Control);
-        }
+        private static void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e) => CancelLongPress(sender as Control);
 
         private static void CancelLongPress(Control? element)
         {
@@ -263,11 +238,7 @@ namespace UltimateEnd.Behaviors
             state.CurrentItem = null;
             state.PressedEventArgs = null;
 
-            // 타이머가 실행 중이었다면 (롱프레스 완료 전) 플래그 리셋
-            if (wasRunning)
-            {
-                state.WasLongPressed = false;
-            }
+            if (wasRunning) state.WasLongPressed = false;
         }
     }
 }

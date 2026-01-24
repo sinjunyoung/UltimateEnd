@@ -16,17 +16,16 @@ public struct ChdrHeader
     public ulong metaoffset;
     public ulong mapoffset;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-    public byte[] md5;                    // ← 16바이트!
+    public byte[] md5;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-    public byte[] parentmd5;              // ← 16바이트!
+    public byte[] parentmd5;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
     public byte[] sha1;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
     public byte[] rawsha1;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
     public byte[] parentsha1;
-    public uint unitbytes;                // ← uint로!
+    public uint unitbytes;
     public ulong unitcount;
     public uint hunkcount;
-    // 나머지 obsolete 필드들은 제거
 }
