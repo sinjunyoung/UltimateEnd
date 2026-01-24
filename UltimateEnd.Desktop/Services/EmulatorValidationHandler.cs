@@ -39,35 +39,73 @@ namespace UltimateEnd.Desktop.Services
 
         private static async Task<EmulatorValidationAction> HandleExecutableNotFound(EmulatorValidationResult validation)
         {
-            string message = $"{validation.EmulatorName} 에뮬레이터 실행 파일을 찾을 수 없습니다.\n\n필요한 경로: {validation.MissingPath}\n\n";
+            string message = $"{validation.EmulatorName} 에뮬레이터 실행 파일을 찾을 수 없습니다.\n\n필요한 경로: {validation.MissingPath}\n\n어떻게 하시겠습니까?";
 
-            if (validation.CanInstall)
+            var result = await ShowThreeButtonDialog("에뮬레이터 없음", message, "경로 지정", "설치", "취소");
+
+            return result switch
             {
-                message += "어떻게 하시겠습니까?";
-                var result = await ShowThreeButtonDialog("에뮬레이터 없음", message, "경로 지정", "설치", "취소");
-
-                return result switch
-                {
-                    0 => await SelectExecutableFile(validation),
-                    1 => await DownloadAndInstallEmulator(validation),
-                    _ => EmulatorValidationAction.Cancel
-                };
-            }
-
-            message += "실행 파일을 직접 선택해주세요.";
-            var confirmed = await ShowConfirmDialog("에뮬레이터 없음", message);
-
-            return confirmed ? await SelectExecutableFile(validation) : EmulatorValidationAction.Cancel;
+                0 => await SelectExecutableFile(validation),
+                1 => await DownloadAndInstallEmulatorWithCheck(validation),
+                _ => EmulatorValidationAction.Cancel
+            };
         }
 
         private static async Task<EmulatorValidationAction> HandleCoreNotFound(EmulatorValidationResult validation)
         {
             var confirmed = await ShowConfirmDialog("RetroArch 코어 없음", $"RetroArch {validation.CoreName} 코어를 찾을 수 없습니다.\n\n코어를 다운로드하시겠습니까?");
 
-            return confirmed ? await DownloadAndInstallCore(validation) : EmulatorValidationAction.Cancel;
+            if (!confirmed) return EmulatorValidationAction.Cancel;
+
+            return await DownloadAndInstallCoreWithCheck(validation);
         }
 
-        private static async Task<EmulatorValidationAction> HandleNoSupportedEmulator(EmulatorValidationResult validation) => await ShowErrorAndCancel("지원하지 않는 플랫폼", $"{validation.PlatformId} 플랫폼을 지원하는 에뮬레이터가 없습니다.\n\n설정에서 에뮬레이터를 추가해주세요.");
+        private static async Task<EmulatorValidationAction> HandleNoSupportedEmulator(EmulatorValidationResult validation)
+            => await ShowErrorAndCancel("지원하지 않는 플랫폼", $"{validation.PlatformId} 플랫폼을 지원하는 에뮬레이터가 없습니다.\n\n설정에서 에뮬레이터를 추가해주세요.");
+
+        #endregion
+
+        #region Download with URL Check
+
+        private static async Task<EmulatorValidationAction> DownloadAndInstallEmulatorWithCheck(EmulatorValidationResult validation)
+        {
+            if (string.IsNullOrEmpty(validation.EmulatorId)) return await ShowErrorAndCancel("설치 불가", "에뮬레이터 정보를 찾을 수 없습니다.");
+
+            var emulatorIdForUrl = validation.EmulatorId.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : validation.EmulatorId;
+
+            try
+            {
+                await DialogService.Instance.ShowLoading("URL 확인 중...");
+                var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+
+                if (string.IsNullOrEmpty(downloadUrl))
+                {
+                    await ShowErrorDialog("다운로드 불가", "다운로드 URL을 찾을 수 없습니다.");
+                    return await SelectExecutableFile(validation);
+                }
+
+                return await DownloadAndInstallEmulator(validation, downloadUrl);
+            }
+            catch(Exception ex)
+            {
+                return await ShowErrorAndCancel("다운로드 불가", $"다운로드 URL을 확인하는 중 오류가 발생했습니다:\n{ex.Message}");
+            }
+            finally
+            {
+                await DialogService.Instance.HideLoading();
+            }            
+        }
+
+        private static async Task<EmulatorValidationAction> DownloadAndInstallCoreWithCheck(EmulatorValidationResult validation)
+        {
+            if (string.IsNullOrEmpty(validation.CoreName)) return await ShowErrorAndCancel("다운로드 불가", "코어 정보를 찾을 수 없습니다.");
+
+            var downloadUrl = GetCoreDownloadUrl(validation.CoreName);
+
+            return await DownloadAndInstallCore(validation, downloadUrl);
+        }
+
+        private static string GetCoreDownloadUrl(string coreName) => coreName.Equals("fbneo_crcskip", StringComparison.OrdinalIgnoreCase) ? "https://github.com/sinjunyoung/FBNeo/releases/download/FBNeo/fbneo_crcskip_libretro.dll.zip" : $"https://buildbot.libretro.com/nightly/windows/x86_64/latest/{coreName}_libretro.dll.zip";
 
         #endregion
 
@@ -99,17 +137,15 @@ namespace UltimateEnd.Desktop.Services
 
         #region Core Download and Install
 
-        private static async Task<EmulatorValidationAction> DownloadAndInstallCore(EmulatorValidationResult validation)
+        private static async Task<EmulatorValidationAction> DownloadAndInstallCore(EmulatorValidationResult validation, string downloadUrl)
         {
-            if (string.IsNullOrEmpty(validation.CoreName) || string.IsNullOrEmpty(validation.MissingPath)) return EmulatorValidationAction.Cancel;
+            if (string.IsNullOrEmpty(validation.MissingPath)) return EmulatorValidationAction.Cancel;
 
             var coresDirectory = Path.GetDirectoryName(validation.MissingPath);
 
             if (string.IsNullOrEmpty(coresDirectory)) return await ShowErrorAndCancel("경로 오류", "코어 디렉토리를 확인할 수 없습니다.");
 
-            var coreUrl = GetCoreDownloadUrl(validation.CoreName);
-
-            return await DownloadAndExtractArchive(coreUrl, coresDirectory, $"{validation.CoreName} 코어",
+            return await DownloadAndExtractArchive(downloadUrl, coresDirectory, $"{validation.CoreName} 코어",
                 async (tempZipPath, targetDir) =>
                 {
                     Directory.CreateDirectory(targetDir);
@@ -125,21 +161,16 @@ namespace UltimateEnd.Desktop.Services
                     }
                 },
                 () => Task.FromResult(EmulatorValidationAction.Retry)
-
             );
         }
-
-        private static string GetCoreDownloadUrl(string coreName) => coreName.Equals("fbneo_crcskip", StringComparison.OrdinalIgnoreCase) ? 
-            "https://github.com/sinjunyoung/FBNeo/releases/download/FBNeo/fbneo_crcskip_libretro.dll.zip" : 
-            $"https://buildbot.libretro.com/nightly/windows/x86_64/latest/{coreName}_libretro.dll.zip";
 
         #endregion
 
         #region Emulator Download and Install
 
-        private static async Task<EmulatorValidationAction> DownloadAndInstallEmulator(EmulatorValidationResult validation)
+        private static async Task<EmulatorValidationAction> DownloadAndInstallEmulator(EmulatorValidationResult validation, string downloadUrl)
         {
-            if (string.IsNullOrEmpty(validation.DownloadUrl) || string.IsNullOrEmpty(validation.EmulatorId)) return EmulatorValidationAction.Cancel;
+            if (string.IsNullOrEmpty(validation.EmulatorId)) return EmulatorValidationAction.Cancel;
 
             var installFolderName = GetInstallFolderName(validation.EmulatorId);
             var targetDirectory = Path.Combine(AppContext.BaseDirectory, "Emulators", installFolderName);
@@ -153,9 +184,9 @@ namespace UltimateEnd.Desktop.Services
                 CleanupDirectory(targetDirectory);
             }
 
-            var extension = GetArchiveExtension(validation.DownloadUrl);
+            var extension = GetArchiveExtension(downloadUrl);
 
-            var result = await DownloadAndExtractArchive(validation.DownloadUrl, targetDirectory, validation.EmulatorName ?? "에뮬레이터",
+            var result = await DownloadAndExtractArchive(downloadUrl, targetDirectory, validation.EmulatorName ?? "에뮬레이터",
                 async (archivePath, targetDir) =>
                 {
                     Directory.CreateDirectory(targetDir);
@@ -179,7 +210,10 @@ namespace UltimateEnd.Desktop.Services
                         MissingPath = corePath
                     };
 
-                    await DownloadAndInstallCore(coreValidation);
+                    var coreResult = await DownloadAndInstallCoreWithCheck(coreValidation);
+
+                    if (coreResult != EmulatorValidationAction.Retry)
+                        return coreResult;
                 }
             }
 
@@ -199,7 +233,7 @@ namespace UltimateEnd.Desktop.Services
                 if (string.IsNullOrEmpty(selectedExe)) return EmulatorValidationAction.Cancel;
             }
 
-            UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
+            UpdateEmulatorConfig(validation.EmulatorId!, selectedExe, installFolderName);
 
             return EmulatorValidationAction.Retry;
         }
@@ -213,7 +247,6 @@ namespace UltimateEnd.Desktop.Services
                 CleanupDirectory(targetDirectory);
 
                 return await ShowErrorAndCancel("설치 실패", "압축 파일 내에 실행 파일(.exe)을 찾을 수 없습니다.");
-
             }
 
             var selectedExe = SelectBestExecutable(exeFiles, validation.EmulatorName ?? string.Empty);
@@ -231,7 +264,7 @@ namespace UltimateEnd.Desktop.Services
                 }
             }
 
-            UpdateEmulatorConfig(validation.EmulatorId, selectedExe, installFolderName);
+            UpdateEmulatorConfig(validation.EmulatorId!, selectedExe, installFolderName);
 
             return EmulatorValidationAction.Retry;
         }
@@ -346,8 +379,7 @@ namespace UltimateEnd.Desktop.Services
                     var destPath = Path.Combine(targetDirectory, entry.FullName);
                     var destDir = Path.GetDirectoryName(destPath);
 
-                    if (!string.IsNullOrEmpty(destDir))
-                        Directory.CreateDirectory(destDir);
+                    if (!string.IsNullOrEmpty(destDir)) Directory.CreateDirectory(destDir);
 
                     entry.ExtractToFile(destPath, overwrite: true);
                 }
@@ -367,8 +399,8 @@ namespace UltimateEnd.Desktop.Services
         {
             Initialize7ZipLibrary();
             using var extractor = new SevenZipExtractor(archivePath);
-
             int lastPercent = 0;
+
             extractor.Extracting += (sender, e) =>
             {
                 if (e.PercentDone != lastPercent && e.PercentDone % EXTRACT_PROGRESS_INTERVAL == 0)
@@ -479,6 +511,7 @@ namespace UltimateEnd.Desktop.Services
         private static void CleanupFile(string? filePath)
         {
             if (string.IsNullOrEmpty(filePath)) return;
+
             try { if (File.Exists(filePath)) File.Delete(filePath); }
             catch { }
         }
@@ -486,6 +519,7 @@ namespace UltimateEnd.Desktop.Services
         private static void CleanupDirectory(string? dirPath)
         {
             if (string.IsNullOrEmpty(dirPath)) return;
+
             try { if (Directory.Exists(dirPath)) Directory.Delete(dirPath, recursive: true); }
             catch { }
         }

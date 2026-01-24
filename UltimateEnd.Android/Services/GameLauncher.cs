@@ -5,9 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UltimateEnd.Android.Models;
-using UltimateEnd.Coordinators;
 using UltimateEnd.Enums;
-using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 
@@ -27,7 +25,7 @@ namespace UltimateEnd.Android.Services
             _appProvider = new AppProvider();
         }
 
-        public async Task<EmulatorValidationResult> ValidateEmulatorAsync(GameMetadata game)
+        public EmulatorValidationResult ValidateEmulator(GameMetadata game)
         {
             if (IsNativeApp(game)) return ValidateNativeApp(game);
 
@@ -43,18 +41,12 @@ namespace UltimateEnd.Android.Services
                         IsValid = false,
                         ErrorType = EmulatorErrorType.Unknown,
                         EmulatorName = command.Name,
-                        ErrorMessage = "에뮬레이터 설정에서 패키지명을 찾을 수 없습니다.",
-                        CanInstall = false
+                        ErrorMessage = "에뮬레이터 설정에서 패키지명을 찾을 수 없습니다."
                     };
                 }
 
                 if (!_appValidator.IsAppInstalled(packageName))
                 {
-                    var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
-                    await DialogService.Instance.ShowLoading("정보 확인 중...");
-                    var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
-                    await DialogService.Instance.HideLoading();
-
                     return new EmulatorValidationResult
                     {
                         IsValid = false,
@@ -62,9 +54,7 @@ namespace UltimateEnd.Android.Services
                         PlatformId = game.PlatformId,
                         EmulatorId = game.EmulatorId ?? command.Id,
                         EmulatorName = command.Name,
-                        ErrorMessage = $"{command.Name} 앱이 설치되어 있지 않습니다.",
-                        CanInstall = !string.IsNullOrEmpty(downloadUrl),
-                        DownloadUrl = downloadUrl
+                        ErrorMessage = $"{command.Name} 앱이 설치되어 있지 않습니다."
                     };
                 }
 
@@ -77,8 +67,7 @@ namespace UltimateEnd.Android.Services
                     IsValid = false,
                     ErrorType = EmulatorErrorType.NoSupportedEmulator,
                     PlatformId = game.PlatformId,
-                    ErrorMessage = $"'{game.PlatformId}' 플랫폼을 지원하는 에뮬레이터가 없습니다.",
-                    CanInstall = false
+                    ErrorMessage = $"'{game.PlatformId}' 플랫폼을 지원하는 에뮬레이터가 없습니다."
                 };
             }
             catch (Exception ex)
@@ -87,8 +76,7 @@ namespace UltimateEnd.Android.Services
                 {
                     IsValid = false,
                     ErrorType = EmulatorErrorType.Unknown,
-                    ErrorMessage = ex.Message,
-                    CanInstall = false
+                    ErrorMessage = ex.Message
                 };
             }
         }
@@ -144,8 +132,7 @@ namespace UltimateEnd.Android.Services
                         IsValid = false,
                         ErrorType = EmulatorErrorType.Unknown,
                         PlatformId = game.PlatformId,
-                        ErrorMessage = "앱 파일을 찾을 수 없습니다.",
-                        CanInstall = false
+                        ErrorMessage = "앱 파일을 찾을 수 없습니다."
                     };
                 }
 
@@ -160,8 +147,7 @@ namespace UltimateEnd.Android.Services
                         IsValid = false,
                         ErrorType = EmulatorErrorType.Unknown,
                         PlatformId = game.PlatformId,
-                        ErrorMessage = "앱 패키지명이 비어있습니다.",
-                        CanInstall = false
+                        ErrorMessage = "앱 패키지명이 비어있습니다."
                     };
                 }
 
@@ -172,8 +158,7 @@ namespace UltimateEnd.Android.Services
                         IsValid = false,
                         ErrorType = EmulatorErrorType.AppNotInstalled,
                         PlatformId = game.PlatformId,
-                        ErrorMessage = $"앱이 설치되어 있지 않습니다: {packageName}",
-                        CanInstall = false
+                        ErrorMessage = $"앱이 설치되어 있지 않습니다: {packageName}"
                     };
                 }
 
@@ -185,8 +170,7 @@ namespace UltimateEnd.Android.Services
                 {
                     IsValid = false,
                     ErrorType = EmulatorErrorType.Unknown,
-                    ErrorMessage = ex.Message,
-                    CanInstall = false
+                    ErrorMessage = ex.Message
                 };
             }
         }

@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
@@ -25,30 +26,48 @@ namespace UltimateEnd.Android.Services
 
         private static async Task<EmulatorValidationAction> HandleAppNotInstalled(EmulatorValidationResult validation)
         {
-            string message = $"{validation.EmulatorName} 앱이 설치되어 있지 않습니다.\n\n";
+            string message = $"{validation.EmulatorName} 앱이 설치되어 있지 않습니다.\n\nAPK를 다운로드하여 설치하시겠습니까?";
 
-            if (validation.CanInstall)
-            {
-                message += "APK를 다운로드하여 설치하시겠습니까?";
+            var confirmed = await ShowConfirmDialog("에뮬레이터 없음", message);
 
-                if (await ShowConfirmDialog("에뮬레이터 없음", message)) return await DownloadAndInstallApk(validation) ? EmulatorValidationAction.Retry : EmulatorValidationAction.Cancel;
-            }
-            else
-            {
-                message += "직접 설치해주세요.";
+            if (!confirmed) return EmulatorValidationAction.Cancel;
 
-                await ShowErrorDialog("에뮬레이터 없음", message);
-            }
-
-            return EmulatorValidationAction.Cancel;
+            return await DownloadAndInstallApkWithCheck(validation);
         }
 
         private static async Task<EmulatorValidationAction> HandleNoSupportedEmulator(EmulatorValidationResult validation) => await ShowErrorAndCancel("지원하지 않는 플랫폼", $"{validation.PlatformId} 플랫폼을 지원하는 에뮬레이터가 없습니다.");
 
-        private static async Task<bool> DownloadAndInstallApk(EmulatorValidationResult validation)
+        private static async Task<EmulatorValidationAction> DownloadAndInstallApkWithCheck(EmulatorValidationResult validation)
         {
-            if (string.IsNullOrEmpty(validation.DownloadUrl)) return false;
+            if (string.IsNullOrEmpty(validation.EmulatorId)) return await ShowErrorAndCancel("설치 불가", "에뮬레이터 정보를 찾을 수 없습니다.");
 
+            var emulatorIdForUrl = validation.EmulatorId.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : validation.EmulatorId;
+
+            try
+            {
+                await DialogService.Instance.ShowLoading("URL 확인 중...");
+                var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
+                
+                if (string.IsNullOrEmpty(downloadUrl))
+                {
+                    await ShowErrorDialog("다운로드 불가", "다운로드 URL을 찾을 수 없습니다.");
+                    return EmulatorValidationAction.Cancel;
+                }
+
+                return await DownloadAndInstallApk(validation, downloadUrl) ? EmulatorValidationAction.Retry : EmulatorValidationAction.Cancel;
+            }
+            catch (Exception ex)
+            {
+                return await ShowErrorAndCancel("다운로드 불가", $"다운로드 URL을 확인하는 중 오류가 발생했습니다:\n{ex.Message}");
+            }            
+            finally
+            {
+                await DialogService.Instance.HideLoading();
+            }
+        }
+
+        private static async Task<bool> DownloadAndInstallApk(EmulatorValidationResult validation, string downloadUrl)
+        {
             string downloadPath = string.Empty;
 
             try
@@ -58,24 +77,22 @@ namespace UltimateEnd.Android.Services
                 if (string.IsNullOrEmpty(cacheDir))
                 {
                     await ShowErrorDialog("다운로드 실패", "캐시 디렉토리를 찾을 수 없습니다.");
-
                     return false;
                 }
 
-                var isZip = validation.DownloadUrl.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+                var isZip = downloadUrl.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
                 var cachedPath = Path.Combine(cacheDir, $"{validation.EmulatorId}{(isZip ? ".zip" : ".apk")}");
 
                 if (!isZip && File.Exists(cachedPath) && new FileInfo(cachedPath).Length > 1024)
                 {
                     InstallApk(cachedPath);
                     await ShowSuccessDialog("설치 시작", "APK 설치 화면이 열립니다.\n설치 후 게임을 다시 실행해주세요.");
-
                     return false;
                 }
 
                 downloadPath = cachedPath;
 
-                await DownloadFile(validation.DownloadUrl, downloadPath, validation.EmulatorName ?? "에뮬레이터");
+                await DownloadFile(downloadUrl, downloadPath, validation.EmulatorName ?? "에뮬레이터");
 
                 string apkPath = isZip ? await ExtractApkFromZip(downloadPath, cacheDir) : downloadPath;
 
@@ -84,7 +101,6 @@ namespace UltimateEnd.Android.Services
                     await DialogService.Instance.HideLoading();
                     await ShowErrorDialog("설치 실패", "ZIP 파일에서 APK를 찾을 수 없습니다.");
                     CleanupFile(downloadPath);
-
                     return false;
                 }
 
@@ -99,7 +115,6 @@ namespace UltimateEnd.Android.Services
                 await DialogService.Instance.HideLoading();
                 CleanupFile(downloadPath);
                 await ShowErrorDialog("다운로드 실패", "인터넷 연결을 확인해주세요.");
-
                 return false;
             }
             catch (TaskCanceledException)
@@ -107,7 +122,6 @@ namespace UltimateEnd.Android.Services
                 await DialogService.Instance.HideLoading();
                 CleanupFile(downloadPath);
                 await ShowErrorDialog("다운로드 실패", "다운로드 시간이 초과되었습니다.");
-
                 return false;
             }
             catch (Exception ex)
@@ -115,7 +129,6 @@ namespace UltimateEnd.Android.Services
                 await DialogService.Instance.HideLoading();
                 CleanupFile(downloadPath);
                 await ShowErrorDialog("다운로드 실패", $"오류가 발생했습니다:\n{ex.Message}");
-
                 return false;
             }
         }
@@ -163,8 +176,7 @@ namespace UltimateEnd.Android.Services
 
                 var extractSubDir = Path.Combine(extractDir, "extracted_apk");
 
-                if (Directory.Exists(extractSubDir))
-                    Directory.Delete(extractSubDir, recursive: true);
+                if (Directory.Exists(extractSubDir)) Directory.Delete(extractSubDir, recursive: true);
 
                 Directory.CreateDirectory(extractSubDir);
 
@@ -184,8 +196,7 @@ namespace UltimateEnd.Android.Services
                             var destPath = Path.Combine(extractSubDir, entry.FullName);
                             var destDir = Path.GetDirectoryName(destPath);
 
-                            if (!string.IsNullOrEmpty(destDir))
-                                Directory.CreateDirectory(destDir);
+                            if (!string.IsNullOrEmpty(destDir)) Directory.CreateDirectory(destDir);
 
                             entry.ExtractToFile(destPath, overwrite: true);
                         }

@@ -31,7 +31,7 @@ namespace UltimateEnd.Orchestrators
             try
             {
                 var launcher = (GameLauncherFactory.Create?.Invoke()) ?? throw new InvalidOperationException("GameLauncher를 생성할 수 없습니다.");
-                var validation = await launcher.ValidateEmulatorAsync(game);
+                var validation = launcher.ValidateEmulator(game);
 
                 if (!validation.IsValid)
                 {
@@ -39,7 +39,7 @@ namespace UltimateEnd.Orchestrators
 
                     if (action == EmulatorValidationAction.Retry)
                     {
-                        validation = await launcher.ValidateEmulatorAsync(game);
+                        validation = launcher.ValidateEmulator(game);
                         if (!validation.IsValid)
                         {
                             LaunchFailed?.Invoke();

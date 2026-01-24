@@ -20,11 +20,10 @@ namespace UltimateEnd.Desktop.Services
 
             IStorageFolder? startLocation = null;
 
-            if (initialDirectory != null)
+            if (!string.IsNullOrEmpty(initialDirectory))
             {
                 Uri uri = new(initialDirectory);
 
-                // unc 에서 오동작이 발생함
                 if (!uri.IsUnc)
                 {
                     if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory)) startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);

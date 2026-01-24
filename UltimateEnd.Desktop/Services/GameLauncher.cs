@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UltimateEnd.Desktop.Models;
 using UltimateEnd.Enums;
-using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
@@ -19,7 +18,7 @@ namespace UltimateEnd.Desktop.Services
         private readonly Action? _onActivate = onActivate;
         private readonly AppProvider _appProvider = new();
 
-        public async Task<EmulatorValidationResult> ValidateEmulatorAsync(GameMetadata game)
+        public EmulatorValidationResult ValidateEmulator(GameMetadata game)
         {
             if (IsNativeApp(game)) return ValidateNativeApp(game);
 
@@ -51,13 +50,7 @@ namespace UltimateEnd.Desktop.Services
                             UpdateEmulatorExecutablePath(command.Id, found);
                         }
                         else
-                        {                            
-                            var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
-                            await DialogService.Instance.ShowLoading("정보 확인 중...");
-                            var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
-                            await DialogService.Instance.HideLoading();
-
-
+                        {
                             return new EmulatorValidationResult
                             {
                                 IsValid = false,
@@ -67,19 +60,12 @@ namespace UltimateEnd.Desktop.Services
                                 EmulatorName = command.Name,
                                 MissingPath = executable,
                                 CoreName = command.CoreName,
-                                ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
-                                CanInstall = !string.IsNullOrEmpty(downloadUrl),
-                                DownloadUrl = downloadUrl
+                                ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다."
                             };
                         }
                     }
                     else
                     {
-                        var emulatorIdForUrl = command.Id.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : command.Id;
-                        await DialogService.Instance.ShowLoading("정보 확인 중...");
-                        var downloadUrl = await EmulatorUrlProvider.Instance.GetEmulatorDownloadUrlAsync(emulatorIdForUrl);
-                        await DialogService.Instance.HideLoading();
-
                         return new EmulatorValidationResult
                         {
                             IsValid = false,
@@ -89,9 +75,7 @@ namespace UltimateEnd.Desktop.Services
                             EmulatorName = command.Name,
                             MissingPath = executable,
                             CoreName = command.CoreName,
-                            ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다.",
-                            CanInstall = !string.IsNullOrEmpty(downloadUrl),
-                            DownloadUrl = downloadUrl
+                            ErrorMessage = $"에뮬레이터 실행 파일을 찾을 수 없습니다."
                         };
                     }
                 }
@@ -103,8 +87,6 @@ namespace UltimateEnd.Desktop.Services
 
                     if (!File.Exists(corePath))
                     {
-                        var downloadUrl = await EmulatorUrlProvider.Instance.GetCoreDownloadUrlAsync(command.CoreName!);
-
                         return new EmulatorValidationResult
                         {
                             IsValid = false,
@@ -114,9 +96,7 @@ namespace UltimateEnd.Desktop.Services
                             EmulatorName = command.Name,
                             CoreName = command.CoreName,
                             MissingPath = corePath,
-                            ErrorMessage = $"RetroArch 코어를 찾을 수 없습니다: {command.CoreName}",
-                            CanInstall = !string.IsNullOrEmpty(downloadUrl),
-                            DownloadUrl = downloadUrl
+                            ErrorMessage = $"RetroArch 코어를 찾을 수 없습니다: {command.CoreName}"
                         };
                     }
                 }
@@ -130,8 +110,7 @@ namespace UltimateEnd.Desktop.Services
                     IsValid = false,
                     ErrorType = EmulatorErrorType.NoSupportedEmulator,
                     PlatformId = game.PlatformId,
-                    ErrorMessage = $"'{game.PlatformId}' 플랫폼을 지원하는 에뮬레이터가 없습니다.",
-                    CanInstall = false
+                    ErrorMessage = $"'{game.PlatformId}' 플랫폼을 지원하는 에뮬레이터가 없습니다."
                 };
             }
             catch (Exception ex)
@@ -140,8 +119,7 @@ namespace UltimateEnd.Desktop.Services
                 {
                     IsValid = false,
                     ErrorType = EmulatorErrorType.Unknown,
-                    ErrorMessage = ex.Message,
-                    CanInstall = false
+                    ErrorMessage = ex.Message
                 };
             }
         }
@@ -191,8 +169,7 @@ namespace UltimateEnd.Desktop.Services
                         ErrorType = EmulatorErrorType.ExecutableNotFound,
                         PlatformId = game.PlatformId,
                         ErrorMessage = $"실행 파일을 찾을 수 없습니다: {exePath}",
-                        MissingPath = exePath,
-                        CanInstall = false
+                        MissingPath = exePath
                     };
                 }
 
@@ -204,8 +181,7 @@ namespace UltimateEnd.Desktop.Services
                 {
                     IsValid = false,
                     ErrorType = EmulatorErrorType.Unknown,
-                    ErrorMessage = ex.Message,
-                    CanInstall = false
+                    ErrorMessage = ex.Message
                 };
             }
         }

@@ -19,9 +19,5 @@ namespace UltimateEnd.Models
         public string? MissingPath { get; set; }
 
         public string? ErrorMessage { get; set; }
-
-        public bool CanInstall { get; set; }
-
-        public string? DownloadUrl { get; set; }
     }
 }

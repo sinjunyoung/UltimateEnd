@@ -117,7 +117,7 @@ namespace UltimateEnd.Services
     {
         Task LaunchGameAsync(GameMetadata game);
 
-        Task<EmulatorValidationResult> ValidateEmulatorAsync(GameMetadata game);
+        EmulatorValidationResult ValidateEmulator(GameMetadata game);
     }
 
     public interface IGoogleOAuthService
