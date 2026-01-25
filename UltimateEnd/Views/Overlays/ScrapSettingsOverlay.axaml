@@ -819,7 +819,8 @@
 										           Foreground="{DynamicResource Text.Muted}"
 										           TextWrapping="Wrap"/>
 
-										<Button Content="캐시 초기화"
+										<Button Name="ClearCacheButton"
+												Content="캐시 초기화"
 										        Focusable="False"
 										        Tapped="OnClearCacheTapped"
 										        Padding="15,10"

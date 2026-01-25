@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -51,6 +53,9 @@ namespace UltimateEnd.Views.Overlays
             InitializeComponent();
             DelaySlider.ValueChanged += OnDelayChanged;
             HttpTimeoutSlider.ValueChanged += OnHttpTimeoutChanged;
+
+            DelaySlider.AddHandler(KeyDownEvent, OnSliderKeyDown, RoutingStrategies.Tunnel);
+            HttpTimeoutSlider.AddHandler(KeyDownEvent, OnSliderKeyDown, RoutingStrategies.Tunnel);
         }
 
         public override void Show()
@@ -59,6 +64,7 @@ namespace UltimateEnd.Views.Overlays
             LoadSettings();
 
             this.IsVisible = true;
+
             if (MainGrid != null) MainGrid.IsVisible = true;
 
             Dispatcher.UIThread.Post(() =>
@@ -73,6 +79,7 @@ namespace UltimateEnd.Views.Overlays
         public override void Hide(HiddenState state)
         {
             if (MainGrid != null) MainGrid.IsVisible = false;
+
             this.IsVisible = false;
             OnHidden(new HiddenEventArgs { State = state });
         }
@@ -80,15 +87,25 @@ namespace UltimateEnd.Views.Overlays
         protected override void MovePrevious()
         {
             if (_focusableItems.Count == 0) return;
+
             _selectedIndex = (_selectedIndex - 1 + _focusableItems.Count) % _focusableItems.Count;
             UpdateSelection();
+            
+            var selected = _focusableItems[_selectedIndex];
+
+            if (selected is not TextBox && selected is not Slider) this.Focus();
         }
 
         protected override void MoveNext()
         {
             if (_focusableItems.Count == 0) return;
+
             _selectedIndex = (_selectedIndex + 1) % _focusableItems.Count;
             UpdateSelection();
+
+            var selected = _focusableItems[_selectedIndex];
+
+            if (selected is not TextBox && selected is not Slider) this.Focus();
         }
 
         protected override void SelectCurrent()
@@ -102,11 +119,50 @@ namespace UltimateEnd.Views.Overlays
             else if (selected is Button button)
             {
                 if (button.Content?.ToString() == "초기화")
-                    OnResetClick(button, new Avalonia.Interactivity.RoutedEventArgs());
+                    OnResetClick(button, new RoutedEventArgs());
                 else if (button.Content?.ToString() == "저장")
-                    OnSaveClick(button, new Avalonia.Interactivity.RoutedEventArgs());
+                    OnSaveClick(button, new RoutedEventArgs());
                 else if (button.Content?.ToString() == "캐시 초기화")
-                    OnClearCacheTapped(button, new Avalonia.Interactivity.RoutedEventArgs());
+                    OnClearCacheTapped(button, new RoutedEventArgs());
+            }
+        }
+
+        private async void OnSliderKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (sender is not Slider slider) return;
+
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
+            {
+                await WavSounds.Click();
+                e.Handled = true;
+                MovePrevious();
+                return;
+            }
+
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
+            {
+                await WavSounds.Click();
+                e.Handled = true;
+                MoveNext();
+                return;
+            }
+
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
+            {
+                await WavSounds.Click();
+                double step = (slider.Maximum - slider.Minimum) / 100.0;
+                slider.Value = Math.Max(slider.Minimum, slider.Value - step);
+                e.Handled = true;
+                return;
+            }
+
+            if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
+            {
+                await WavSounds.Click();
+                double step = (slider.Maximum - slider.Minimum) / 100.0;
+                slider.Value = Math.Min(slider.Maximum, slider.Value + step);
+                e.Handled = true;
+                return;
             }
         }
 
@@ -114,94 +170,78 @@ namespace UltimateEnd.Views.Overlays
         {
             _focusableItems.Clear();
 
-            var languageHeader = this.FindControl<Border>("LanguageHeader");
-            var regionHeader = this.FindControl<Border>("RegionHeader");
-            var logoTypeHeader = this.FindControl<Border>("LogoTypeHeader");
-            var coverTypeHeader = this.FindControl<Border>("CoverTypeHeader");
-            var searchMethodHeader = this.FindControl<Border>("SearchMethodHeader");
-            var zipSearchHeader = this.FindControl<Border>("ZipSearchHeader");
-            var scrapTargetsHeader = this.FindControl<Border>("ScrapTargetsHeader");
-            var scrapConditionHeader = this.FindControl<Border>("ScrapConditionHeader");
-            var advancedHeader = this.FindControl<Border>("AdvancedHeader");
-
-            if (languageHeader != null) _focusableItems.Add(languageHeader);
+            _focusableItems.Add(LanguageHeader);
             if (_isLanguageExpanded)
             {
                 if (LanguageJpOption != null) _focusableItems.Add(LanguageJpOption);
                 if (LanguageEnOption != null) _focusableItems.Add(LanguageEnOption);
             }
 
-            if (regionHeader != null) _focusableItems.Add(regionHeader);
+            _focusableItems.Add(RegionHeader);
             if (_isRegionExpanded)
             {
                 if (RegionJapaneseOption != null) _focusableItems.Add(RegionJapaneseOption);
                 if (RegionAmericanOption != null) _focusableItems.Add(RegionAmericanOption);
             }
 
-            if (logoTypeHeader != null) _focusableItems.Add(logoTypeHeader);
+            _focusableItems.Add(LogoTypeHeader);
             if (_isLogoTypeExpanded)
             {
                 if (LogoNormalOption != null) _focusableItems.Add(LogoNormalOption);
                 if (LogoSteelOption != null) _focusableItems.Add(LogoSteelOption);
             }
 
-            if (coverTypeHeader != null) _focusableItems.Add(coverTypeHeader);
+            _focusableItems.Add(CoverTypeHeader);
             if (_isCoverTypeExpanded)
             {
                 if (Cover2DOption != null) _focusableItems.Add(Cover2DOption);
                 if (Cover3DOption != null) _focusableItems.Add(Cover3DOption);
             }
 
-            if (searchMethodHeader != null) _focusableItems.Add(searchMethodHeader);
+            _focusableItems.Add(SearchMethodHeader);
             if (_isSearchMethodExpanded)
             {
                 if (SearchByNameOption != null) _focusableItems.Add(SearchByNameOption);
                 if (SearchByCrcOption != null) _focusableItems.Add(SearchByCrcOption);
             }
 
-            if (zipSearchHeader != null) _focusableItems.Add(zipSearchHeader);
+            _focusableItems.Add(ZipSearchHeader);
             if (_isZipSearchExpanded)
             {
                 if (ZipInternalOption != null) _focusableItems.Add(ZipInternalOption);
                 if (ZipExternalOption != null) _focusableItems.Add(ZipExternalOption);
             }
 
-            if (scrapTargetsHeader != null) _focusableItems.Add(scrapTargetsHeader);
+            _focusableItems.Add(ScrapTargetsHeader);
             if (_isScrapTargetsExpanded)
             {
-                var scrapTargetsContent = this.FindControl<StackPanel>("ScrapTargetsContent");
-                if (scrapTargetsContent != null)
-                {
-                    foreach (var child in scrapTargetsContent.Children)
-                        if (child is Border border) _focusableItems.Add(border);
-                }
+                foreach (var child in ScrapTargetsContent.Children)
+                    if (child is Border border) _focusableItems.Add(border);
             }
 
-            if (scrapConditionHeader != null) _focusableItems.Add(scrapConditionHeader);
+            _focusableItems.Add(ScrapConditionHeader);
             if (_isScrapConditionExpanded)
             {
-                if (ConditionNoneOption != null) _focusableItems.Add(ConditionNoneOption);
-                if (ConditionAllMissingOption != null) _focusableItems.Add(ConditionAllMissingOption);
-                if (ConditionLogoMissingOption != null) _focusableItems.Add(ConditionLogoMissingOption);
-                if (ConditionCoverMissingOption != null) _focusableItems.Add(ConditionCoverMissingOption);
-                if (ConditionVideoMissingOption != null) _focusableItems.Add(ConditionVideoMissingOption);
+                _focusableItems.Add(ConditionNoneOption);
+                _focusableItems.Add(ConditionAllMissingOption);
+                _focusableItems.Add(ConditionLogoMissingOption);
+                _focusableItems.Add(ConditionCoverMissingOption);
+                _focusableItems.Add(ConditionVideoMissingOption);
             }
 
-            if (advancedHeader != null) _focusableItems.Add(advancedHeader);
+            _focusableItems.Add(AdvancedHeader);
             if (_isAdvancedExpanded)
             {
-                var clearCacheBtn = this.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Content?.ToString() == "캐시 초기화");
-                if (clearCacheBtn != null) _focusableItems.Add(clearCacheBtn);
-
-                var autoScrapBorder = this.FindControl<Border>("AutoScrapBorder");
-                if (autoScrapBorder != null) _focusableItems.Add(autoScrapBorder);
+                _focusableItems.Add(ClearCacheButton);
+                _focusableItems.Add(UsernameTextBox);
+                _focusableItems.Add(PasswordTextBox);
+                _focusableItems.Add(DelaySlider);
+                _focusableItems.Add(HttpTimeoutSlider);
+                _focusableItems.Add(AutoScrapBorder);
             }
 
-            var resetBtn = this.FindControl<Button>("ResetButton");
-            var saveBtn = this.FindControl<Button>("SaveButton");
-
-            if (resetBtn != null) _focusableItems.Add(resetBtn);
-            if (saveBtn != null) _focusableItems.Add(saveBtn);
+            _focusableItems.Add(ResetButton);
+            _focusableItems.Add(SaveButton);
 
             if (_selectedIndex >= _focusableItems.Count)
                 _selectedIndex = Math.Max(0, _focusableItems.Count - 1);
@@ -228,6 +268,18 @@ namespace UltimateEnd.Views.Overlays
                         button.BorderThickness = new Avalonia.Thickness(2);
                         button.Opacity = 0.8;
                     }
+                    else if (item is TextBox textBox)
+                    {
+                        textBox.BorderBrush = this.FindResource("Accent.Blue") as IBrush;
+                        textBox.BorderThickness = new Avalonia.Thickness(2);
+                        textBox.Focus();
+                    }
+                    else if (item is Slider slider)
+                    {
+                        slider.BorderBrush = this.FindResource("Accent.Blue") as IBrush;
+                        slider.BorderThickness = new Avalonia.Thickness(2);
+                        slider.Focus();
+                    }
 
                     item.BringIntoView();
                 }
@@ -244,61 +296,71 @@ namespace UltimateEnd.Views.Overlays
                         button.BorderThickness = new Avalonia.Thickness(0);
                         button.Opacity = 1.0;
                     }
+                    else if (item is TextBox textBox)
+                    {
+                        textBox.BorderBrush = null;
+                        textBox.BorderThickness = new Avalonia.Thickness(1);
+                    }
+                    else if (item is Slider slider)
+                    {
+                        slider.BorderBrush = null;
+                        slider.BorderThickness = new Avalonia.Thickness(0);
+                    }
                 }
             }
         }
 
         private void SimulateClick(Border border)
         {
-            if (border.Name == "LanguageHeader") { OnToggleLanguage(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "RegionHeader") { OnToggleRegion(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "LogoTypeHeader") { OnToggleLogoType(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "CoverTypeHeader") { OnToggleCoverType(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "SearchMethodHeader") { OnToggleSearchMethod(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "ZipSearchHeader") { OnToggleZipSearch(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "ScrapTargetsHeader") { OnToggleScrapTargets(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "ScrapConditionHeader") { OnToggleScrapCondition(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
-            if (border.Name == "AdvancedHeader") { OnToggleAdvanced(border, new Avalonia.Interactivity.RoutedEventArgs()); return; }
+            if (border.Name == "LanguageHeader") { OnToggleLanguage(border, new RoutedEventArgs()); return; }
+            if (border.Name == "RegionHeader") { OnToggleRegion(border, new RoutedEventArgs()); return; }
+            if (border.Name == "LogoTypeHeader") { OnToggleLogoType(border, new RoutedEventArgs()); return; }
+            if (border.Name == "CoverTypeHeader") { OnToggleCoverType(border, new RoutedEventArgs()); return; }
+            if (border.Name == "SearchMethodHeader") { OnToggleSearchMethod(border, new RoutedEventArgs()); return; }
+            if (border.Name == "ZipSearchHeader") { OnToggleZipSearch(border, new RoutedEventArgs()); return; }
+            if (border.Name == "ScrapTargetsHeader") { OnToggleScrapTargets(border, new RoutedEventArgs()); return; }
+            if (border.Name == "ScrapConditionHeader") { OnToggleScrapCondition(border, new RoutedEventArgs()); return; }
+            if (border.Name == "AdvancedHeader") { OnToggleAdvanced(border, new RoutedEventArgs()); return; }
 
             if (border.Name?.Contains("Language") == true)
             {
-                if (border.Name == "LanguageJpOption") OnLanguageJpTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
-                else if (border.Name == "LanguageEnOption") OnLanguageEnTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                if (border.Name == "LanguageJpOption") OnLanguageJpTapped(border, new RoutedEventArgs());
+                else if (border.Name == "LanguageEnOption") OnLanguageEnTapped(border, new RoutedEventArgs());
             }
             else if (border.Name?.Contains("Region") == true)
             {
-                if (border.Name == "RegionJapaneseOption") OnRegionJapaneseTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
-                else if (border.Name == "RegionAmericanOption") OnRegionAmericanTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                if (border.Name == "RegionJapaneseOption") OnRegionJapaneseTapped(border, new RoutedEventArgs());
+                else if (border.Name == "RegionAmericanOption") OnRegionAmericanTapped(border, new RoutedEventArgs());
             }
             else if (border.Name?.Contains("Logo") == true)
             {
-                if (border.Name == "LogoNormalOption") OnLogoNormalTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
-                else if (border.Name == "LogoSteelOption") OnLogoSteelTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                if (border.Name == "LogoNormalOption") OnLogoNormalTapped(border, new RoutedEventArgs());
+                else if (border.Name == "LogoSteelOption") OnLogoSteelTapped(border, new RoutedEventArgs());
             }
             else if (border.Name?.Contains("Cover") == true)
             {
-                if (border.Name == "Cover2DOption") OnCover2DTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
-                else if (border.Name == "Cover3DOption") OnCover3DTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                if (border.Name == "Cover2DOption") OnCover2DTapped(border, new RoutedEventArgs());
+                else if (border.Name == "Cover3DOption") OnCover3DTapped(border, new RoutedEventArgs());
             }
             else if (border.Name?.Contains("Search") == true)
             {
-                if (border.Name == "SearchByNameOption") OnSearchByNameTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
-                else if (border.Name == "SearchByCrcOption") OnSearchByCrcTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                if (border.Name == "SearchByNameOption") OnSearchByNameTapped(border, new RoutedEventArgs());
+                else if (border.Name == "SearchByCrcOption") OnSearchByCrcTapped(border, new RoutedEventArgs());
             }
             else if (border.Name?.Contains("Zip") == true)
             {
-                if (border.Name == "ZipInternalOption") OnZipInternalTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
-                else if (border.Name == "ZipExternalOption") OnZipExternalTapped(border, new Avalonia.Interactivity.RoutedEventArgs());
+                if (border.Name == "ZipInternalOption") OnZipInternalTapped(border, new RoutedEventArgs());
+                else if (border.Name == "ZipExternalOption") OnZipExternalTapped(border, new RoutedEventArgs());
             }
             else if (border.Name?.StartsWith("Condition") == true)
             {
                 switch (border.Name)
                 {
-                    case "ConditionNoneOption": OnConditionNoneTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                    case "ConditionAllMissingOption": OnConditionAllMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                    case "ConditionLogoMissingOption": OnConditionLogoMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                    case "ConditionCoverMissingOption": OnConditionCoverMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                    case "ConditionVideoMissingOption": OnConditionVideoMissingTapped(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                    case "ConditionNoneOption": OnConditionNoneTapped(border, new RoutedEventArgs()); break;
+                    case "ConditionAllMissingOption": OnConditionAllMissingTapped(border, new RoutedEventArgs()); break;
+                    case "ConditionLogoMissingOption": OnConditionLogoMissingTapped(border, new RoutedEventArgs()); break;
+                    case "ConditionCoverMissingOption": OnConditionCoverMissingTapped(border, new RoutedEventArgs()); break;
+                    case "ConditionVideoMissingOption": OnConditionVideoMissingTapped(border, new RoutedEventArgs()); break;
                 }
             }
             else
@@ -310,12 +372,12 @@ namespace UltimateEnd.Views.Overlays
                 {
                     switch (firstText)
                     {
-                        case "게임명": OnToggleScrapTitle(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                        case "게임 설명": OnToggleScrapDescription(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                        case "로고": OnToggleScrapLogo(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                        case "커버": OnToggleScrapCover(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                        case "비디오": OnToggleScrapVideo(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
-                        case "자동 스크래핑 활성화": OnToggleAutoScrap(border, new Avalonia.Interactivity.RoutedEventArgs()); break;
+                        case "게임명": OnToggleScrapTitle(border, new RoutedEventArgs()); break;
+                        case "게임 설명": OnToggleScrapDescription(border, new RoutedEventArgs()); break;
+                        case "로고": OnToggleScrapLogo(border, new RoutedEventArgs()); break;
+                        case "커버": OnToggleScrapCover(border, new RoutedEventArgs()); break;
+                        case "비디오": OnToggleScrapVideo(border, new RoutedEventArgs()); break;
+                        case "자동 스크래핑 활성화": OnToggleAutoScrap(border, new RoutedEventArgs()); break;
                     }
                 }
             }
@@ -451,8 +513,7 @@ namespace UltimateEnd.Views.Overlays
         {
             string resourceKey = value ? "Toggle.SelectionBackground" : "Toggle.Background";
 
-            if (Avalonia.Application.Current != null && Avalonia.Application.Current.Resources.TryGetResource(resourceKey, Avalonia.Application.Current?.ActualThemeVariant, out object? resourceObj))
-                toggleBack.Background = resourceObj as IBrush;
+            if (Avalonia.Application.Current != null && Avalonia.Application.Current.Resources.TryGetResource(resourceKey, Avalonia.Application.Current?.ActualThemeVariant, out object? resourceObj)) toggleBack.Background = resourceObj as IBrush;
 
             toggle.HorizontalAlignment = value ? Avalonia.Layout.HorizontalAlignment.Right : Avalonia.Layout.HorizontalAlignment.Left;
         }
@@ -499,7 +560,7 @@ namespace UltimateEnd.Views.Overlays
             if (e.Source == sender) Hide(HiddenState.Cancel);
         }
 
-        private async void OnToggleLanguage(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleLanguage(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -507,7 +568,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnLanguageJpTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnLanguageJpTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -515,7 +576,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateLanguageUI();
         }
 
-        private async void OnLanguageEnTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnLanguageEnTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -523,7 +584,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateLanguageUI();
         }
 
-        private async void OnToggleRegion(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleRegion(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -531,7 +592,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnRegionJapaneseTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnRegionJapaneseTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -539,7 +600,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateRegionUI();
         }
 
-        private async void OnRegionAmericanTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnRegionAmericanTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -547,7 +608,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateRegionUI();
         }
 
-        private async void OnToggleLogoType(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleLogoType(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -555,7 +616,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnLogoNormalTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnLogoNormalTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -563,7 +624,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateLogoImageUI();
         }
 
-        private async void OnLogoSteelTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnLogoSteelTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -571,7 +632,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateLogoImageUI();
         }
 
-        private async void OnToggleCoverType(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleCoverType(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -579,7 +640,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnCover3DTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnCover3DTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -587,7 +648,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateCoverImageUI();
         }
 
-        private async void OnCover2DTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnCover2DTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -595,7 +656,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateCoverImageUI();
         }
 
-        private async void OnToggleZipSearch(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleZipSearch(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -603,7 +664,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnZipInternalTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnZipInternalTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -611,7 +672,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateZipSearchUI();
         }
 
-        private async void OnZipExternalTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnZipExternalTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -619,7 +680,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateZipSearchUI();
         }
 
-        private async void OnToggleScrapTitle(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapTitle(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -627,7 +688,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapTargetsUI();
         }
 
-        private async void OnToggleScrapDescription(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapDescription(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -635,7 +696,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapTargetsUI();
         }
 
-        private async void OnToggleScrapLogo(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapLogo(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -643,7 +704,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapTargetsUI();
         }
 
-        private async void OnToggleScrapCover(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapCover(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -651,7 +712,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapTargetsUI();
         }
 
-        private async void OnToggleScrapVideo(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapVideo(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -659,7 +720,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapTargetsUI();
         }
 
-        private async void OnConditionNoneTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnConditionNoneTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -667,7 +728,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapConditionUI();
         }
 
-        private async void OnConditionAllMissingTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnConditionAllMissingTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -675,7 +736,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapConditionUI();
         }
 
-        private async void OnConditionLogoMissingTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnConditionLogoMissingTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -683,7 +744,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapConditionUI();
         }
 
-        private async void OnConditionCoverMissingTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnConditionCoverMissingTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -691,7 +752,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapConditionUI();
         }
 
-        private async void OnConditionVideoMissingTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnConditionVideoMissingTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -699,7 +760,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateScrapConditionUI();
         }
 
-        private async void OnToggleScrapTargets(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapTargets(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -707,7 +768,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnToggleScrapCondition(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleScrapCondition(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -715,7 +776,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnToggleAdvanced(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleAdvanced(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -723,23 +784,21 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private void OnDelayChanged(object? sender, Avalonia.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        private void OnDelayChanged(object? sender, RangeBaseValueChangedEventArgs e)
         {
             if (DelayValueText != null) DelayValueText.Text = $"{(int)e.NewValue}ms";
         }
 
-        private void OnHttpTimeoutChanged(object? sender, Avalonia.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        private void OnHttpTimeoutChanged(object? sender, RangeBaseValueChangedEventArgs e)
         {
             if (HttpTimeoutValueText != null) HttpTimeoutValueText.Text = $"{(int)e.NewValue}초";
         }
 
-        private async void OnClearCacheTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnClearCacheTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
-            var result = await Services.DialogService.Instance.ShowConfirm(
-                "캐시를 초기화하시겠습니까?",
-                "모든 스크랩 캐시가 삭제되며, 다음 검색 시 API를 다시 호출합니다.");
+            var result = await Services.DialogService.Instance.ShowConfirm("캐시를 초기화하시겠습니까?", "모든 스크랩 캐시가 삭제되며, 다음 검색 시 API를 다시 호출합니다.");
 
             if (result)
             {
@@ -755,13 +814,11 @@ namespace UltimateEnd.Views.Overlays
             }
         }
 
-        private async void OnResetClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnResetClick(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
-            var result = await Services.DialogService.Instance.ShowConfirm(
-                "설정을 초기화하시겠습니까?",
-                "모든 설정이 기본값으로 되돌아갑니다.");
+            var result = await Services.DialogService.Instance.ShowConfirm("설정을 초기화하시겠습니까?", "모든 설정이 기본값으로 되돌아갑니다.");
 
             if (result)
             {
@@ -771,7 +828,7 @@ namespace UltimateEnd.Views.Overlays
             }
         }
 
-        private async void OnToggleAutoScrap(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleAutoScrap(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -779,7 +836,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateAutoScrapUI();
         }
 
-        private async void OnToggleSearchMethod(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnToggleSearchMethod(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -787,7 +844,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateExpandersUI();
         }
 
-        private async void OnSearchByNameTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnSearchByNameTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -795,7 +852,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateSearchMethodUI();
         }
 
-        private async void OnSearchByCrcTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnSearchByCrcTapped(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             await WavSounds.Click();
@@ -803,7 +860,7 @@ namespace UltimateEnd.Views.Overlays
             UpdateSearchMethodUI();
         }
 
-        private void OnSaveClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void OnSaveClick(object? sender, RoutedEventArgs e)
         {
             e.Handled = true;
             SaveSettings();

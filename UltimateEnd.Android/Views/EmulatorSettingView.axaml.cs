@@ -192,7 +192,7 @@ namespace UltimateEnd.Android.Views
 
         private async void OnCommandListKeyDown(object? sender, KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 if (ViewModel?.SelectedCommand != null)
                 {

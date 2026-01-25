@@ -185,7 +185,7 @@ namespace UltimateEnd.Desktop.Views
                 e.Handled = true;
                 MoveNext();
             }
-            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 e.Handled = true;
                 SelectCurrent();

@@ -43,28 +43,6 @@ namespace UltimateEnd.Views.Overlays
                 base.OnKeyDown(e);
                 return;
             }
-            if (e.Source is TextBox)
-            {
-                if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start) || InputManager.IsButtonPressed(e, GamepadButton.DPadUp) || InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
-                    e.Handled = true;
-                else
-                {             
-                    base.OnKeyDown(e);
-                    return;
-                }
-            }
-            else if (e.Source is Slider)
-            {   
-                if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp) || InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
-                    e.Handled = true;
-                else
-                {
-                    base.OnKeyDown(e);
-                    return;
-                }
-            }
-            else
-                e.Handled = true;
 
             if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
             {
@@ -72,45 +50,128 @@ namespace UltimateEnd.Views.Overlays
                 Hide(HiddenState.Cancel);
                 return;
             }
+
+            var focusedElement = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+
+            if (focusedElement is Slider slider)
+            {
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
+                {
+                    await WavSounds.Click();
+                    e.Handled = true;
+                    MovePrevious();
+                    return;
+                }
+
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
+                {
+                    await WavSounds.Click();
+                    e.Handled = true;
+                    MoveNext();
+                    return;
+                }
+
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
+                {
+                    await WavSounds.Click();
+                    double step = (slider.Maximum - slider.Minimum) / 100.0;
+                    slider.Value = Math.Max(slider.Minimum, slider.Value - step);
+                    e.Handled = true;
+                    return;
+                }
+
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
+                {
+                    await WavSounds.Click();
+                    double step = (slider.Maximum - slider.Minimum) / 100.0;
+                    slider.Value = Math.Min(slider.Maximum, slider.Value + step);
+                    e.Handled = true;
+                    return;
+                }
+
+                if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
+                {
+                    await WavSounds.Click();
+                    e.Handled = true;
+                    MoveNext();
+                    return;
+                }
+
+                e.Handled = true;
+                return;
+            }
+
+            if (focusedElement is TextBox textBox)
+            {
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
+                {
+                    await WavSounds.Click();
+                    e.Handled = true;
+                    MovePrevious();
+                    return;
+                }
+
+                if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
+                {
+                    await WavSounds.Click();
+                    e.Handled = true;
+                    MoveNext();
+                    return;
+                }
+
+                if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
+                {
+                    await WavSounds.Click();
+                    e.Handled = true;
+                    MoveNext();
+                    return;
+                }
+
+                base.OnKeyDown(e);
+                return;
+            }
+
+            e.Handled = true;
+
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 await WavSounds.Click();
-                e.Handled = true;
                 MovePrevious();
                 return;
             }
+
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 await WavSounds.Click();
-                e.Handled = true;
                 MoveNext();
                 return;
             }
+
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadLeft))
             {
                 await WavSounds.Click();
-                e.Handled = true;
                 MovePrevious();
                 return;
             }
+
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
             {
                 await WavSounds.Click();
-                e.Handled = true;
                 MoveNext();
                 return;
             }
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
-                e.Handled = true;
                 SelectCurrent();
                 return;
             }
+
             base.OnKeyDown(e);
         }
     }
 
-    public sealed class HiddenEventArgs: EventArgs
+    public sealed class HiddenEventArgs : EventArgs
     {
         public static readonly new HiddenEventArgs Empty = new() { State = HiddenState.Close };
 

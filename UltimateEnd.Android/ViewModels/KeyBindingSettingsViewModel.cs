@@ -22,7 +22,9 @@ namespace UltimateEnd.Android.ViewModels
                 new("ButtonY", "Y", "Y 버튼", () => GetAndroidKeyDisplayName(ButtonY), v => ButtonY = v),
                 new("LeftBumper", "LB", "Left Bumper", () => GetAndroidKeyDisplayName(LeftBumper), v => LeftBumper = v),
                 new("RightBumper", "RB", "Right Bumper", () => GetAndroidKeyDisplayName(RightBumper), v => RightBumper = v),
-            ];
+                new("Start", "▶", "Start", () => GetAndroidKeyDisplayName(Start), v => Start = v),
+                new("Select", "◀", "Select", () => GetAndroidKeyDisplayName(Select), v => Select = v),
+    ];
 
             this.PropertyChanged += (s, e) =>
             {
@@ -35,7 +37,9 @@ namespace UltimateEnd.Android.ViewModels
                     e.PropertyName == nameof(ButtonX) ||
                     e.PropertyName == nameof(ButtonY) ||
                     e.PropertyName == nameof(LeftBumper) ||
-                    e.PropertyName == nameof(RightBumper) )
+                    e.PropertyName == nameof(RightBumper) ||
+                    e.PropertyName == nameof(Start) ||
+                    e.PropertyName == nameof(Select))
                 {
                     NotifyButtonItemsChanged();
                 }
@@ -62,6 +66,8 @@ namespace UltimateEnd.Android.ViewModels
                 "ButtonY" => "Y Button",
                 "LeftBumper" => "LB",
                 "RightBumper" => "RB",
+                "Start" => "Start",
+                "Select" => "Select",
                 _ => buttonName
             };
         }
@@ -80,6 +86,8 @@ namespace UltimateEnd.Android.ViewModels
                 "Down" => "D-Pad Down",
                 "Left" => "D-Pad Left",
                 "Right" => "D-Pad Right",
+                "Space" => "Start",
+                "F1" => "Select",
                 _ => keyName
             };
         }
@@ -90,12 +98,14 @@ namespace UltimateEnd.Android.ViewModels
             DPadDown = "Down";
             DPadLeft = "Left";
             DPadRight = "Right";
-            ButtonA = "Return";      // Keycode.ButtonA
-            ButtonB = "Escape";     // Keycode.ButtonB
-            ButtonX = "X";          // Keycode.ButtonX
-            ButtonY = "F";          // Keycode.ButtonY
-            LeftBumper = "PageUp";  // Keycode.ButtonL1
-            RightBumper = "PageDown"; // Keycode.ButtonR1
+            ButtonA = "Return";
+            ButtonB = "Escape";
+            ButtonX = "X";
+            ButtonY = "F";
+            LeftBumper = "PageUp";
+            RightBumper = "PageDown";
+            Start = "Space";
+            Select = "F1";
         }
     }
 }

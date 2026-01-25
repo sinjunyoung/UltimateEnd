@@ -47,7 +47,7 @@ namespace UltimateEnd.Views
                 return;
             }
 
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 if (DataContext is RomSettingViewModel vm)
                 {

@@ -44,7 +44,7 @@ namespace UltimateEnd.Behaviors
                 translatedKey = Key.Left;
             else if (InputManager.IsButtonPressed(e, GamepadButton.DPadRight))
                 translatedKey = Key.Right;
-            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
                 translatedKey = Key.Enter;
             else if (InputManager.IsButtonPressed(e, GamepadButton.ButtonB))
                 translatedKey = Key.Escape;

@@ -204,6 +204,13 @@ namespace UltimateEnd.Views
         {
             if (ViewModel == null) return;
 
+            if (InputManager.IsButtonPressed(e, GamepadButton.Select))
+            {
+                e.Handled = true;
+                Dispatcher.UIThread.Post(async () => await ShowSettingsMenuAsync(), DispatcherPriority.Input);
+                return;
+            }
+
             switch (e.Key)
             {
                 case Key.F2:
@@ -461,7 +468,7 @@ namespace UltimateEnd.Views
 
         private void OnRenameTextBoxKeyDown(object sender, KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 e.Handled = true;
 

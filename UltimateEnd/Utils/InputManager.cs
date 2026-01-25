@@ -35,8 +35,8 @@ namespace UltimateEnd.Utils
                 _keyMappings[GamepadButton.RightBumper] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown"));
                 _keyMappings[GamepadButton.LeftTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl"));
                 _keyMappings[GamepadButton.RightTrigger] = ParseKey(settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt"));
-                _keyMappings[GamepadButton.Start] = ParseKey(settings.KeyBindings.GetValueOrDefault("Start", "Return"));
-                _keyMappings[GamepadButton.Select] = ParseKey(settings.KeyBindings.GetValueOrDefault("Select", "Escape"));
+                _keyMappings[GamepadButton.Start] = ParseKey(settings.KeyBindings.GetValueOrDefault("Start", "Space"));
+                _keyMappings[GamepadButton.Select] = ParseKey(settings.KeyBindings.GetValueOrDefault("Select", "F1"));
             }
             else
                 SetDefaultKeyBindings(_keyMappings);
@@ -58,8 +58,8 @@ namespace UltimateEnd.Utils
             mappings[GamepadButton.RightBumper] = Key.PageDown;
             mappings[GamepadButton.LeftTrigger] = Key.LeftCtrl;
             mappings[GamepadButton.RightTrigger] = Key.LeftAlt;
-            mappings[GamepadButton.Start] = Key.Return;
-            mappings[GamepadButton.Select] = Key.Escape;
+            mappings[GamepadButton.Start] = Key.Space;
+            mappings[GamepadButton.Select] = Key.F1;
         }
 
         private static Key ParseKey(string keyString)

@@ -9,6 +9,7 @@ using System.Linq;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
+using UltimateEnd.ViewModels;
 using UltimateEnd.Views.Overlays;
 using static SQLite.TableMapping;
 
@@ -76,10 +77,19 @@ namespace UltimateEnd.Views
             EnsureVideoStopped();
         }
 
-        protected override void OnGameSelected(GameMetadata game)
+        protected override void OnKeyDownCore(KeyEventArgs e)
         {
-            ViewModel?.StopVideo();
+            if (ViewModel == null) return;
+
+            if (InputManager.IsButtonPressed(e, GamepadButton.Select))
+            {
+                e.Handled = true;
+                Dispatcher.UIThread.Post(async () => await ShowSettingsMenuAsync(), DispatcherPriority.Input);
+                return;
+            }
         }
+
+        protected override void OnGameSelected(GameMetadata game) => ViewModel?.StopVideo();
 
         #endregion
 

@@ -177,7 +177,7 @@ namespace UltimateEnd.Views.Overlays
 
         private void OnRenameTextBoxKeyDown(object? sender, KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 e.Handled = true;
                 ConfirmRename();

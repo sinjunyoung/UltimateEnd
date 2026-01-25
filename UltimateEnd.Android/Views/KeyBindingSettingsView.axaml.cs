@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using System.Reactive;
 using System.Threading.Tasks;
 using UltimateEnd.Android.ViewModels;
 using UltimateEnd.Enums;
@@ -66,7 +65,7 @@ namespace UltimateEnd.Android.Views
 
                 if (ButtonList.SelectedIndex < ViewModel.ButtonItems.Count - 1) ButtonList.SelectedIndex++;
             }
-            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 e.Handled = true;
 

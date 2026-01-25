@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -9,7 +8,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +15,6 @@ using UltimateEnd.Enums;
 using UltimateEnd.Managers;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
-using UltimateEnd.Updater;
 using UltimateEnd.Utils;
 using UltimateEnd.ViewModels;
 using UltimateEnd.Views.Managers;
@@ -419,7 +416,8 @@ namespace UltimateEnd.Views
 
         private async void OnFolderIconClick(object? sender, PointerPressedEventArgs e)
         {
-            e.Handled = true;
+            if(e != null) e.Handled = true;
+
             await WavSounds.OK();
             NavigateToView(vm => vm.NavigateToRomSettings());
         }
@@ -485,7 +483,7 @@ namespace UltimateEnd.Views
             switch (_currentMenuIconIndex)
             {
                 case 1: OnSettingsClick(null, null); break;
-                case 2: NavigateToView(vm => vm.NavigateToRomSettings()); break;
+                case 2: OnFolderIconClick(null, null); break;
                 case 3: await ShutdownApplication(); break;
             }
         }
@@ -562,6 +560,12 @@ namespace UltimateEnd.Views
         private bool HandleMenuNavigation(KeyEventArgs e)
         {
             if (ViewModel == null) return false;
+
+            if (InputManager.IsButtonPressed(e, GamepadButton.Select))
+            {
+                OnSettingsClick(null, null);
+                return true;
+            }
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadDown))
             {
                 ViewModel.IsMenuFocused = false;
@@ -586,7 +590,7 @@ namespace UltimateEnd.Views
                 MoveToNextMenuIcon();
                 return true;
             }
-            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 ExecuteCurrentMenuIcon();
                 return true;
@@ -598,6 +602,11 @@ namespace UltimateEnd.Views
         {
             if (ViewModel == null) return false;
 
+            if (InputManager.IsButtonPressed(e, GamepadButton.Select))
+            {
+                OnSettingsClick(null, null);
+                return true;
+            }
             if (InputManager.IsButtonPressed(e, GamepadButton.DPadUp))
             {
                 MoveGridUp();
@@ -618,7 +627,7 @@ namespace UltimateEnd.Views
                 ViewModel.MoveRight();
                 return true;
             }
-            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            else if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 _ = WavSounds.OK();
                 ViewModel.SelectCurrentPlatform();

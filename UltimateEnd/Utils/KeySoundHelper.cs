@@ -8,7 +8,7 @@ namespace UltimateEnd.Utils
     {
         public static async Task PlaySoundForKey(KeyEventArgs e)
         {
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonB, GamepadButton.Select))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonB))
                 await WavSounds.Cancel();
             else if (InputManager.IsAnyButtonPressed(e,
                 GamepadButton.DPadUp,

@@ -186,8 +186,8 @@ namespace UltimateEnd.ViewModels
                 RightBumper = settings.KeyBindings.GetValueOrDefault("RightBumper", "PageDown");
                 LeftTrigger = settings.KeyBindings.GetValueOrDefault("LeftTrigger", "LeftCtrl");
                 RightTrigger = settings.KeyBindings.GetValueOrDefault("RightTrigger", "LeftAlt");
-                Start = settings.KeyBindings.GetValueOrDefault("Start", "Return");
-                Select = settings.KeyBindings.GetValueOrDefault("Select", "Escape");
+                Start = settings.KeyBindings.GetValueOrDefault("Start", "Space");
+                Select = settings.KeyBindings.GetValueOrDefault("Select", "F1");
             }
 
             LoadPlatformSpecificSettings(settings);
@@ -265,8 +265,8 @@ namespace UltimateEnd.ViewModels
             RightBumper = "PageDown";
             LeftTrigger = "LeftCtrl";
             RightTrigger = "LeftAlt";
-            Start = "Return";
-            Select = "Escape";
+            Start = "Space";
+            Select = "F1";
 
             ResetPlatformSpecificDefaults();
 

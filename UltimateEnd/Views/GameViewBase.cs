@@ -170,7 +170,7 @@ namespace UltimateEnd.Views
                 if (HandleButtonBPress(e)) return true;
             }
 
-            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA, GamepadButton.Start))
+            if (InputManager.IsAnyButtonPressed(e, GamepadButton.ButtonA))
             {
                 if (ViewModel?.SelectedItem?.IsGame == true && ViewModel.SelectedItem.Game!.IsEditing) return false;
 
@@ -272,7 +272,7 @@ namespace UltimateEnd.Views
                     GameScrollViewerBase.Focus();
                     args.Handled = true;
                 }
-                else if (args.Key == Key.Enter || InputManager.IsAnyButtonPressed(args, GamepadButton.ButtonA, GamepadButton.Start))
+                else if (args.Key == Key.Enter || InputManager.IsAnyButtonPressed(args, GamepadButton.ButtonA))
                 {
                     ViewModel?.CommitSearch();
                     GameScrollViewerBase.Focus();
@@ -313,10 +313,16 @@ namespace UltimateEnd.Views
 
         protected async void OnSettingsClick(object? sender, PointerPressedEventArgs e)
         {
-            e.Handled = true;
+            if(e != null) e.Handled = true;
+
+            await ShowSettingsMenuAsync();
+        }
+
+        protected async Task ShowSettingsMenuAsync()
+        {
             await WavSounds.OK();
-            SettingsMenuOverlayBase?.SetDeletedGamesMode(ViewModel.IsShowingDeletedGames);
-            SettingsMenuOverlayBase.UpdateViewMode(ViewModel.ViewMode);
+            SettingsMenuOverlayBase?.SetDeletedGamesMode(ViewModel?.IsShowingDeletedGames ?? false);
+            SettingsMenuOverlayBase?.UpdateViewMode(ViewModel?.ViewMode ?? GameViewMode.List);
             SettingsMenuOverlayBase?.Show();
         }
 
