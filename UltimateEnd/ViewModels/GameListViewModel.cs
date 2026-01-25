@@ -56,7 +56,7 @@ namespace UltimateEnd.ViewModels
         private readonly Stack<int> _scrollPositionStack = new();
 
         private string _searchText = string.Empty;
-
+        private bool _simpleGameListMode = false;
         #endregion
 
         #region Properties
@@ -204,6 +204,20 @@ namespace UltimateEnd.ViewModels
             set => this.RaiseAndSetIfChanged(ref _searchText, value);
         }
 
+
+        public bool SimpleGameListMode
+        {
+            get => _simpleGameListMode;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _simpleGameListMode, value);
+                var settings = SettingsService.LoadSettings();
+                settings.SimpleGameListMode = value;
+                SettingsService.SaveSettingsQuiet(settings);
+            }
+        }
+
+
         #endregion
 
         #region Reactive Commands
@@ -300,6 +314,11 @@ namespace UltimateEnd.ViewModels
             if (Games.Count == 0) return;
 
             _collectionManager.LoadGenres();
+
+            var settings = SettingsService.LoadSettings();
+            _simpleGameListMode = settings.SimpleGameListMode;
+            this.RaisePropertyChanged(nameof(SimpleGameListMode));
+
             SetupPropertySubscriptions();
             BuildDisplayItems();
 

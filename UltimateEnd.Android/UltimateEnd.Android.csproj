@@ -7,7 +7,7 @@
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <ApplicationId>com.YameSoft.UltimateEnd</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>0.1.8</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>0.1.9</ApplicationDisplayVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <Company>YameSoft</Company>
     <AndroidSigningKeyStore>release-key.keystore</AndroidSigningKeyStore>

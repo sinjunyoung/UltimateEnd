@@ -20,6 +20,7 @@ namespace UltimateEnd.Views.Overlays
         public event EventHandler? PlaylistClicked;
         public event EventHandler? ManageIgnoreGameClicked;
         public event EventHandler? GridColumnsChanged;
+        public event EventHandler? SimpleGameListClicked;
         public event EventHandler? ResetLayoutClicked;
         public event EventHandler? PlatformImageClicked;
         public event EventHandler? PegasusMetadataClicked;
@@ -33,6 +34,7 @@ namespace UltimateEnd.Views.Overlays
 
         private bool _isShowingDeleted = false;
         private GameViewMode _currentViewMode;
+        private bool _simpleGameListMode = false;
 
         public SettingsMenuOverlay() => InitializeComponent();
 
@@ -41,6 +43,7 @@ namespace UltimateEnd.Views.Overlays
             _currentViewMode = viewMode;
             UpdateResetLayoutVisibility();
             UpdateGridColumnsVisibility();
+            UpdateSimpleGameListVisibility();
         }
 
         private void UpdateMenuActions()
@@ -59,6 +62,7 @@ namespace UltimateEnd.Views.Overlays
                     "PlaylistMenuItem" => () => PlaylistClicked?.Invoke(this, EventArgs.Empty),
                     "ManageIgnoreGameMenuItem" => () => ManageIgnoreGameClicked?.Invoke(this, EventArgs.Empty),
                     "GridColumnsMenuItem" => () => { },
+                    "SimpleGameListMenuItem" => () => SimpleGameListClicked?.Invoke(this, EventArgs.Empty),
                     "ResetLayoutMenuItem" => () => ResetLayoutClicked?.Invoke(this, EventArgs.Empty),
                     "PlatformImageMenuItem" => () => PlatformImageClicked?.Invoke(this, EventArgs.Empty),
                     "PegasusMetadataMenuItem" => () => PegasusMetadataClicked?.Invoke(this, EventArgs.Empty),
@@ -230,6 +234,13 @@ namespace UltimateEnd.Views.Overlays
             e.Handled = true;
         }
 
+        private void OnSimpleGameListClick(object? sender, RoutedEventArgs e)
+        {
+            UpdateSelectedIndexFromSender(sender);
+            SimpleGameListClicked?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+        }
+
         private void OnResetLayoutClick(object? sender, RoutedEventArgs e)
         {
             UpdateSelectedIndexFromSender(sender);
@@ -296,6 +307,17 @@ namespace UltimateEnd.Views.Overlays
             UpdateDeletedGamesToggle(isShowingDeleted);
         }
 
+        public void UpdateSimpleGameListToggle(bool isSimpleMode)
+        {
+            if (SimpleGameListToggle != null && SimpleGameListToggleThumb != null) UpdateToggle(SimpleGameListToggle, SimpleGameListToggleThumb, isSimpleMode);
+        }
+
+        public void SetSimpleGameListMode(bool isSimpleMode)
+        {
+            _simpleGameListMode = isSimpleMode;
+            UpdateSimpleGameListToggle(isSimpleMode);
+        }
+
         private void UpdateResetLayoutVisibility()
         {
             ResetLayoutMenuItem.IsVisible = _currentViewMode == GameViewMode.List;
@@ -316,6 +338,12 @@ namespace UltimateEnd.Views.Overlays
                 UpdateGridColumnsText(settings.GridColumns);
             }
 
+            RefreshMenuItems();
+        }
+
+        private void UpdateSimpleGameListVisibility()
+        {
+            SimpleGameListMenuItem.IsVisible = _currentViewMode == GameViewMode.List;
             RefreshMenuItems();
         }
 

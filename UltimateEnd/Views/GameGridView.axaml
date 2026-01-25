@@ -190,12 +190,12 @@
 												  Height="80"
 												  Foreground="{DynamicResource Accent.Blue}"/>
 										<TextBlock Text="{Binding Name}"
-												   FontSize="18"
+												   FontSize="{StaticResource FontSize.ListGameTitle}"
 												   FontWeight="Bold"
 												   TextAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
 										<TextBlock Text="{Binding GameCount, StringFormat='{}{0}개의 게임'}"
-												   FontSize="14"
+												   FontSize="{StaticResource FontSize.ListTag}"
 												   TextAlignment="Center"
 												   Foreground="{DynamicResource Text.Secondary}"/>
 									</StackPanel>
@@ -262,7 +262,7 @@
 											<!-- 게임명 텍스트 (2줄 표시) -->
 											<TextBlock Grid.Column="0"
 													   Text="{Binding Game.DisplayTitle}"
-													   FontSize="{StaticResource FontSize.GameTitle}"
+													   FontSize="{StaticResource FontSize.ListGameTitle}"
 													   FontWeight="Bold"
 													   Foreground="{DynamicResource Text.Primary}"
 													   TextWrapping="Wrap"

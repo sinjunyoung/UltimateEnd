@@ -34,6 +34,8 @@ namespace UltimateEnd.Models
 
         public int GridColumns { get; set; } = 7;
 
+        public bool SimpleGameListMode { get; set; } = false;
+
         #region ROM Base Paths
 
         [JsonIgnore]

@@ -112,11 +112,17 @@ namespace UltimateEnd.Controls
         private class ButtonState
         {
             public string Text { get; set; } = string.Empty;
+
             public Action? Action { get; set; }
+
             public IBrush NormalBg { get; set; } = Brushes.Transparent;
+
             public IBrush HoverBg { get; set; } = Brushes.Transparent;
+
             public IBrush ActiveBg { get; set; } = Brushes.Transparent;
+
             public bool IsActive { get; set; }
+
             public bool IsToggle { get; set; }
         }
 
@@ -130,22 +136,22 @@ namespace UltimateEnd.Controls
                 RowSpacing = ButtonSpacing,
                 Focusable = false
             };
-            UpdateKeyboardLayout();
+
+            if (!OperatingSystem.IsAndroid()) UpdateKeyboardLayout();
+            
             Content = _keyboardGrid;
             IsVisible = false;
             Background = GetBackgroundSecondary();
-
             Focusable = false;
             IsHitTestVisible = true;
 
             AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
-
             AttachedToVisualTree += OnAttachedToVisualTree;
         }
 
         private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
         {
-            if (OperatingSystem.IsAndroid()) _isTouchDevice = false;
+            if (OperatingSystem.IsAndroid()) return;
 
             if (this.GetVisualRoot() is Interactive root)
             {
@@ -156,22 +162,27 @@ namespace UltimateEnd.Controls
 
         private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if (!_hasDetectedInput && !OperatingSystem.IsAndroid())
-            {
-                _hasDetectedInput = true;
-                var pointerType = e.GetCurrentPoint(null).Pointer.Type;
-                _isTouchDevice = pointerType == PointerType.Touch || pointerType == PointerType.Pen;
-            }
+            var pointerType = e.GetCurrentPoint(null).Pointer.Type;
+
+            if (pointerType == PointerType.Touch || pointerType == PointerType.Pen)
+                _isTouchDevice = true;
+            else if (!_hasDetectedInput)
+                _isTouchDevice = false;
+
+            _hasDetectedInput = true;
         }
 
         private void OnAnyControlGotFocus(object? sender, GotFocusEventArgs e)
         {
             if (OperatingSystem.IsAndroid()) return;
-            if (!_isTouchDevice && _hasDetectedInput) return;
+
+            if (!_hasDetectedInput) return;
+
+            if (!_isTouchDevice) return;
 
             if (e.Source is TextBox textBox)
             {
-                if(textBox.IsReadOnly) return;
+                if (textBox.IsReadOnly) return;
 
                 _targetTextBox = textBox;
                 Background = GetBackgroundSecondary();

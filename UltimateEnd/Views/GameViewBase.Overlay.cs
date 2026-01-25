@@ -82,6 +82,7 @@ namespace UltimateEnd.Views
             SettingsMenuOverlayBase.ScrapClicked += OnSettingsMenu_ScrapClicked;
             SettingsMenuOverlayBase.PlaylistClicked += OnSettingsMenu_PlaylistClicked;
             SettingsMenuOverlayBase.GridColumnsChanged += OnSettingsMenu_GridColumnsChanged;
+            SettingsMenuOverlayBase.SimpleGameListClicked += OnSettingsMenu_SimpleGameListClicked;
             SettingsMenuOverlayBase.ManageIgnoreGameClicked += (sender, e) =>
             {
                 ViewModel.IgnoreGameToggle();
@@ -260,6 +261,17 @@ namespace UltimateEnd.Views
         {
             if (this is GameGridView gridView)
                 Dispatcher.UIThread.Post(() => gridView.CalculateGridLayout(), DispatcherPriority.Background);
+        }
+
+        private async void OnSettingsMenu_SimpleGameListClicked(object? sender, EventArgs e)
+        {
+            await WavSounds.Click();
+
+            if (ViewModel != null)
+            {
+                ViewModel.SimpleGameListMode = !ViewModel.SimpleGameListMode;
+                SettingsMenuOverlayBase.SetSimpleGameListMode(ViewModel.SimpleGameListMode);
+            }
         }
 
         private async void OnSettingsMenu_PlatformImageClick(object? sender, EventArgs e)

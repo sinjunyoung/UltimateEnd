@@ -8,6 +8,11 @@
              x:DataType="vm:GameListViewModel"
              Focusable="True"
              x:Name="RootControl">
+
+	<UserControl.Resources>
+		<converters:BoolToFontSizeConverter x:Key="BoolToFontSizeConverter"/>
+	</UserControl.Resources>
+	
 	<Panel>
 		<!-- 기존 전체 UI -->
 		<Panel>
@@ -603,7 +608,7 @@
 																		<TextBlock Grid.Column="1"
 																				   Text="{Binding Game.DisplayTitle}"
 																				   ClipToBounds="True"
-																				   FontSize="{StaticResource FontSize.ListGameTitle}"
+																				   FontSize="{Binding ((vm:GameListViewModel)DataContext).SimpleGameListMode, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToFontSizeConverter}}"
 																				   FontWeight="Bold"
 																				   Foreground="{DynamicResource Text.Primary}"
 																				   TextWrapping="NoWrap"
@@ -638,7 +643,8 @@
 																<StackPanel Orientation="Horizontal"
 																			Spacing="{StaticResource Spacing.Tiny}"
 																			Margin="0"
-																			HorizontalAlignment="Left">
+																			HorizontalAlignment="Left"
+																			IsVisible="{Binding !((vm:GameListViewModel)DataContext).SimpleGameListMode, RelativeSource={RelativeSource AncestorType=UserControl}}">
 																	<!-- 플랫폼 -->
 																	<Border Background="{DynamicResource Accent.Yellow}"
 																			CornerRadius="{StaticResource CornerRadius.Tiny}"

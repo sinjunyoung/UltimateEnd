@@ -498,12 +498,15 @@ namespace UltimateEnd.Managers
         {
             if (game == null) return;
 
+            GameMetadata? existing;
+
             lock (_gamesLock)
             {
                 var key = GetGameKey(game.GetBasePath(), game.SubFolder, game.RomFile);
-
-                if (_allGames.TryGetValue(key, out var existing)) game.CopyTo(existing);
+                _allGames.TryGetValue(key, out existing);
             }
+
+            if (existing != null) game.CopyTo(existing);
         }
 
         public void UpdateGameKey(GameMetadata game, string oldSubFolder, string newSubFolder)
