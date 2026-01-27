@@ -1,12 +1,10 @@
 ﻿using Android.App;
-using Android.Content;
-using Android.OS;
-using AndroidX.Core.Content;
 using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using UltimateEnd.Android.Utils;
 using UltimateEnd.Updater;
 
 namespace UltimateEnd.Android.Services
@@ -72,21 +70,6 @@ namespace UltimateEnd.Android.Services
             }
         }
 
-        private void InstallApk(string apkPath)
-        {
-            var intent = new Intent(Intent.ActionView);
-            intent.SetFlags(ActivityFlags.NewTask);
-
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-            {
-                var apkUri = FileProvider.GetUriForFile(activity, $"{activity.PackageName}.fileprovider", new Java.IO.File(apkPath));
-                intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
-                intent.AddFlags(ActivityFlags.GrantReadUriPermission);
-            }
-            else
-                intent.SetDataAndType(global::Android.Net.Uri.FromFile(new Java.IO.File(apkPath)), "application/vnd.android.package-archive");
-
-            activity.StartActivity(intent);
-        }
+        private void InstallApk(string apkPath) => ApkInstaller.Install(activity, apkPath);
     }
 }

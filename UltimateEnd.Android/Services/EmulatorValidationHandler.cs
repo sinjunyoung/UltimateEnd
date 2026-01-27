@@ -1,11 +1,10 @@
-﻿using Android.Content;
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
+using UltimateEnd.Android.Utils;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
@@ -225,28 +224,8 @@ namespace UltimateEnd.Android.Services
         private static void InstallApk(string apkPath)
         {
             var activity = GetMainActivity();
-            var file = new Java.IO.File(apkPath);
 
-            global::Android.Net.Uri apkUri;
-
-            if (global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.N)
-            {
-                var fileProviderClass = Java.Lang.Class.ForName("androidx.core.content.FileProvider");
-                var method = fileProviderClass.GetMethod("getUriForFile",
-                    Java.Lang.Class.FromType(typeof(Context)),
-                    Java.Lang.Class.FromType(typeof(Java.Lang.String)),
-                    Java.Lang.Class.FromType(typeof(Java.IO.File)));
-                apkUri = (global::Android.Net.Uri)method.Invoke(null, activity, $"{activity.PackageName}.fileprovider", file);
-            }
-            else
-            {
-                apkUri = global::Android.Net.Uri.FromFile(file);
-            }
-
-            var intent = new Intent(Intent.ActionView);
-            intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
-            intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
-            activity.StartActivity(intent);
+            ApkInstaller.Install(activity, apkPath);
         }
 
         private static void CleanupFile(string filePath)
