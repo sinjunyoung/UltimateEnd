@@ -54,11 +54,23 @@ namespace UltimateEnd.Updater
             var settingsPath = factory.GetSettingsFolder();
             var backupPath = Path.Combine(Directory.GetParent(settingsPath).FullName, BackupFolderName);
 
-            if (Directory.Exists(settingsPath))
-            {
-                if (Directory.Exists(backupPath)) Directory.Delete(backupPath, true);
+            string[] settingsFiles = ["commands.txt", "platform_info.json"];
 
-                Directory.Move(settingsPath, backupPath);
+            if (!Directory.Exists(settingsPath)) return;
+
+            if (Directory.Exists(backupPath)) Directory.Delete(backupPath, true);
+
+            Directory.CreateDirectory(backupPath);
+
+            foreach (var fileName in settingsFiles)
+            {
+                var sourceFile = Path.Combine(settingsPath, fileName);
+
+                if (File.Exists(sourceFile))
+                {
+                    var destFile = Path.Combine(backupPath, fileName);
+                    File.Copy(sourceFile, destFile, true);
+                }
             }
         }
 

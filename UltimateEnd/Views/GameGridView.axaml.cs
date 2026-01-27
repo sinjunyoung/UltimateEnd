@@ -9,9 +9,7 @@ using System.Linq;
 using UltimateEnd.Enums;
 using UltimateEnd.Models;
 using UltimateEnd.Utils;
-using UltimateEnd.ViewModels;
 using UltimateEnd.Views.Overlays;
-using static SQLite.TableMapping;
 
 namespace UltimateEnd.Views
 {
@@ -22,6 +20,7 @@ namespace UltimateEnd.Views
         private int _columns = 3;
         private readonly int _rows = 3;
         private bool _isInitialized = false;
+        private double _dynamicFontSize = 16;
 
         #endregion
 
@@ -46,6 +45,8 @@ namespace UltimateEnd.Views
             InitializeComponent();
 
             ThumbnailSettings.GameViewMode = GameViewMode.Grid;
+
+            if (Application.Current?.Resources.TryGetResource("FontSize.ListGameTitle", null, out var fontSize) == true) _dynamicFontSize = (double)fontSize!;
         }
 
         #endregion
@@ -163,6 +164,10 @@ namespace UltimateEnd.Views
             double actualItemHeight = actualItemWidth * 1.4;
 
             _columns = columns;
+
+            _dynamicFontSize = actualItemWidth * 0.09;
+
+            if (ViewModel != null) ViewModel.GridTitleFontSize = _dynamicFontSize;
 
             var layout = new UniformGridLayout
             {

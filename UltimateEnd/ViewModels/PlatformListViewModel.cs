@@ -135,6 +135,7 @@ namespace UltimateEnd.ViewModels
 
             SettingsService.PlatformSettingsChanged += OnPlatformSettingsChanged;
             ThemeService.ThemeChanged += OnThemeChanged;
+            PlaylistManager.PlaylistsChanged += OnPlaylistsChanged;
 
             LoadThemesFromService();
             UpdateDateTime();
@@ -169,6 +170,26 @@ namespace UltimateEnd.ViewModels
         }
 
         private void OnThemeChanged(string theme) => LoadThemesFromService();
+
+        private void OnPlaylistsChanged()
+        {
+            var playlists = PlaylistManager.Instance.GetAllPlaylists();
+
+            foreach (var playlist in playlists)
+            {
+                var platformId = PlaylistManager.GetPlaylistPlatformId(playlist.Id);
+                var existingPlatform = Platforms.FirstOrDefault(p => p.Id == platformId);
+
+                if (existingPlatform != null)
+                {
+                    var hasValidCover = !string.IsNullOrEmpty(playlist.CoverImagePath) && File.Exists(playlist.CoverImagePath);
+                    existingPlatform.LogoPath = hasValidCover ? playlist.CoverImagePath : ResourceHelper.GetLogoImage("playlist");
+                    existingPlatform.ImagePath = hasValidCover ? playlist.CoverImagePath : ResourceHelper.GetPlatformImage("playlist");
+
+                    if (_selectedPlatform?.Id == platformId) _selectedPlatform = existingPlatform;
+                }
+            }
+        }
 
         public void OnShowEmulatorSettingViewRequested() => EmulatorSettingViewRequested?.Invoke(this, EventArgs.Empty);
 
@@ -497,6 +518,7 @@ namespace UltimateEnd.ViewModels
 
             SettingsService.PlatformSettingsChanged -= OnPlatformSettingsChanged;
             ThemeService.ThemeChanged -= OnThemeChanged;
+            PlaylistManager.PlaylistsChanged -= OnPlaylistsChanged;
         }
 
         public void SavePlatformOrder()

@@ -166,9 +166,10 @@
 				<ItemsRepeater.ItemTemplate>
 					<DataTemplate>
 						<!-- ⭐ 최상위 Border: ClipToBounds로 모든 자식 요소 자르기 -->
-						<Border CornerRadius="8"
+						<Border CornerRadius="12"
 								ClipToBounds="True"
-								Background="Transparent"
+								Background="{DynamicResource Background.Card}"
+								BorderThickness="0"
 								Cursor="Hand"
 								Tapped="OnDisplayItemTapped"
 								DoubleTapped="OnDisplayItemDoubleTapped"
@@ -190,7 +191,7 @@
 												  Height="80"
 												  Foreground="{DynamicResource Accent.Blue}"/>
 										<TextBlock Text="{Binding Name}"
-												   FontSize="{StaticResource FontSize.ListGameTitle}"
+												   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"
 												   FontWeight="Bold"
 												   TextAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -203,6 +204,7 @@
 									<!-- 선택 오버레이 -->
 									<Border BorderBrush="#2196F3"
 											BorderThickness="4"
+											CornerRadius="12"
 											Background="#66007ACC"
 											IsVisible="{Binding IsSelected}"/>
 								</Grid>
@@ -218,14 +220,14 @@
 									<!-- Placeholder (커버 없을 때) -->
 									<Grid IsVisible="{Binding Game.HasCoverImage, Converter={x:Static BoolConverters.Not}}">
 										<TextBlock Text="{Binding Game.DisplayTitle}"
-												  FontSize="16"
-												  FontWeight="Bold"
-												  TextAlignment="Center"
-												  TextWrapping="Wrap"
-												  VerticalAlignment="Center"
-												  HorizontalAlignment="Center"
-												  Margin="15"
-												  Foreground="{DynamicResource Text.Primary}">
+												   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"
+												   FontWeight="Bold"
+												   TextAlignment="Center"
+												   TextWrapping="Wrap"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Center"
+												   Margin="15"
+												   Foreground="{DynamicResource Text.Primary}">
 											<TextBlock.Effect>
 												<DropShadowEffect Color="White" BlurRadius="10" Opacity="0.3"/>
 											</TextBlock.Effect>
@@ -247,22 +249,17 @@
 												  VerticalAlignment="Center"/>
 									</Border>
 
-									<!-- 게임명 (항상 표시, 호버/선택 시 강조) -->
+									<!-- 게임명 (항상 배경 표시, 선택 시 색상 변경) -->
 									<Border VerticalAlignment="Bottom"
 											HorizontalAlignment="Stretch"
-											Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}, ConverterParameter='#E6000000;#DD1976D2'}"
-											Padding="10,8">
-										<Border.Effect>
-											<DropShadowEffect Color="{DynamicResource Shadow.Color}"
-															 BlurRadius="8"
-															 OffsetY="2"
-															 Opacity="0.5"/>
-										</Border.Effect>
+											Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}}"
+											Padding="10,8"
+											CornerRadius="0,0,12,12">
 										<Grid ColumnDefinitions="*">
 											<!-- 게임명 텍스트 (2줄 표시) -->
 											<TextBlock Grid.Column="0"
 													   Text="{Binding Game.DisplayTitle}"
-													   FontSize="{StaticResource FontSize.ListGameTitle}"
+													   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"
 													   FontWeight="Bold"
 													   Foreground="{DynamicResource Text.Primary}"
 													   TextWrapping="Wrap"
@@ -270,18 +267,13 @@
 													   MaxLines="2"
 													   HorizontalAlignment="Center"
 													   VerticalAlignment="Center"
-													   Margin="0,0,8,0">
-												<TextBlock.Effect>
-													<DropShadowEffect Color="{DynamicResource Shadow.Color}"
-																	 BlurRadius="4"
-																	 Opacity="0.8"/>
-												</TextBlock.Effect>
-											</TextBlock>
+													   Margin="0,0,8,0"/>
 										</Grid>
 									</Border>
 
 									<!-- 선택 오버레이 (테두리만) -->
 									<Border BorderThickness="4"
+											CornerRadius="12"
 											IsVisible="{Binding IsSelected}">
 										<Border.BorderBrush>
 											<DynamicResource ResourceKey="Gradient.Primary"/>

@@ -79,12 +79,12 @@ namespace UltimateEnd.Android.Services
 
             if (isFirstRun)
             {
-                string[] settingsFiles = ["settings.json", "scrap_settings.json", "commands.txt", "genres.json", "platform_info.json"];
+                string[] settingsFiles = ["commands.txt", "platform_info.json"];
                 DeleteFilesInFolder(settingsFolder, settingsFiles);
 
-                var themesFolder = GetOrCreateSubFolder("Themes");
-                string[] themeFiles = ["BlueTheme.axaml", "CyberpunkTheme.axaml", "DarkTheme.axaml", "LightTheme.axaml"];
-                DeleteFilesInFolder(themesFolder, themeFiles);
+                //var themesFolder = GetOrCreateSubFolder("Themes");
+                //string[] themeFiles = ["BlueTheme.axaml", "CyberpunkTheme.axaml", "DarkTheme.axaml", "LightTheme.axaml"];
+                //DeleteFilesInFolder(themesFolder, themeFiles);
 
                 var editor = prefs.Edit();
                 editor.PutBoolean("is_first_run", false);

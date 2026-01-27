@@ -57,6 +57,14 @@ namespace UltimateEnd.ViewModels
 
         private string _searchText = string.Empty;
         private bool _simpleGameListMode = false;
+
+        private double _gridTitleFontSize = 16;
+        public double GridTitleFontSize
+        {
+            get => _gridTitleFontSize;
+            set => this.RaiseAndSetIfChanged(ref _gridTitleFontSize, value);
+        }
+
         #endregion
 
         #region Properties
