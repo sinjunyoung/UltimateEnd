@@ -18,13 +18,13 @@ namespace UltimateEnd.Scraper.Helpers
         private static readonly SemaphoreSlim _apiSemaphore = new(1, 1);
         private readonly string _timeoutMessage = timeoutMessage;
 
-        public async Task<FetchResult> FetchGameDataAsync(string romPath, ScreenScraperSystemId systemId, string cacheKey, string crc, long fileSize, bool isArcade, CancellationToken ct)
+        public async Task<FetchResult> FetchGameDataAsync(string romPath, ScreenScraperSystemId systemId, string cacheKey, string crc, long fileSize, bool isArcade, string scrapHint, CancellationToken ct)
         {
             var result = new FetchResult();
 
             try
             {
-                string fileName = Path.GetFileName(romPath);
+                var fileName = string.IsNullOrEmpty(scrapHint) ? CacheKeyBuilder.BuildSearchFileName(romPath, isArcade) : scrapHint;
 
                 if (string.IsNullOrEmpty(fileName))
                 {
@@ -34,8 +34,6 @@ namespace UltimateEnd.Scraper.Helpers
 
                     return result;
                 }
-
-                fileName = CacheKeyBuilder.BuildSearchFileName(romPath, isArcade);
 
                 var url = UrlBuilder.BuildSearchUrl(fileName, systemId, crc, fileSize);
                 string xmlContent;

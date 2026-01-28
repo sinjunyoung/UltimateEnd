@@ -35,6 +35,7 @@ namespace UltimateEnd.Models
         private bool _isEditing;
         private bool _isEditingDescription;
         private bool _isSelected;
+        private string? _scrapHint;
 
         #endregion
 
@@ -133,6 +134,13 @@ namespace UltimateEnd.Models
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? SubFolder { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? ScrapHint
+        {
+            get => _scrapHint;
+            set => this.RaiseAndSetIfChanged(ref _scrapHint, value);
+        }
 
         #endregion
 
@@ -484,6 +492,7 @@ namespace UltimateEnd.Models
             target.Ignore = this.Ignore;
             target.IsFavorite = this.IsFavorite;
             target.Title = this.Title;
+            target.ScrapHint = this.ScrapHint;
         }
 
         public bool MergeFrom(GameMetadata source)
@@ -562,6 +571,12 @@ namespace UltimateEnd.Models
                 hasChanges = true;
             }
 
+            if (!string.IsNullOrEmpty(source.ScrapHint) && this.ScrapHint != source.ScrapHint)
+            {
+                this.ScrapHint = source.ScrapHint;
+                hasChanges = true;
+            }
+
             return hasChanges;
         }
 
@@ -584,6 +599,7 @@ namespace UltimateEnd.Models
                 Ignore = this.Ignore,
                 IsFavorite = this.IsFavorite,
                 Title = this.Title,
+                ScrapHint = this.ScrapHint,
             };
 
             clone.SetBasePath(this._basePath);

@@ -205,7 +205,9 @@ namespace UltimateEnd.Managers
                     e.PropertyName == nameof(GameMetadata.EmulatorId) ||
                     e.PropertyName == nameof(GameMetadata.CoverImagePath) ||
                     e.PropertyName == nameof(GameMetadata.LogoImagePath) ||
-                    e.PropertyName == nameof(GameMetadata.VideoPath))
+                    e.PropertyName == nameof(GameMetadata.VideoPath) ||
+                    e.PropertyName == nameof(GameMetadata.ScrapHint))
+
                 {
                     GamePropertyChanged?.Invoke(game);
                 }

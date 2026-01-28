@@ -90,7 +90,7 @@ namespace UltimateEnd.Scraper
                 {
                     progressCallback?.Invoke("스크린 스크래퍼 검색 중...");
 
-                    var fetchResult = await _gameDataFetcher.FetchGameDataAsync(romPath, systemId, cacheKey, crc, fileSize, isArcade, ct);
+                    var fetchResult = await _gameDataFetcher.FetchGameDataAsync(romPath, systemId, cacheKey, crc, fileSize, isArcade, game.ScrapHint, ct);
 
                     if (fetchResult.ResultType != ScrapResultType.Success)
                     {

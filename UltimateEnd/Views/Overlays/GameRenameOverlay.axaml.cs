@@ -19,6 +19,12 @@ namespace UltimateEnd.Views.Overlays
             InitializeComponent();
         }
 
+        public string Title
+        {
+            get => TitleTextBlock.Text ?? "게임 이름 변경";
+            set => TitleTextBlock.Text = value ?? "게임 이름 변경";
+        }
+
         public string Text
         {
             get => RenameOverlayTextBox.Text ?? string.Empty;

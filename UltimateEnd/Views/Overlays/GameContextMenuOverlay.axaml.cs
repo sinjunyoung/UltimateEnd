@@ -34,6 +34,7 @@ namespace UltimateEnd.Views.Overlays
         public event EventHandler? ToggleIgnoreRequested;
         public event EventHandler? ScrapStarting;
         public event EventHandler? ScrapEnded;
+        public event EventHandler? EditScrapHintRequested;
 
         private int _selectedIndex = 0;
         private GameMetadata? _selectedGame = null;
@@ -75,6 +76,7 @@ namespace UltimateEnd.Views.Overlays
                 },
                 ["AddToPlaylistItem"] = () => ShowPlaylistSelection(),
                 ["ScrapItem"] = async () => await OnScrapGameAsync(),
+                ["ScrapHintEditItem"] = () => EditScrapHintRequested?.Invoke(this, EventArgs.Empty),
                 ["RenameGameItem"] = () => RenameGameRequested?.Invoke(this, EventArgs.Empty),
                 ["ChangeGenreItem"] = () => ChangeGenreRequested?.Invoke(this, EventArgs.Empty),
                 ["ToggleKoreanItem"] = () =>
@@ -406,6 +408,13 @@ namespace UltimateEnd.Views.Overlays
                 this.Hide(HiddenState.Silent);
                 ScrapEnded?.Invoke(this, EventArgs.Empty);
             }
+        }
+
+        private void OnEditScrapHint(object? sender, RoutedEventArgs e)
+        {
+            UpdateSelectedIndexFromSender(sender);
+            EditScrapHintRequested?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
         }
 
         private static async Task<bool> ShouldProceedWithScrap(GameMetadata game)

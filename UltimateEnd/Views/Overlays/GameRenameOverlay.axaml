@@ -19,7 +19,8 @@
 				MaxWidth="600"
 				VerticalAlignment="Top">
 			<StackPanel Spacing="15">
-				<TextBlock Text="게임 이름 변경"
+				<TextBlock x:Name="TitleTextBlock"
+						   Text="게임 이름 변경"
 						   FontSize="20"
 						   FontWeight="Bold"
 						   Foreground="{DynamicResource Text.Primary}"/>

@@ -11,12 +11,9 @@ namespace UltimateEnd.Scraper.Helpers
         {
             var searchMethod = ScreenScraperConfig.Instance.PreferredSearchMethod;
 
-            if (searchMethod == SearchMethod.ByCrc && string.IsNullOrEmpty(crc))
-                searchMethod = SearchMethod.ByFileName;
+            if (searchMethod == SearchMethod.ByCrc && string.IsNullOrEmpty(crc)) searchMethod = SearchMethod.ByFileName;
 
-            return searchMethod == SearchMethod.ByCrc
-                ? BuildCrcSearchUrl(crc, fileName, fileSize, systemId)
-                : BuildFileNameSearchUrl(fileName, systemId);
+            return searchMethod == SearchMethod.ByCrc ? BuildCrcSearchUrl(crc, fileName, fileSize, systemId) : BuildFileNameSearchUrl(fileName, systemId);
         }
 
         private static string BuildFileNameSearchUrl(string fileName, ScreenScraperSystemId systemId)
@@ -41,6 +38,7 @@ namespace UltimateEnd.Scraper.Helpers
             }
 
             AppendCredentials(sb);
+
             return sb.ToString();
         }
 
@@ -69,13 +67,13 @@ namespace UltimateEnd.Scraper.Helpers
             }
 
             AppendCredentials(sb);
+
             return sb.ToString();
         }
 
         private static void AppendCredentials(StringBuilder sb)
         {
-            if (!string.IsNullOrEmpty(ScreenScraperConfig.Instance.Username) &&
-                !string.IsNullOrEmpty(ScreenScraperConfig.Instance.Password))
+            if (!string.IsNullOrEmpty(ScreenScraperConfig.Instance.Username) && !string.IsNullOrEmpty(ScreenScraperConfig.Instance.Password))
             {
                 sb.Append("&ssid=");
                 sb.Append(Uri.EscapeDataString(ScreenScraperConfig.Instance.Username));

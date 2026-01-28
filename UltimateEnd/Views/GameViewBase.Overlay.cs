@@ -123,9 +123,11 @@ namespace UltimateEnd.Views
             GameContextMenuOverlayBase.SetCoverImageRequested += OnContextMenu_SetCoverImage;
             GameContextMenuOverlayBase.SetGameVideoRequested += OnContextMenu_SetGameVideo;
             GameContextMenuOverlayBase.ToggleIgnoreRequested += OnContextMenu_ToggleIgnore;
-
             GameContextMenuOverlayBase.ScrapStarting += OnContextMenu_ScrapStarting;
             GameContextMenuOverlayBase.ScrapEnded += OnContextMenu_ScrapEnded;
+
+            GameContextMenuOverlayBase.EditScrapHintRequested += OnContextMenu_EditScrapHint;
+
         }
 
         private void AttachGameEmulatorEvents()
@@ -212,14 +214,6 @@ namespace UltimateEnd.Views
 
         private async void OnSettingsMenu_ScrapClicked(object? sender, EventArgs e)
         {
-            //var screenScraperSystemId = PlatformInfoService.GetScreenScraperSystemId(ViewModel.Platform.MappedPlatformId);
-
-            //if (screenScraperSystemId == ScreenScraperSystemId.NotSupported)
-            //{
-            //    await DialogService.Instance.ShowWarning($"스크래핑 지원 플랫폼이 아닙니다");
-            //    return;
-            //}
-
             ViewModel.IsDownloadingMedia = true;
 
             await WavSounds.OK();
@@ -609,6 +603,11 @@ namespace UltimateEnd.Views
             OnScrapEnded();
         }
 
+        private void OnContextMenu_EditScrapHint(object? sender, EventArgs e)
+        {
+            if (ViewModel?.ContextMenuTargetGame != null) ShowScrapHintEditOverlay(ViewModel.ContextMenuTargetGame);
+        }
+
         #endregion
 
         #region Game Emulator Overlay Events
@@ -715,6 +714,7 @@ namespace UltimateEnd.Views
 
             OnRenameOverlayShowing();
             await WavSounds.Click();
+            GameRenameOverlayBase.Title = "게임 이름 변경";
             GameRenameOverlayBase.Text = game.GetTitle();
             GameRenameOverlayBase.Show();
         }
@@ -724,6 +724,36 @@ namespace UltimateEnd.Views
             await WavSounds.Click();
             GameGenreOverlayBase.SetGenres(ViewModel.EditingGenres, game.Genre);
             GameGenreOverlayBase.Show();
+        }
+
+        private async void ShowScrapHintEditOverlay(GameMetadata game)
+        {
+            if (GameRenameOverlayBase == null) return;
+
+            await WavSounds.Click();
+            GameRenameOverlayBase.Text = game.ScrapHint ?? string.Empty;
+            GameRenameOverlayBase.Title = "스크랩 힌트 편집";
+
+            GameRenameOverlayBase.SaveRequested -= OnGameRename_Save;
+            GameRenameOverlayBase.SaveRequested -= OnScrapHintEdit_Save;
+
+            GameRenameOverlayBase.SaveRequested += OnScrapHintEdit_Save;
+            GameRenameOverlayBase.Show();
+        }
+
+        private void OnScrapHintEdit_Save(object? sender, EventArgs e)
+        {
+            if (ViewModel?.ContextMenuTargetGame != null)
+            {
+                var newHint = GameRenameOverlayBase.Text?.Trim();
+                ViewModel.ContextMenuTargetGame.ScrapHint = string.IsNullOrEmpty(newHint) ? null : newHint;
+                ViewModel.RequestSave();
+            }
+
+            GameRenameOverlayBase.SaveRequested -= OnScrapHintEdit_Save;
+            GameRenameOverlayBase.SaveRequested += OnGameRename_Save;
+
+            GameRenameOverlayBase.Hide(HiddenState.Confirm);
         }
 
         #endregion

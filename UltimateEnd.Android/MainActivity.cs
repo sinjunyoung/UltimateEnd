@@ -199,6 +199,8 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         base.OnResume();
 
+        RequestStoragePermissions();
+
         if (_gameExitTcs != null && !_gameExitTcs.Task.IsCompleted) 
         {
             var tcs = _gameExitTcs;

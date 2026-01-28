@@ -243,6 +243,16 @@ namespace UltimateEnd.Services
                 case 'T': // title
                     if (key.Length == 5) game.Title = value;
                     break;
+                case 's':
+                case 'S': // scrapHint, subFolder
+                    if (key.Length == 9)
+                    {
+                        if (key[1] == 'c' || key[1] == 'C') // scrapHint
+                            game.ScrapHint = value;
+                        else if (key[1] == 'u' || key[1] == 'U') // subFolder
+                            game.SubFolder = value;
+                    }
+                    break;
                 case 'e':
                 case 'E': // emulater id
                     if (key.Length == 10) game.EmulatorId = value;
@@ -299,6 +309,9 @@ namespace UltimateEnd.Services
 
                     if (!string.IsNullOrEmpty(game.Title))
                         sb.Append("title=").Append(game.Title).Append('\n');
+
+                    if (!string.IsNullOrEmpty(game.ScrapHint))
+                        sb.Append("scrapHint=").Append(game.ScrapHint).Append('\n');
 
                     if (!string.IsNullOrEmpty(game.EmulatorId))
                         sb.Append("emulatorId=").Append(game.EmulatorId).Append('\n');
