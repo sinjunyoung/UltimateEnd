@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Threading.Tasks;
 using UltimateEnd.Enums;
 using UltimateEnd.Managers;
@@ -66,19 +67,17 @@ namespace UltimateEnd.Views
             Focus();
             SetupEventHandlers();
             SetupOverlays();
-
             Dispatcher.UIThread.Post(InitializePosition, DispatcherPriority.Loaded);
 
+            Bitmap oldImage = BackgroundImage.Source as Bitmap;
             string backgroundImagePath = SettingsService.LoadSettings()?.BackgroundImagePath;
 
-            if (!string.IsNullOrEmpty(backgroundImagePath))
-            {
-                Bitmap oldImage = BackgroundImage.Source as Bitmap;
+            if (!string.IsNullOrEmpty(backgroundImagePath) && File.Exists(backgroundImagePath))
+                BackgroundImage.Source = new Bitmap(backgroundImagePath);
+            else
+                BackgroundImage.Source = ResourceHelper.LoadResourceImage("background");
 
-                if(File.Exists(backgroundImagePath)) BackgroundImage.Source = new Bitmap(backgroundImagePath);
-
-                oldImage?.Dispose();
-            }
+            oldImage?.Dispose();
         }
 
         private async void InitializePosition()
@@ -230,13 +229,13 @@ namespace UltimateEnd.Views
 
                 Bitmap oldImage = BackgroundImage.Source as Bitmap;
 
-                if(backgroundImagePath != null)
+                if (!string.IsNullOrEmpty(backgroundImagePath))
                     BackgroundImage.Source = new Bitmap(backgroundImagePath);
                 else
-                    BackgroundImage.Source = null;
+                    BackgroundImage.Source = ResourceHelper.LoadResourceImage("background");
 
                 oldImage?.Dispose();
-                
+
                 var setting = SettingsService.LoadSettings();
                 setting.BackgroundImagePath = backgroundImagePath;
                 SettingsService.SaveSettingsQuiet(setting);

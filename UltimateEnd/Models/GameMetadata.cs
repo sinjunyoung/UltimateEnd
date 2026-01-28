@@ -203,8 +203,8 @@ namespace UltimateEnd.Models
                 {
                     var title = GetTitle().Replace(" ", string.Empty).ToLower();
                     var developer = (Developer ?? string.Empty).Replace(" ", string.Empty).ToLower();
-                    var genre = (Genre ?? string.Empty).Replace(" ", string.Empty).ToLower();
-                    _cache.SearchableText = $"{title}|{developer}|{genre}";
+                    var romfile = (RomFile ?? string.Empty).Replace(" ", string.Empty).ToLower();
+                    _cache.SearchableText = $"{title}|{developer}|{romfile}";
                 }
 
                 return _cache.SearchableText;

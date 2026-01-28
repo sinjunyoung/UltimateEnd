@@ -451,7 +451,7 @@
 										  AllowAutoHide="True"
 										  Focusable="True">
 								
-								<!-- ItemsRepeater 부분만 수정 -->
+								<!-- ItemsRepeater -->
 								<ItemsRepeater Name="GameItemsRepeater"
 											   ItemsSource="{Binding DisplayItems}"
 											   Background="Transparent">
@@ -472,7 +472,7 @@
 													DoubleTapped="OnDisplayItemDoubleTapped"
 													Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}}">
 												<Grid>
-													<!-- ⭐ 폴더 UI -->
+													<!-- 폴더 UI -->
 													<Grid ColumnDefinitions="Auto,*,Auto"
 														  IsVisible="{Binding IsFolder}">
 														<!-- 폴더 아이콘 -->

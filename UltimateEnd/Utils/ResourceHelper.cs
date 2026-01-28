@@ -1,4 +1,5 @@
-﻿using Avalonia.Platform;
+﻿using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using System;
 
 namespace UltimateEnd.Utils
@@ -60,6 +61,12 @@ namespace UltimateEnd.Utils
             }
 
             return null;
+        }
+
+        public static Bitmap LoadResourceImage(string resourceName)
+        {
+            string resourcePath = ResourceHelper.GetImage(resourceName);
+            return new Bitmap(AssetLoader.Open(new Uri(resourcePath)));
         }
     }
 }

@@ -19,6 +19,7 @@ namespace UltimateEnd.Android.SaveFile
             var edenlegacy = new SwitchSaveBackupService(_driveService, command, "dev.legacy.eden_emulator");
             var edenoptimized = new SwitchSaveBackupService(_driveService, command, "com.miHoYo.Yuanshen");
             var yuzu = new SwitchSaveBackupService(_driveService, command, "org.yuzu.yuzu_emu");
+            var sumi = new SwitchSaveBackupService(_driveService, command, "com.sumi.SumiEmulator");
             var citron = new SwitchSaveBackupService(_driveService, command, "org.citron.citron_emu");
             var dolphin = new DolphinSaveBackupService(_driveService, command);
             var dolphinmmjr2 = new DolphinSaveBackupService(_driveService, command, "/storage/emulated/0/mmjr2-vbi");
@@ -34,6 +35,7 @@ namespace UltimateEnd.Android.SaveFile
                 "edenlegacy" => edenlegacy,
                 "edenoptimized" => edenoptimized,
                 "yuzu" => yuzu,
+                "sumi" => sumi,
                 "citron" => citron,
                 "dolphin" => dolphin,
                 "dolphinmmjr2" => dolphinmmjr2,
@@ -56,6 +58,7 @@ namespace UltimateEnd.Android.SaveFile
                 "edenlegacy" => true,
                 "edenoptimized" => true,
                 "yuzu" => true,
+                "sumi" => true,
                 "citron" => true,
                 "dolphin" => true,
                 "dolphinmmjr2" => true,

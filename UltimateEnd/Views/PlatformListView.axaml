@@ -62,7 +62,7 @@
 									<Style Selector="Border:pointerover:not(.NoScale)">
 										<Setter Property="RenderTransform">
 											<Setter.Value>
-												<ScaleTransform ScaleX="1.05" ScaleY="1.05"/>
+												<ScaleTransform ScaleX="1.15" ScaleY="1.15"/>
 											</Setter.Value>
 										</Setter>
 									</Style>
@@ -153,7 +153,7 @@
 				<TextBlock Text="{Binding PlatformCount, StringFormat='{}{0} 플랫폼'}"
 						   FontSize="{Binding #PlatformListViewRoot.SubtitleFontSize}"
 						   Foreground="{DynamicResource Text.Muted}"
-						   Margin="{Binding #PlatformListViewRoot.SubtitleMargin}"/>
+						   Margin="{Binding #PlatformListViewRoot.SubtitleMargin}"/>			
 			</StackPanel>
 
 			<!-- 중앙 랜덤게임 아이콘 -->
@@ -224,10 +224,14 @@
 					VerticalAlignment="Bottom"
 					Opacity="0.8"
 					Margin="{Binding #PlatformListViewRoot.VersionMargin}">
+			<StackPanel.Background>
+				<SolidColorBrush Color="Black" Opacity="0.6"/>
+			</StackPanel.Background>
 			<TextBlock FontSize="{Binding #PlatformListViewRoot.DateFontSize}"
 					   Foreground="{DynamicResource Text.Primary}"
 					   TextAlignment="Left"
-					   Text="{Binding VersionText}"/>
+					   Text="{Binding VersionText}"
+					   Margin="8,4"/>
 		</StackPanel>
 		
 		<!-- 오버레이들 -->

@@ -157,14 +157,20 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
-                Id = "sudachi", Name = "sudachi", SupportedPlatforms = ["switch"],
+                Id = "sudachi", Name = "Sudachi", SupportedPlatforms = ["switch"],
                 LaunchCommand = @"Emulators\sudachi\sudachi.exe -f -g {romPath}"
             });
 
             config.AddEmulator(new Command
             {
-                Id = "yuzu", Name = "yuzu", SupportedPlatforms = ["switch"],
+                Id = "yuzu", Name = "Yuzu", SupportedPlatforms = ["switch"],
                 LaunchCommand = @"Emulators\yuzu\yuzu.exe -f -g {romPath}"
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "sumi", Name = "Sumi", SupportedPlatforms = ["switch"],
+                LaunchCommand = @"Emulators\sumi\sumi.exe -f -g {romPath}"
             });
 
             config.AddEmulator(new Command

@@ -127,7 +127,7 @@ namespace UltimateEnd.Android.Services
             config.AddEmulator(new Command
             {
                 Id = "citra mmj", Name = "Citra MMJ", SupportedPlatforms = ["3ds"],
-                LaunchCommand = "am start -n com.antutu.ABenchMark/org.citra.emu.ui.EmulationActivity -a android.intent.action.VIEW -e GamePath \"{romPath}\" --activity-clear-top"
+                LaunchCommand = "am start -n org.citra.emu/org.citra.emu.ui.EmulationActivity -a android.intent.action.VIEW -e GamePath \"{romPath}\" --activity-clear-top"
             });
 
             config.AddEmulator(new Command
@@ -176,6 +176,12 @@ namespace UltimateEnd.Android.Services
             {
                 Id = "yuzu", Name = "Yuzu", SupportedPlatforms = ["nsw"],
                 LaunchCommand = "am start -n org.yuzu.yuzu_emu/.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
+            });
+
+            config.AddEmulator(new Command
+            {
+                Id = "sumi", Name = "Sumi", SupportedPlatforms = ["nsw"],
+                LaunchCommand = "am start -n com.sumi.SumiEmulator/org.sumi.sumi_emu.activities.EmulationActivity -a android.intent.action.VIEW -d \"{safUriRomPath}\" --activity-clear-task --activity-clear-top --activity-no-history"
             });
 
             config.AddEmulator(new Command
