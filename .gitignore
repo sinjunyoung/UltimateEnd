@@ -362,6 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+UltimateEnd/Assets/prod.keys
 UltimateEnd.Desktop/SaveFile/GoogleOAuthService.cs
 UltimateEnd.Android/SaveFile/GoogleOAuthService.cs
 

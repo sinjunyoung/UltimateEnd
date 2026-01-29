@@ -1,13 +1,17 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia.Controls.Platform;
+using Avalonia.Threading;
 using DynamicData;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using UltimateEnd.Extractor;
 using UltimateEnd.Models;
 using UltimateEnd.Services;
 using UltimateEnd.Utils;
@@ -22,6 +26,7 @@ namespace UltimateEnd.Managers
         private readonly ObservableCollection<string> _genres = [];
         private readonly ObservableCollection<GameGenreItem> _editingGenres = [];
         private readonly List<GameMetadata> _subscribedGames = [];
+        private RomMetadataExtractorService _metadataExtractor;
 
         private string _selectedGenre = "전체";
         private string _searchText = string.Empty;
@@ -102,7 +107,6 @@ namespace UltimateEnd.Managers
         {
             UnsubscribeAllGames();
             ClearCollections();
-
             var metadata = GameMetadataManager.LoadGames(platformId);
             var sortedGames = SortGames([.. metadata], platformId);
 
@@ -110,6 +114,21 @@ namespace UltimateEnd.Managers
             {
                 _allGames.Add(game);
                 SubscribeToGame(game);
+            }
+
+            if (MetadataExtractorFactory.IsSupported(platformId))
+            {
+                var cache = new RomMetadataCache(platformId);
+
+                _ = Task.Run(async () =>
+                {
+                    _metadataExtractor?.Cancel();
+                    _metadataExtractor = new RomMetadataExtractorService(platformId);
+
+                    int maxParallel = OperatingSystem.IsAndroid() ? 1 : 4;
+
+                    await _metadataExtractor.ExtractInBackground(platformId, sortedGames, maxParallel);
+                });
             }
 
             FilterGames();

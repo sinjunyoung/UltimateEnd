@@ -85,4 +85,12 @@
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
  </ItemGroup>
+
+ <ItemGroup>
+   <AvaloniaResource Remove="Assets\app.ico" />
+ </ItemGroup>
+
+ <ItemGroup>
+   <Resource Include="Assets\app.ico" />
+ </ItemGroup>
 </Project>

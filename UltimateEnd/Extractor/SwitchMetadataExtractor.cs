@@ -1,0 +1,227 @@
+﻿using Avalonia.Platform;
+using LibHac;
+using LibHac.Common;
+using LibHac.Common.Keys;
+using LibHac.Fs;
+using LibHac.Fs.Fsa;
+using LibHac.FsSystem;
+using LibHac.Ns;
+using LibHac.Tools.Fs;
+using LibHac.Tools.FsSystem;
+using LibHac.Tools.FsSystem.NcaUtils;
+using System;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
+namespace UltimateEnd.Extractor
+{
+    public class SwitchMetadataExtractor : IMetadataExtractor
+    {
+        private readonly KeySet _keySet;
+        private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
+
+        private SwitchMetadataExtractor(string prodKeysPath)
+        {
+            _keySet = KeySet.CreateDefaultKeySet();
+            ExternalKeyReader.ReadKeyFile(_keySet, prodKeysPath, null, null, (IProgressReport)null);
+        }
+
+        private SwitchMetadataExtractor(Stream prodKeysStream)
+        {
+            _keySet = KeySet.CreateDefaultKeySet();
+            var tempFile = System.IO.Path.GetTempFileName();
+            
+            using (var fs = File.Create(tempFile))
+                prodKeysStream.CopyTo(fs);
+
+            ExternalKeyReader.ReadKeyFile(_keySet, tempFile, null, null, (IProgressReport)null);
+            File.Delete(tempFile);
+        }
+
+        public static SwitchMetadataExtractor FromAvaloniaResource()
+        {
+            var uri = new Uri("avares://UltimateEnd/Assets/prod.keys");
+            using var stream = AssetLoader.Open(uri);
+
+            return new SwitchMetadataExtractor(stream);
+        }
+
+        public async Task<ExtractedMetadata> Extract(string filePath)
+        {
+            if (_cache.TryGetValue(filePath, out var cached)) return cached;
+
+            var ext = System.IO.Path.GetExtension(filePath).ToLower();
+            var metadata = ext switch
+            {
+                ".nsp" => await ExtractFromNSP(filePath),
+                ".xci" => await ExtractFromXCI(filePath),
+                _ => null,
+            };
+
+            if (metadata != null) _cache[filePath] = metadata;
+
+            return metadata;
+        }
+
+        private async Task<ExtractedMetadata> ExtractFromNSP(string nspPath)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using var file = new LocalStorage(nspPath, FileAccess.Read);
+                    var pfs = new PartitionFileSystem();
+                    pfs.Initialize(file).ThrowIfFailure();
+
+                    return ExtractMetadata(pfs);
+                }
+                catch
+                {
+                    return null;
+                }
+            });
+        }
+
+        private async Task<ExtractedMetadata> ExtractFromXCI(string xciPath)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using var file = new LocalStorage(xciPath, FileAccess.Read);
+                    var xci = new Xci(_keySet, file);
+                    var securePartition = xci.OpenPartition(XciPartitionType.Secure);
+
+                    return ExtractMetadata(securePartition);
+                }
+                catch
+                {
+                    return null;
+                }
+            });
+        }
+
+        private ExtractedMetadata ExtractMetadata(IFileSystem fs)
+        {
+            var metadata = new ExtractedMetadata();
+
+            try
+            {
+                var entries = fs.EnumerateEntries("/", "*.nca");
+
+                foreach (var entry in entries)
+                {
+                    using var ncaFile = new UniqueRef<IFile>();
+                    fs.OpenFile(ref ncaFile.Ref, entry.FullPath.ToU8Span(), OpenMode.Read).ThrowIfFailure();
+                    var nca = new Nca(_keySet, ncaFile.Release().AsStorage());
+
+                    if (nca.Header.ContentType == NcaContentType.Control)
+                    {
+                        var romfs = nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.None);
+                        ExtractMetadataFromRomFs(romfs, metadata);
+                        break;
+                    }
+                }
+            }
+            catch { }
+
+            return metadata;
+        }
+
+        private static void ExtractMetadataFromRomFs(IFileSystem romfs, ExtractedMetadata metadata)
+        {
+            try
+            {
+                if (romfs.FileExists("/control.nacp"))
+                {
+                    using var nacpFile = new UniqueRef<IFile>();
+                    romfs.OpenFile(ref nacpFile.Ref, "/control.nacp".ToU8Span(), OpenMode.Read).ThrowIfFailure();
+
+                    var control = new ApplicationControlProperty();
+                    var nacpData = new byte[Marshal.SizeOf<ApplicationControlProperty>()];
+                    nacpFile.Get.Read(out _, 0, nacpData).ThrowIfFailure();
+
+                    GCHandle handle = GCHandle.Alloc(nacpData, GCHandleType.Pinned);
+
+                    try
+                    {
+                        control = Marshal.PtrToStructure<ApplicationControlProperty>(handle.AddrOfPinnedObject());
+                    }
+                    finally
+                    {
+                        handle.Free();
+                    }
+
+                    string foundTitle = null;
+
+                    var titleKo = control.Title[12].NameString.ToString().Trim('\0', ' ');
+                    var titleEn = control.Title[0].NameString.ToString().Trim('\0', ' ');
+
+                    if (!string.IsNullOrWhiteSpace(titleKo)) foundTitle = titleKo;
+                    else if (!string.IsNullOrWhiteSpace(titleEn)) foundTitle = titleEn;
+                    else
+                    {
+                        for (int i = 0; i < 16; i++)
+                        {
+                            var t = control.Title[i].NameString.ToString().Trim('\0', ' ');
+
+                            if (!string.IsNullOrWhiteSpace(t))
+                            {
+                                foundTitle = t;
+                                break;
+                            }
+                        }
+                    }
+
+                    metadata.Title = foundTitle ?? "Unknown Title";
+                }
+
+                string[] iconPriorities = [ "/icon_Korean.dat", "/icon_AmericanEnglish.dat", "/icon_English.dat" ];
+                string targetIconPath = null;
+
+                foreach (var path in iconPriorities)
+                {
+                    if (romfs.FileExists(path))
+                    {
+                        targetIconPath = path;
+                        break;
+                    }
+                }
+
+                if (targetIconPath == null)
+                {
+                    var iconFiles = romfs.EnumerateEntries("/", "icon_*.dat").ToList();
+
+                    if (iconFiles.Count != 0) targetIconPath = iconFiles.First().FullPath;
+                }
+
+                if (targetIconPath != null) metadata.CoverImage = ReadFile(romfs, targetIconPath);
+            }
+            catch (Exception ex)
+            {
+                if (string.IsNullOrEmpty(metadata.Title)) metadata.Title = "Extraction Failed";
+                System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
+        private static byte[] ReadFile(IFileSystem fs, string path)
+        {
+            using var file = new UniqueRef<IFile>();
+            fs.OpenFile(ref file.Ref, path.ToU8Span(), OpenMode.Read).ThrowIfFailure();
+
+            file.Get.GetSize(out long size).ThrowIfFailure();
+            var data = new byte[size];
+            file.Get.Read(out _, 0, data).ThrowIfFailure();
+
+            return data;
+        }
+
+        public static void ClearCache()
+        {
+            _cache.Clear();
+        }
+    }
+}
