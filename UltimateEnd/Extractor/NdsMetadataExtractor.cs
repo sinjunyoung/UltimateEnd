@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,73 +26,145 @@ namespace UltimateEnd.Extractor
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
-            if (!Path.GetExtension(filePath).Equals(".nds", StringComparison.CurrentCultureIgnoreCase)) return null;
+            var extension = Path.GetExtension(filePath).ToLower();
+            ExtractedMetadata metadata = null;
 
-            var metadata = await ExtractFromNDS(filePath);
+            if (extension == ".nds")
+                metadata = await ExtractFromNDS(filePath);
+            else if (extension == ".zip")
+                metadata = await ExtractFromZip(filePath);
 
             if (metadata != null)
             {
                 if (_cache.Count >= MaxCacheSize) _cache.Clear();
-
                 _cache[filePath] = metadata;
             }
 
             return metadata;
         }
 
-        private async Task<ExtractedMetadata> ExtractFromNDS(string ndsPath)
+        private static async Task<ExtractedMetadata> ExtractFromNDS(string ndsPath)
         {
             return await Task.Run(() =>
             {
                 try
                 {
                     using var fileStream = File.OpenRead(ndsPath);
-                    using var reader = new BinaryReader(fileStream);
-                    var metadata = new ExtractedMetadata();
+                    var headerBuffer = new byte[0x100];
 
-                    fileStream.Seek(ICON_OFFSET_LOCATION, SeekOrigin.Begin);
-                    var bannerOffset = reader.ReadUInt32();
+                    fileStream.ReadExactly(headerBuffer, 0, 0x100);
 
-                    if (bannerOffset > 0 && bannerOffset < fileStream.Length)
-                    {
-                        ExtractTitle(reader, bannerOffset, metadata, BANNER_TITLE_ENGLISH_OFFSET);
+                    var bannerOffset = BitConverter.ToUInt32(headerBuffer, ICON_OFFSET_LOCATION);
 
-                        if (string.IsNullOrWhiteSpace(metadata.Title)) ExtractTitle(reader, bannerOffset, metadata, BANNER_TITLE_JAPANESE_OFFSET);
+                    if (bannerOffset == 0 || bannerOffset > fileStream.Length) return null;
 
-                        var iconData = ExtractIcon(reader, bannerOffset);
-                        metadata.CoverImage = iconData;
-                        metadata.LogoImage = iconData;
-                    }
+                    var requiredSize = bannerOffset + 0x2400;
+                    var maxRead = Math.Min(fileStream.Length, requiredSize);
+                    var buffer = new byte[maxRead];
 
-                    if (string.IsNullOrWhiteSpace(metadata.Title)) metadata.Title = "Unknown NDS Game";
+                    fileStream.Position = 0;
+                    fileStream.ReadExactly(buffer, 0, (int)maxRead);
 
-                    return metadata;
+                    using var ms = new MemoryStream(buffer);
+
+                    return InternalProcessNDS(ms);
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"NDS Extraction Error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"NDS File Error: {ex.Message}");
                     return null;
                 }
             });
         }
 
-        private void ExtractTitle(BinaryReader reader, uint bannerOffset, ExtractedMetadata metadata, int offset)
+        private static async Task<ExtractedMetadata> ExtractFromZip(string zipPath)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using var archive = System.IO.Compression.ZipFile.OpenRead(zipPath);
+                    var entry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".nds", StringComparison.OrdinalIgnoreCase));
+
+                    if (entry == null) return null;
+
+                    using var entryStream = entry.Open();                    
+                    var headerBuffer = new byte[0x100];
+
+                    entryStream.ReadExactly(headerBuffer, 0, 0x100);
+
+                    var bannerOffset = BitConverter.ToUInt32(headerBuffer, ICON_OFFSET_LOCATION);
+
+                    if (bannerOffset == 0 || bannerOffset > entry.Length) return null;
+
+                    var requiredSize = bannerOffset + 0x2400;
+                    var maxRead = Math.Min(entry.Length, requiredSize);
+                    using var entryStream2 = entry.Open();
+                    var buffer = new byte[maxRead];
+
+                    entryStream2.ReadExactly(buffer, 0, (int)maxRead);
+
+                    using var ms = new MemoryStream(buffer);
+
+                    return InternalProcessNDS(ms);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Zip Extraction Error: {ex.Message}");
+                    return null;
+                }
+            });
+        }
+
+        private static ExtractedMetadata InternalProcessNDS(Stream stream)
+        {
+            try
+            {
+                using var reader = new BinaryReader(stream, Encoding.Default, leaveOpen: true);
+                var metadata = new ExtractedMetadata();
+
+                stream.Seek(ICON_OFFSET_LOCATION, SeekOrigin.Begin);
+                var bannerOffset = reader.ReadUInt32();
+
+                if (bannerOffset > 0 && bannerOffset < stream.Length)
+                {
+                    ExtractTitle(reader, bannerOffset, metadata, BANNER_TITLE_ENGLISH_OFFSET);
+
+                    if (string.IsNullOrWhiteSpace(metadata.Title)) ExtractTitle(reader, bannerOffset, metadata, BANNER_TITLE_JAPANESE_OFFSET);
+
+                    var iconData = ExtractIcon(reader, bannerOffset);
+                    metadata.CoverImage = iconData;
+                    metadata.LogoImage = iconData;
+                }
+
+                if (string.IsNullOrWhiteSpace(metadata.Title)) metadata.Title = "Unknown NDS Game";
+
+                return metadata;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Internal Processing Error: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static void ExtractTitle(BinaryReader reader, uint bannerOffset, ExtractedMetadata metadata, int offset)
         {
             reader.BaseStream.Seek(bannerOffset + offset, SeekOrigin.Begin);
             var titleBytes = reader.ReadBytes(BANNER_TITLE_LENGTH);
             var rawTitle = Encoding.Unicode.GetString(titleBytes).TrimEnd('\0');
 
-            var lines = rawTitle.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = rawTitle.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
 
             if (lines.Length > 0)
             {
                 metadata.Title = lines[0].Trim();
 
-                if (lines.Length > 1) metadata.Developer = lines[lines.Length - 1].Trim();
+                if (lines.Length > 1) metadata.Developer = lines[^1].Trim();
             }
         }
 
-        private byte[] ExtractIcon(BinaryReader reader, uint iconOffset)
+        private static byte[] ExtractIcon(BinaryReader reader, uint iconOffset)
         {
             try
             {
@@ -102,6 +175,7 @@ namespace UltimateEnd.Extractor
                 var paletteData = reader.ReadBytes(32);
 
                 var palette = new uint[16];
+
                 for (int i = 0; i < 16; i++)
                 {
                     ushort color = (ushort)(paletteData[i << 1] | (paletteData[(i << 1) + 1] << 8));
@@ -155,7 +229,7 @@ namespace UltimateEnd.Extractor
             }
         }
 
-        private byte[] ConvertToPng(byte[] rgbaData, int width, int height)
+        private static byte[] ConvertToPng(byte[] rgbaData, int width, int height)
         {
             try
             {

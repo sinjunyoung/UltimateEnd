@@ -31,6 +31,7 @@ namespace UltimateEnd.Extractor
                 metadata = await ExtractFromCIA(filePath);
 
             if (metadata != null) _cache[filePath] = metadata;
+
             return metadata;
         }
 
@@ -42,99 +43,79 @@ namespace UltimateEnd.Extractor
                 {
                     using var fs = File.OpenRead(path);
                     using var reader = new BinaryReader(fs);
+
+                    // 1. NCSD 헤더 찾기 (3DS/CCI)
                     long ncsdBase = 0;
-
                     fs.Seek(0, SeekOrigin.Begin);
-
                     if (Encoding.ASCII.GetString(reader.ReadBytes(4)) != "NCSD")
                     {
                         fs.Seek(0x100, SeekOrigin.Begin);
-
                         if (Encoding.ASCII.GetString(reader.ReadBytes(4)) == "NCSD")
                             ncsdBase = 0x100;
-                        else
-                            return null;
                     }
 
+                    // 2. NCCH 위치 파악
                     fs.Seek(ncsdBase + 0x120, SeekOrigin.Begin);
-
                     uint off0 = reader.ReadUInt32();
-                    uint len0 = reader.ReadUInt32();
-
                     long ncchOffset = (off0 == 0) ? ncsdBase + 0x4000 : ncsdBase + (long)off0 * 0x200;
 
+                    // NCCH 매직 넘버 검증 및 재탐색
                     fs.Seek(ncchOffset + 0x100, SeekOrigin.Begin);
-
-                    var magic = Encoding.ASCII.GetString(reader.ReadBytes(4));
-
-                    if (magic != "NCCH")
+                    if (Encoding.ASCII.GetString(reader.ReadBytes(4)) != "NCCH")
                     {
-                        ncchOffset = FindMagic(fs, "NCCH", 0x4000, 0x10000) - 0x100;
-
-                        if (ncchOffset < 0)
-                            return null;
+                        ncchOffset = FindMagic(fs, "NCCH", ncsdBase, ncsdBase + 0x20000) - 0x100;
+                        if (ncchOffset < -100) return ScanForSMDH(fs); // NCCH도 못 찾으면 생으로 스캔
                     }
 
-                    // Check encryption
+                    // 3. 암호화 여부 체크 (플래그 0x04가 설정되어 있으면 암호화가 '안 된' 것)
                     fs.Seek(ncchOffset + 0x18F, SeekOrigin.Begin);
                     byte cryptoFlags = reader.ReadByte();
                     bool isEncrypted = (cryptoFlags & 0x04) == 0;
 
-                    Stream workStream = fs;
-                    bool needsCleanup = false;
-
-                    if (isEncrypted && _cryptoInitialized)
+                    // 암호화 안 된 경우 - 정석 로직으로 추출
+                    if (!isEncrypted)
                     {
-                        fs.Seek(ncchOffset, SeekOrigin.Begin);
-                        var header = NCCHHeader.Read(reader);
+                        fs.Seek(ncchOffset + 0x1A0, SeekOrigin.Begin);
+                        uint exefsOff = reader.ReadUInt32() * 0x200;
+                        long exefsStart = ncchOffset + exefsOff;
 
-                        workStream = NCCHDecryption.CreateDecryptedStream(path, header);
-                        needsCleanup = true;
-
-                        if (workStream == null)
-                            return null;
-                    }
-                    else if (isEncrypted)
-                    {
-                        return null;
-                    }
-
-                    // Read ExeFS
-                    workStream.Seek(ncchOffset + 0x1A0, SeekOrigin.Begin);
-                    var workReader = new BinaryReader(workStream, Encoding.UTF8, true);
-
-                    uint exefsOff = workReader.ReadUInt32() * 0x200;
-                    long exefsStart = ncchOffset + exefsOff;
-
-                    workStream.Seek(exefsStart, SeekOrigin.Begin);
-
-                    for (int i = 0; i < 10; i++)
-                    {
-                        var entryName = Encoding.ASCII.GetString(workReader.ReadBytes(8)).Replace("\0", "").Trim().ToLower();
-                        uint entryOff = workReader.ReadUInt32();
-                        uint entryLen = workReader.ReadUInt32();
-
-                        if (entryName == "icon")
+                        fs.Seek(exefsStart, SeekOrigin.Begin);
+                        for (int i = 0; i < 10; i++)
                         {
-                            var result = ExtractSMDH(workStream, exefsStart + 0x200 + entryOff);
+                            var entryName = Encoding.ASCII.GetString(reader.ReadBytes(8)).Replace("\0", "").Trim().ToLower();
+                            uint entryOff = reader.ReadUInt32();
+                            uint entryLen = reader.ReadUInt32();
 
-                            if (needsCleanup)
-                                workStream?.Dispose();
-
-                            return result;
+                            if (entryName == "icon")
+                            {
+                                var res = ExtractSMDH(fs, exefsStart + 0x200 + entryOff);
+                                if (res != null) return res;
+                            }
                         }
                     }
 
-                    if (needsCleanup)
-                        workStream?.Dispose();
+                    // 4. 암호화되어 있거나 정석 로직 실패 시: 파일 전체에서 SMDH 매직넘버 강제 스캔
+                    // (암호화된 파일도 SMDH 영역만 암호화가 안 된 경우가 매우 많음)
+                    return ScanForSMDH(fs);
                 }
-                catch(Exception e) 
+                catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
+                    return null;
                 }
-
-                return null;
             });
+        }
+
+        // 별도 스캔 함수 추가
+        private static ExtractedMetadata ScanForSMDH(FileStream fs)
+        {
+            // 보통 메타데이터는 파일 앞부분 10MB 안에 있음
+            long smdhPos = FindMagic(fs, "SMDH", 0, 10 * 1024 * 1024);
+            if (smdhPos != -1)
+            {
+                return ExtractSMDH(fs, smdhPos);
+            }
+            return null;
         }
 
         private static long FindMagic(Stream fs, string magic, long start, long limit)
@@ -217,13 +198,21 @@ namespace UltimateEnd.Extractor
                     titles[i] = (shortDesc, publisher);
                 }
 
-                // Prefer English (index 1), fallback to Korean (11), then first available
-                var (name, pub) = !string.IsNullOrWhiteSpace(titles[11].name) ? titles[11] :
-                                  !string.IsNullOrWhiteSpace(titles[1].name) ? titles[1] :
-                                  titles.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.name));
+                var priority = new int[] { 7, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 0 };
 
-                metadata.Title = name ?? "Unknown Title";
-                metadata.Developer = pub ?? "Unknown Publisher";
+                (string name, string pub) found = (string.Empty, string.Empty);
+
+                foreach (var idx in priority)
+                {
+                    if (!string.IsNullOrWhiteSpace(titles[idx].name))
+                    {
+                        found = titles[idx];
+                        break;
+                    }
+                }
+
+                metadata.Title = found.name ?? "Unknown Title";
+                metadata.Developer = found.pub ?? "Unknown Publisher";
 
                 stream.Seek(offset + 0x24C0, SeekOrigin.Begin);
 

@@ -11,7 +11,7 @@ namespace UltimateEnd.Extractor
     /// </summary>
     public static class NCCHDecryption
     {
-        private static Dictionary<string, byte[]> _keys = new();
+        private static Dictionary<string, byte[]> _keys = [];
         private static byte[] _generatorConstant;
         private static bool _initialized = false;
 
@@ -29,7 +29,7 @@ namespace UltimateEnd.Extractor
 
                 foreach (var line in File.ReadLines(aesKeysPath))
                 {
-                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
                         continue;
 
                     var parts = line.Split('=');
@@ -91,15 +91,14 @@ namespace UltimateEnd.Extractor
                 return 0x2C; // Secure1
 
             // 일반적인 경우
-            switch (header.ProgramIdHigh >> 12)
+            return (header.ProgramIdHigh >> 12) switch
             {
-                case 0x0004: // Application
-                    return 0x2C; // NCCHSecure1
-                case 0x0000: // System
-                    return 0x2C;
-                default:
-                    return header.SecondaryKeySlot;
-            }
+                // Application
+                0x0004 => 0x2C,// NCCHSecure1
+                               // System
+                0x0000 => 0x2C,
+                _ => header.SecondaryKeySlot,
+            };
         }
 
         /// <summary>
@@ -126,7 +125,7 @@ namespace UltimateEnd.Extractor
         {
             // NCCH의 KeyY는 Signature가 아니라 특정 오프셋에서 읽음
             // 실제로는 NCCH 헤더의 0x00~0x0F (Signature의 마지막 16바이트)를 사용
-            return header.Signature.Skip(0xF0).Take(16).ToArray();
+            return [.. header.Signature.Skip(0xF0).Take(16)];
         }
 
         /// <summary>
@@ -210,9 +209,7 @@ namespace UltimateEnd.Extractor
 
         private static byte[] HexToBytes(string hex)
         {
-            return Enumerable.Range(0, hex.Length / 2)
-                .Select(i => Convert.ToByte(hex.Substring(i * 2, 2), 16))
-                .ToArray();
+            return [.. Enumerable.Range(0, hex.Length / 2).Select(i => Convert.ToByte(hex.Substring(i * 2, 2), 16))];
         }
     }
 

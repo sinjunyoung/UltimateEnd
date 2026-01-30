@@ -38,27 +38,25 @@ namespace UltimateEnd.Extractor
                     if (total == 0) return;
 
                     var current = 0;
-                    var semaphore = new SemaphoreSlim(maxParallel);
 
-                    var tasks = gameList.Select(async game =>
+                    await Parallel.ForEachAsync(gameList, new ParallelOptions
                     {
-                        if (_cts.Token.IsCancellationRequested) return;
-
-                        await semaphore.WaitAsync(_cts.Token);
-
+                        MaxDegreeOfParallelism = maxParallel,
+                        CancellationToken = _cts.Token
+                    }, async (game, ct) =>
+                    {
                         try
                         {
                             await ProcessGame(platformId, game);
+
                             Interlocked.Increment(ref current);
-                            ProgressChanged?.Invoke(current, total);
+                            // Avalonia.Threading.Dispatcher.UIThread.Post(() => ProgressChanged?.Invoke(current, total));
                         }
-                        finally
+                        catch (Exception ex)
                         {
-                            semaphore.Release();
+                            System.Diagnostics.Debug.WriteLine($"Error processing game {game.Title}: {ex.Message}");
                         }
                     });
-
-                    await Task.WhenAll(tasks);
                 }
                 finally
                 {
