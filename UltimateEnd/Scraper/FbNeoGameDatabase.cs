@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SQLite;
 using UltimateEnd.Services;
 using UltimateEnd.Scraper.Models;
+using System.Threading;
 
 namespace UltimateEnd.Scraper
 {
@@ -11,7 +12,7 @@ namespace UltimateEnd.Scraper
     {
         private static IAssetPathProvider? _pathProvider;
         private static SQLiteConnection? _db;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
 
         public static void Initialize(IAssetPathProvider pathProvider)
         {
@@ -111,7 +112,7 @@ namespace UltimateEnd.Scraper
             EnsureInitialized();
 
             if (string.IsNullOrWhiteSpace(keyword))
-                return new List<GameRecord>();
+                return [];
 
             try
             {

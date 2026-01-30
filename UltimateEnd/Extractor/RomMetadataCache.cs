@@ -58,6 +58,7 @@ namespace UltimateEnd.Extractor
             {
                 TitleId = titleId,
                 Title = metadata.Title,
+                Developer = metadata.Developer,
                 FileSize = fileInfo.Length,
                 LastModified = fileInfo.LastWriteTime
             };

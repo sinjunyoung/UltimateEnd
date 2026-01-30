@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace UltimateEnd.Services
@@ -9,7 +10,7 @@ namespace UltimateEnd.Services
         const string DatabaseFileName = "playtime.db";
 
         private static PlayTimeHistory _instance;
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
 
         public static PlayTimeHistory Instance
         {

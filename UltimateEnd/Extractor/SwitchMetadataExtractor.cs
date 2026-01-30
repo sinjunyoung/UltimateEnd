@@ -1,5 +1,4 @@
 ﻿using Avalonia.Platform;
-using LibHac;
 using LibHac.Common;
 using LibHac.Common.Keys;
 using LibHac.Fs;
@@ -23,30 +22,10 @@ namespace UltimateEnd.Extractor
         private readonly KeySet _keySet;
         private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
 
-        private SwitchMetadataExtractor(string prodKeysPath)
+        public SwitchMetadataExtractor(string prodKeysPath)
         {
             _keySet = KeySet.CreateDefaultKeySet();
             ExternalKeyReader.ReadKeyFile(_keySet, prodKeysPath, null, null, (IProgressReport)null);
-        }
-
-        private SwitchMetadataExtractor(Stream prodKeysStream)
-        {
-            _keySet = KeySet.CreateDefaultKeySet();
-            var tempFile = System.IO.Path.GetTempFileName();
-            
-            using (var fs = File.Create(tempFile))
-                prodKeysStream.CopyTo(fs);
-
-            ExternalKeyReader.ReadKeyFile(_keySet, tempFile, null, null, (IProgressReport)null);
-            File.Delete(tempFile);
-        }
-
-        public static SwitchMetadataExtractor FromAvaloniaResource()
-        {
-            var uri = new Uri("avares://UltimateEnd/Assets/prod.keys");
-            using var stream = AssetLoader.Open(uri);
-
-            return new SwitchMetadataExtractor(stream);
         }
 
         public async Task<ExtractedMetadata> Extract(string filePath)
@@ -156,12 +135,24 @@ namespace UltimateEnd.Extractor
                     }
 
                     string foundTitle = null;
+                    string foundPublisher = null;
 
                     var titleKo = control.Title[12].NameString.ToString().Trim('\0', ' ');
                     var titleEn = control.Title[0].NameString.ToString().Trim('\0', ' ');
 
-                    if (!string.IsNullOrWhiteSpace(titleKo)) foundTitle = titleKo;
-                    else if (!string.IsNullOrWhiteSpace(titleEn)) foundTitle = titleEn;
+                    var publisherKo = control.Title[12].PublisherString.ToString().Trim('\0', ' ');
+                    var publisherEn = control.Title[0].PublisherString.ToString().Trim('\0', ' ');
+
+                    if (!string.IsNullOrWhiteSpace(titleKo))
+                    {
+                        foundTitle = titleKo;
+                        foundPublisher = publisherKo;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(titleEn))
+                    {
+                        foundTitle = titleEn;
+                        foundPublisher = publisherEn;
+                    }
                     else
                     {
                         for (int i = 0; i < 16; i++)
@@ -171,12 +162,14 @@ namespace UltimateEnd.Extractor
                             if (!string.IsNullOrWhiteSpace(t))
                             {
                                 foundTitle = t;
+                                foundPublisher = control.Title[i].PublisherString.ToString().Trim('\0', ' ');
                                 break;
                             }
                         }
                     }
 
                     metadata.Title = foundTitle ?? "Unknown Title";
+                    metadata.Developer = foundPublisher;
                 }
 
                 string[] iconPriorities = [ "/icon_Korean.dat", "/icon_AmericanEnglish.dat", "/icon_English.dat" ];

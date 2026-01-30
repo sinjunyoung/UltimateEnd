@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using UltimateEnd.Services;
 
 namespace UltimateEnd.Extractor
 {
@@ -8,9 +9,15 @@ namespace UltimateEnd.Extractor
     {
         private static readonly Dictionary<string, Func<IMetadataExtractor>> _extractors = new()
         {
-            { "nintendoswitch", () => SwitchMetadataExtractor.FromAvaloniaResource() },
-            // { "nds", () => new NDSMetadataExtractor() },
-            // { "3ds", () => new ThreeDSMetadataExtractor() },
+            { "nintendoswitch", () =>
+            {
+                var factory = AppBaseFolderProviderFactory.Create.Invoke();
+                string keyPath = Path.Combine(factory.GetSettingsFolder(), "prod.keys");
+
+                return File.Exists(keyPath) ? new SwitchMetadataExtractor(keyPath): null;
+            }},
+            { "nintendods", () => new NdsMetadataExtractor() },
+            { "3ds", () => new ThreeDSMetadataExtractor() },
         };
 
         public static bool IsSupported(string platformId) => _extractors.ContainsKey(platformId);

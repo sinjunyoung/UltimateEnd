@@ -40,11 +40,11 @@ namespace UltimateEnd.Services
 
         public static void InvalidatePlatformCache(string platformKey) => _hasGamesCache.TryRemove(platformKey, out _);
 
-        public static List<GameMetadata> LoadMetadata(string platformId)
+        public static List<GameMetadata> LoadMetadata(string folderPath)
         {
-            var platformPath = SettingsService.GetPlatformPath(platformId);
+            var platformPath = SettingsService.GetPlatformPath(folderPath);
 
-            return LoadMetadataFromPath(platformId, platformPath);
+            return LoadMetadataFromPath(folderPath, platformPath);
         }
 
         public static List<GameMetadata> LoadMetadata(string platformId, string basePath)
@@ -54,7 +54,7 @@ namespace UltimateEnd.Services
             return LoadMetadataFromPath(platformId, platformPath);
         }
 
-        private static List<GameMetadata> LoadMetadataFromPath(string platformId, string platformPath)
+        private static List<GameMetadata> LoadMetadataFromPath(string folderPath, string platformPath)
         {
             if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return [];
 
@@ -82,12 +82,12 @@ namespace UltimateEnd.Services
 
                     if (games.Count > 0)
                     {
-                        if (IsSystemApp(platformId))
+                        if (IsSystemApp(folderPath))
                         {
                             var settings = SettingsService.LoadSettings();
-                            SaveMetadata(platformId, AppSettings.SystemAppsPath, games);
+                            SaveMetadata(folderPath, AppSettings.SystemAppsPath, games);
                         }
-                        else SaveMetadata(platformId, games);
+                        else SaveMetadata(folderPath, games);
                     }
 
                     return games;
@@ -98,18 +98,18 @@ namespace UltimateEnd.Services
             return [];
         }
 
-        public static void SaveMetadata(string platformId, IEnumerable<GameMetadata> games)
+        public static void SaveMetadata(string folderPath, IEnumerable<GameMetadata> games)
         {
-            var platformPath = SettingsService.GetPlatformPath(platformId);
+            var platformPath = SettingsService.GetPlatformPath(folderPath);
             SaveMetadataToPath(platformPath, games);
-            InvalidatePlatformCache(platformId);
+            InvalidatePlatformCache(folderPath);
         }
 
-        public static void SaveMetadata(string platformId, string basePath, IEnumerable<GameMetadata> games)
+        public static void SaveMetadata(string folderPath, string basePath, IEnumerable<GameMetadata> games)
         {
-            var platformPath = Path.Combine(basePath, platformId);
+            var platformPath = Path.Combine(basePath, folderPath);
             SaveMetadataToPath(platformPath, games);
-            InvalidatePlatformCache(platformId);
+            InvalidatePlatformCache(folderPath);
         }
 
         private static void SaveMetadataToPath(string platformPath, IEnumerable<GameMetadata> games)
@@ -296,8 +296,7 @@ namespace UltimateEnd.Services
                     {
                         if (validPlatformPaths.TryGetValue(externalGame.RomFile, out var actualPlatformPath))
                         {
-                            var folderId = mappedFolderIds.FirstOrDefault(id =>
-                                SettingsService.GetPlatformPath(id) == actualPlatformPath);
+                            var folderId = mappedFolderIds.FirstOrDefault(id => SettingsService.GetPlatformPath(id) == actualPlatformPath);
 
                             if (!string.IsNullOrEmpty(folderId)) externalGame.PlatformId = folderId;
 

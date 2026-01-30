@@ -1,10 +1,8 @@
 ﻿using Avalonia.Threading;
-using ExCSS;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using UltimateEnd.Models;
@@ -34,23 +32,23 @@ namespace UltimateEnd.Extractor
                 {
                     if (!MetadataExtractorFactory.IsSupported(platformId)) return;
 
-                    var gameList = games.ToList();
+                    var gameList = games.Where(g => !g.HasCoverImage).ToList();
                     var total = gameList.Count;
-                    var current = 0;
 
+                    if (total == 0) return;
+
+                    var current = 0;
                     var semaphore = new SemaphoreSlim(maxParallel);
+
                     var tasks = gameList.Select(async game =>
                     {
                         if (_cts.Token.IsCancellationRequested) return;
-
-                        if(game.HasCoverImage) return;
 
                         await semaphore.WaitAsync(_cts.Token);
 
                         try
                         {
                             await ProcessGame(platformId, game);
-
                             Interlocked.Increment(ref current);
                             ProgressChanged?.Invoke(current, total);
                         }
@@ -80,12 +78,7 @@ namespace UltimateEnd.Extractor
 
             if (cached != null)
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    if (!string.IsNullOrEmpty(cached.Title)) game.Title = cached.Title;
-                    if (!string.IsNullOrEmpty(cached.CoverImagePath)) game.CoverImagePath = cached.CoverImagePath;
-                    if(!string.IsNullOrEmpty(cached.LogoImagePath)) game.LogoImagePath = cached.LogoImagePath;
-                });
+                ApplyMetadataToGame(game, cached);
                 return;
             }
 
@@ -94,31 +87,32 @@ namespace UltimateEnd.Extractor
                 var extractor = MetadataExtractorFactory.GetExtractor(platformId);
                 var metadata = await extractor.Extract(romPath);
 
-                if (metadata != null && !string.IsNullOrEmpty(metadata.Title))
-                {
-                    await _cache.SaveMetadata(romPath, metadata);
+                if (metadata == null || string.IsNullOrEmpty(metadata.Title)) return;
 
-                    cached = await _cache.GetCachedMetadata(romPath);
+                await _cache.SaveMetadata(romPath, metadata);
+                cached = await _cache.GetCachedMetadata(romPath);
 
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        game.Title = cached.Title;
-                        game.CoverImagePath = cached.CoverImagePath;
-                        game.LogoImagePath = cached.LogoImagePath;
-                    });
-
-                    MetadataExtracted?.Invoke(game, metadata);
-                }
+                ApplyMetadataToGame(game, cached);
+                MetadataExtracted?.Invoke(game, metadata);
             }
             catch { }
+        }
+
+        private static void ApplyMetadataToGame(GameMetadata game, CachedMetadata cached)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!string.IsNullOrEmpty(cached.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile))) game.Title = cached.Title;
+                if (!string.IsNullOrEmpty(cached.Developer) && string.IsNullOrEmpty(game.Developer)) game.Developer = cached.Developer;
+                if (!string.IsNullOrEmpty(cached.CoverImagePath) && !game.HasCoverImage) game.CoverImagePath = cached.CoverImagePath;
+                if (!string.IsNullOrEmpty(cached.LogoImagePath) && !game.HasLogoImage) game.LogoImagePath = cached.LogoImagePath;
+            });
         }
 
         public async Task ForceExtract(string platformId, GameMetadata game)
         {
             var romPath = game.GetRomFullPath();
-
             _cache.DeleteCache(romPath);
-
             await ProcessGame(platformId, game);
         }
 

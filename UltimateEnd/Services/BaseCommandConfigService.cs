@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace UltimateEnd.Services
 {
     public abstract class BaseCommandConfigService : ICommandConfigService
     {
         protected ICommandConfig? _config;
-        protected readonly object _lock = new();
+        protected readonly Lock _lock = new();
 
         protected abstract string GetConfigDirectory();
 

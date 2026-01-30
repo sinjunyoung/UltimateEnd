@@ -222,8 +222,7 @@ namespace UltimateEnd.Desktop.Services
 
         private static async Task<EmulatorValidationAction> UseExistingInstallation(EmulatorValidationResult validation, string targetDirectory, string installFolderName)
         {
-            var existingExes = Directory.GetFiles(targetDirectory, "*.exe", SearchOption.AllDirectories);
-            var selectedExe = SelectBestExecutable(existingExes, validation.EmulatorName ?? string.Empty);
+            var selectedExe = GetExpectedExecutableNameFromConfig(validation.EmulatorId);
 
             if (selectedExe == null)
             {
@@ -249,7 +248,7 @@ namespace UltimateEnd.Desktop.Services
                 return await ShowErrorAndCancel("설치 실패", "압축 파일 내에 실행 파일(.exe)을 찾을 수 없습니다.");
             }
 
-            var selectedExe = SelectBestExecutable(exeFiles, validation.EmulatorName ?? string.Empty);
+            var selectedExe = GetExpectedExecutableNameFromConfig(validation.EmulatorId);
 
             if (selectedExe == null)
             {
@@ -481,29 +480,19 @@ namespace UltimateEnd.Desktop.Services
 
         private static string GetInstallFolderName(string emulatorId) => emulatorId.StartsWith("retroarch_", StringComparison.OrdinalIgnoreCase) ? "retroarch" : emulatorId;
 
-        private static string? SelectBestExecutable(string[] exeFiles, string emulatorName)
+        private static string? GetExpectedExecutableNameFromConfig(string emulatorId)
         {
-            if (exeFiles.Length == 0) return null;
-            if (exeFiles.Length == 1) return exeFiles[0];
+            var configService = CommandConfigServiceFactory.Create?.Invoke();
+            if (configService == null) return null;
 
-            var exactMatch = exeFiles.FirstOrDefault(exe => Path.GetFileNameWithoutExtension(exe).Equals(emulatorName, StringComparison.OrdinalIgnoreCase));
+            var config = configService.LoadConfig();
 
-            if (exactMatch != null) return exactMatch;
-
-            var nameContains = exeFiles.FirstOrDefault(exe => Path.GetFileNameWithoutExtension(exe).Contains(emulatorName, StringComparison.OrdinalIgnoreCase));
-
-            if (nameContains != null) return nameContains;
-
-            var validFiles = exeFiles.Where(exe =>
+            if (config.Emulators.TryGetValue(emulatorId, out var command) && command is Command cmd)
             {
-                var fileName = Path.GetFileName(exe).ToLowerInvariant();
-                string[] invalidKeywords = ["uninstall", "uninst", "setup", "install", "config", "updater", "launcher"];
-
-                return !invalidKeywords.Any(keyword => fileName.Contains(keyword));
-            }).ToArray();
-
-            if (validFiles.Length == 1) return validFiles[0];
-            if (validFiles.Length > 1) return validFiles.OrderBy(f => f.Length).First();
+                // LaunchCommand에서 실행 파일명 추출 (예: "Emulators\citra\citra-qt.exe" → "citra-qt.exe")
+                var executable = cmd.LaunchCommand.Split(' ')[0].Trim('"');
+                return Path.GetFileName(executable);
+            }
 
             return null;
         }

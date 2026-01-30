@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 
 namespace UltimateEnd.Services
 {
@@ -11,7 +12,7 @@ namespace UltimateEnd.Services
         private static readonly Lazy<PlatformMappingService> _instance = new(() => new PlatformMappingService());
         private const string SettingsFileName = "platform_mappings.json";
         private PlatformMappingConfig? _config;
-        private readonly object _configLock = new();
+        private readonly Lock _configLock = new();
 
         private readonly IPathConverter? _pathConverter = PathConverterFactory.Create?.Invoke();
 
