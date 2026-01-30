@@ -32,21 +32,17 @@ namespace UltimateEnd.Desktop.Services
 
         public Avalonia.Media.Imaging.Bitmap GetAppIcon(string launchCommand)
         {
-            if (string.IsNullOrWhiteSpace(launchCommand))
-                return null!;
+            if (string.IsNullOrWhiteSpace(launchCommand)) return null!;
 
             try
             {
                 string executablePath = ExtractExecutablePath(launchCommand);
 
-                if (string.IsNullOrEmpty(executablePath))
-                    return null!;
+                if (string.IsNullOrEmpty(executablePath)) return null!;
 
-                if (!Path.IsPathRooted(executablePath))
-                    executablePath = Path.Combine(AppContext.BaseDirectory, executablePath);
+                if (!Path.IsPathRooted(executablePath)) executablePath = Path.Combine(AppContext.BaseDirectory, executablePath);
 
-                if (!File.Exists(executablePath))
-                    return null!;
+                if (!File.Exists(executablePath)) return null!;
 
                 return ExtractIconFromFile(executablePath)!;
             }
@@ -62,6 +58,13 @@ namespace UltimateEnd.Desktop.Services
 
             launchCommand = launchCommand.Trim();
 
+            if (launchCommand.StartsWith('"'))
+            {
+                var endQuoteIndex = launchCommand.IndexOf('"', 1);
+
+                if (endQuoteIndex > 0) return launchCommand[1..endQuoteIndex];
+            }
+
             if (launchCommand.StartsWith('\''))
             {
                 var endQuoteIndex = launchCommand.IndexOf('\'', 1);
@@ -71,7 +74,7 @@ namespace UltimateEnd.Desktop.Services
 
             var exeIndex = launchCommand.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
 
-            if (exeIndex > 0) return launchCommand[..(exeIndex + 4)]; 
+            if (exeIndex > 0) return launchCommand[..(exeIndex + 4)];
 
             var firstSpaceIndex = launchCommand.IndexOf(' ');
 
@@ -85,8 +88,7 @@ namespace UltimateEnd.Desktop.Services
             var shinfo = new SHFILEINFO();
             var result = SHGetFileInfo(filePath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_LARGEICON);
 
-            if (result == IntPtr.Zero || shinfo.hIcon == IntPtr.Zero)
-                return null;
+            if (result == IntPtr.Zero || shinfo.hIcon == IntPtr.Zero) return null;
 
             try
             {

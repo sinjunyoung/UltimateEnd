@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,12 @@ namespace UltimateEnd.Extractor
     public class ThreeDSMetadataExtractor : IMetadataExtractor
     {
         private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
+        private static bool _cryptoInitialized = false;
+
+        public static void InitializeCrypto(string aesKeysPath)
+        {
+            _cryptoInitialized = NCCHDecryption.Initialize(aesKeysPath);
+        }
 
         public async Task<ExtractedMetadata> Extract(string filePath)
         {
@@ -43,8 +50,10 @@ namespace UltimateEnd.Extractor
                     {
                         fs.Seek(0x100, SeekOrigin.Begin);
 
-                        if (Encoding.ASCII.GetString(reader.ReadBytes(4)) == "NCSD") ncsdBase = 0x100;
-                        else return null;
+                        if (Encoding.ASCII.GetString(reader.ReadBytes(4)) == "NCSD")
+                            ncsdBase = 0x100;
+                        else
+                            return null;
                     }
 
                     fs.Seek(ncsdBase + 0x120, SeekOrigin.Begin);
@@ -62,26 +71,67 @@ namespace UltimateEnd.Extractor
                     {
                         ncchOffset = FindMagic(fs, "NCCH", 0x4000, 0x10000) - 0x100;
 
-                        if (ncchOffset < 0) return null;
+                        if (ncchOffset < 0)
+                            return null;
                     }
 
-                    fs.Seek(ncchOffset + 0x1A0, SeekOrigin.Begin);
+                    // Check encryption
+                    fs.Seek(ncchOffset + 0x18F, SeekOrigin.Begin);
+                    byte cryptoFlags = reader.ReadByte();
+                    bool isEncrypted = (cryptoFlags & 0x04) == 0;
 
-                    uint exefsOff = reader.ReadUInt32() * 0x200;
+                    Stream workStream = fs;
+                    bool needsCleanup = false;
+
+                    if (isEncrypted && _cryptoInitialized)
+                    {
+                        fs.Seek(ncchOffset, SeekOrigin.Begin);
+                        var header = NCCHHeader.Read(reader);
+
+                        workStream = NCCHDecryption.CreateDecryptedStream(path, header);
+                        needsCleanup = true;
+
+                        if (workStream == null)
+                            return null;
+                    }
+                    else if (isEncrypted)
+                    {
+                        return null;
+                    }
+
+                    // Read ExeFS
+                    workStream.Seek(ncchOffset + 0x1A0, SeekOrigin.Begin);
+                    var workReader = new BinaryReader(workStream, Encoding.UTF8, true);
+
+                    uint exefsOff = workReader.ReadUInt32() * 0x200;
                     long exefsStart = ncchOffset + exefsOff;
 
-                    fs.Seek(exefsStart, SeekOrigin.Begin);
+                    workStream.Seek(exefsStart, SeekOrigin.Begin);
 
                     for (int i = 0; i < 10; i++)
                     {
-                        var entryName = Encoding.ASCII.GetString(reader.ReadBytes(8)).Replace("\0", "").Trim().ToLower();
-                        uint entryOff = reader.ReadUInt32();
-                        uint entryLen = reader.ReadUInt32();
+                        var entryName = Encoding.ASCII.GetString(workReader.ReadBytes(8)).Replace("\0", "").Trim().ToLower();
+                        uint entryOff = workReader.ReadUInt32();
+                        uint entryLen = workReader.ReadUInt32();
 
-                        if (entryName == "icon") return ExtractSMDH(fs, exefsStart + 0x200 + entryOff);
+                        if (entryName == "icon")
+                        {
+                            var result = ExtractSMDH(workStream, exefsStart + 0x200 + entryOff);
+
+                            if (needsCleanup)
+                                workStream?.Dispose();
+
+                            return result;
+                        }
                     }
+
+                    if (needsCleanup)
+                        workStream?.Dispose();
                 }
-                catch { }
+                catch(Exception e) 
+                {
+                    Debug.WriteLine(e.Message);
+                }
 
                 return null;
             });
@@ -97,7 +147,8 @@ namespace UltimateEnd.Extractor
             {
                 fs.ReadExactly(buffer);
 
-                if (buffer.SequenceEqual(target)) return fs.Position - target.Length;
+                if (buffer.SequenceEqual(target))
+                    return fs.Position - target.Length;
 
                 fs.Seek(-target.Length + 1, SeekOrigin.Current);
             }
@@ -112,6 +163,7 @@ namespace UltimateEnd.Extractor
                 {
                     using var fs = File.OpenRead(path);
                     using var reader = new BinaryReader(fs);
+
                     var headerSize = reader.ReadUInt32();
 
                     reader.ReadUInt16();
@@ -125,10 +177,12 @@ namespace UltimateEnd.Extractor
 
                     static long Align64(long v) => (v + 63) & ~63L;
 
-                    var contentOffset = Align64(headerSize) + Align64(certChainSize) + Align64(ticketSize) + Align64(tmdSize);
+                    var contentOffset = Align64(headerSize) + Align64(certChainSize) +
+                                       Align64(ticketSize) + Align64(tmdSize);
                     var metaOffset = Align64(contentOffset + (long)contentSize);
 
-                    if (metaSize > 0) return ExtractSMDH(fs, metaOffset + 0x400);
+                    if (metaSize > 0)
+                        return ExtractSMDH(fs, metaOffset + 0x400);
 
                     return null;
                 }
@@ -146,7 +200,8 @@ namespace UltimateEnd.Extractor
 
                 var magic = Encoding.ASCII.GetString(reader.ReadBytes(4));
 
-                if (magic != "SMDH") return null;
+                if (magic != "SMDH")
+                    return null;
 
                 var metadata = new ExtractedMetadata();
                 stream.Seek(offset + 8, SeekOrigin.Begin);
@@ -162,7 +217,10 @@ namespace UltimateEnd.Extractor
                     titles[i] = (shortDesc, publisher);
                 }
 
-                var (name, pub) = !string.IsNullOrWhiteSpace(titles[11].name) ? titles[11] : !string.IsNullOrWhiteSpace(titles[1].name) ? titles[1] : titles.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.name));
+                // Prefer English (index 1), fallback to Korean (11), then first available
+                var (name, pub) = !string.IsNullOrWhiteSpace(titles[11].name) ? titles[11] :
+                                  !string.IsNullOrWhiteSpace(titles[1].name) ? titles[1] :
+                                  titles.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.name));
 
                 metadata.Title = name ?? "Unknown Title";
                 metadata.Developer = pub ?? "Unknown Publisher";
@@ -182,7 +240,6 @@ namespace UltimateEnd.Extractor
         private static string ReadUTF16String(BinaryReader reader, int maxBytes)
         {
             var bytes = reader.ReadBytes(maxBytes);
-
             return Encoding.Unicode.GetString(bytes).Split('\0')[0].Trim();
         }
 
@@ -210,7 +267,8 @@ namespace UltimateEnd.Extractor
                             int pixelX = tileX + x;
                             int pixelY = tileY + y;
 
-                            if (index + 1 >= tiledData.Length) continue;
+                            if (index + 1 >= tiledData.Length)
+                                continue;
 
                             ushort rgb565 = BitConverter.ToUInt16(tiledData, index);
                             index += 2;
@@ -244,7 +302,7 @@ namespace UltimateEnd.Extractor
             using var ms = new MemoryStream();
             using var writer = new BinaryWriter(ms);
 
-            writer.Write([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+            writer.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
 
             WriteChunk(writer, "IHDR", w => {
                 w.Write(SwapEndian((uint)width));
@@ -286,7 +344,8 @@ namespace UltimateEnd.Extractor
             writer.Write(SwapEndian(CalculateCRC([.. typeBytes, .. data])));
         }
 
-        private static uint SwapEndian(uint v) => (v >> 24) | (v << 24) | ((v >> 8) & 0x0000FF00) | ((v << 8) & 0x00FF0000);
+        private static uint SwapEndian(uint v) =>
+            (v >> 24) | (v << 24) | ((v >> 8) & 0x0000FF00) | ((v << 8) & 0x00FF0000);
 
         private static uint CalculateCRC(byte[] d)
         {
@@ -295,7 +354,8 @@ namespace UltimateEnd.Extractor
             foreach (var b in d)
             {
                 c ^= b;
-                for (int i = 0; i < 8; i++) c = (c >> 1) ^ ((c & 1) != 0 ? 0xEDB88320 : 0);
+                for (int i = 0; i < 8; i++)
+                    c = (c >> 1) ^ ((c & 1) != 0 ? 0xEDB88320 : 0);
             }
 
             return c ^ 0xFFFFFFFF;
@@ -307,7 +367,8 @@ namespace UltimateEnd.Extractor
 
             outS.WriteByte(0x78); outS.WriteByte(0x9C);
 
-            using (var ds = new System.IO.Compression.DeflateStream(outS, System.IO.Compression.CompressionMode.Compress, true))
+            using (var ds = new System.IO.Compression.DeflateStream(outS,
+                   System.IO.Compression.CompressionMode.Compress, true))
                 ds.Write(d, 0, d.Length);
 
             var a32 = CalculateAdler32(d);
@@ -320,7 +381,11 @@ namespace UltimateEnd.Extractor
         {
             uint a = 1, b = 0;
 
-            foreach (var v in d) { a = (a + v) % 65521; b = (b + a) % 65521; }
+            foreach (var v in d)
+            {
+                a = (a + v) % 65521;
+                b = (b + a) % 65521;
+            }
 
             return (b << 16) | a;
         }

@@ -7,12 +7,19 @@ namespace UltimateEnd.Extractor
 {
     public static class MetadataExtractorFactory
     {
+        private static readonly IAppBaseFolderProvider _factory = AppBaseFolderProviderFactory.Create.Invoke();
+
+        static MetadataExtractorFactory()
+        {
+            string keyPath = Path.Combine(_factory.GetSettingsFolder(), "aes_keys.txt");
+            ThreeDSMetadataExtractor.InitializeCrypto(keyPath);
+        }
+
         private static readonly Dictionary<string, Func<IMetadataExtractor>> _extractors = new()
         {
             { "nintendoswitch", () =>
-            {
-                var factory = AppBaseFolderProviderFactory.Create.Invoke();
-                string keyPath = Path.Combine(factory.GetSettingsFolder(), "prod.keys");
+            {   
+                string keyPath = Path.Combine(_factory.GetSettingsFolder(), "prod.keys");
 
                 return File.Exists(keyPath) ? new SwitchMetadataExtractor(keyPath): null;
             }},
