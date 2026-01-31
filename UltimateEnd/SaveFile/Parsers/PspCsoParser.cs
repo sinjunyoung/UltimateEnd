@@ -7,89 +7,34 @@ namespace UltimateEnd.SaveFile.Parsers
 {
     public class PspCsoParser : IFormatParser
     {
-        public bool CanParse(string extension) => extension.ToLower() == ".cso";
+        public bool CanParse(string extension) => extension.Equals(".cso", StringComparison.CurrentCultureIgnoreCase);
 
         public string? ParseGameId(string filePath)
         {
             try
             {
-                using var stream = File.OpenRead(filePath);
-                using var reader = new BinaryReader(stream);
+                using var csoReader = new CsoStreamReader(filePath);
 
-                byte[] magic = reader.ReadBytes(4);
+                var pvd = csoReader.ReadSector(16);
 
-                if (Encoding.ASCII.GetString(magic) != "CISO") return null;
+                if (pvd == null || pvd.Length < 2048) return null;
 
-                uint headerSize = reader.ReadUInt32();
-                ulong totalBytes = reader.ReadUInt64();
-                uint blockSize = reader.ReadUInt32();
-                byte ver = reader.ReadByte();
-                byte align = reader.ReadByte();
-                reader.ReadBytes(2);
+                if (pvd[0] != 0x01 || pvd[1] != 0x43 || pvd[2] != 0x44) return null;
 
-                uint numBlocks = (uint)(totalBytes / 2048);
-                uint numFrames = (uint)((totalBytes + blockSize - 1) / blockSize);
+                uint rootLBA = BitConverter.ToUInt32(pvd, 158);
+                uint pspGameLBA = FindDirectory(csoReader, rootLBA, "PSP_GAME");
 
-                uint blockShift = 0;
+                if (pspGameLBA == 0) return null;
 
-                for (uint i = blockSize; i > 0x800; i >>= 1) blockShift++;
+                var paramSfoInfo = FindFile(csoReader, pspGameLBA, "PARAM.SFO");
 
-                stream.Position = headerSize > 0 ? headerSize : 24;
+                if (paramSfoInfo == null) return null;
 
-                uint[] index = new uint[numFrames + 1];
+                byte[] sfoData = ReadFile(csoReader, paramSfoInfo.Value.lba, paramSfoInfo.Value.size);
 
-                for (uint i = 0; i <= numFrames; i++) index[i] = reader.ReadUInt32();
+                if (sfoData == null) return null;
 
-                int searchBlocks = Math.Min(5000, (int)numBlocks);
-                using var decompressed = new MemoryStream();
-
-                for (int blockNumber = 0; blockNumber < searchBlocks; blockNumber++)
-                {
-                    uint frameNumber = (uint)(blockNumber >> (int)blockShift);
-                    uint idx = index[frameNumber];
-                    uint indexPos = idx & 0x7FFFFFFF;
-                    uint nextIndexPos = index[frameNumber + 1] & 0x7FFFFFFF;
-
-                    ulong compressedReadPos = (ulong)indexPos << align;
-                    ulong compressedReadEnd = (ulong)nextIndexPos << align;
-                    uint compressedReadSize = (uint)(compressedReadEnd - compressedReadPos);
-                    uint compressedOffset = (uint)((blockNumber & ((1 << (int)blockShift) - 1)) * 2048);
-
-                    bool plain = (idx & 0x80000000) != 0;
-
-                    if (ver >= 2) plain = compressedReadSize >= blockSize;
-
-                    byte[] blockData = new byte[2048];
-
-                    if (plain)
-                    {
-                        stream.Seek((long)(compressedReadPos + compressedOffset), SeekOrigin.Begin);
-                        int readSize = stream.Read(blockData, 0, 2048);
-
-                        if (readSize < 2048) Array.Clear(blockData, readSize, 2048 - readSize);
-                    }
-                    else
-                    {
-                        stream.Seek((long)compressedReadPos, SeekOrigin.Begin);
-                        byte[] compressed = reader.ReadBytes((int)compressedReadSize);
-
-                        byte[] frameData = DecompressZlib(compressed, (int)blockSize);
-
-                        if (frameData != null)
-                            Array.Copy(frameData, compressedOffset, blockData, 0, Math.Min(2048, frameData.Length - (int)compressedOffset));
-                        else
-                            continue;
-                    }
-
-                    decompressed.Write(blockData, 0, blockData.Length);
-                }
-
-                if (decompressed.Length < 100) return null;
-
-                decompressed.Seek(0, SeekOrigin.Begin);
-                byte[]? paramSfoData = ParamSfoParser.FindInStream(decompressed);
-
-                return paramSfoData != null ? ParamSfoParser.ParseDiscId(paramSfoData) : null;
+                return ParamSfoParser.ParseDiscId(sfoData);
             }
             catch
             {
@@ -97,27 +42,93 @@ namespace UltimateEnd.SaveFile.Parsers
             }
         }
 
-        private static byte[]? DecompressZlib(byte[] compressed, int expectedSize)
+        private static uint FindDirectory(CsoStreamReader reader, uint dirLBA, string dirName)
         {
-            try
+            var sector = reader.ReadSector(dirLBA);
+
+            if (sector == null) return 0;
+
+            int pos = 0;
+
+            while (pos < sector.Length)
             {
-                byte[] decompressed = new byte[expectedSize];
+                byte recordLen = sector[pos];
 
-                using var compressedStream = new MemoryStream(compressed);
-                using var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress);
+                if (recordLen == 0) break;
+                if (pos + 33 >= sector.Length) break;
 
-                int totalRead = 0;
-                int bytesRead;
+                byte flags = sector[pos + 25];
+                byte nameLen = sector[pos + 32];
 
-                while (totalRead < expectedSize && (bytesRead = deflateStream.Read(decompressed, totalRead, expectedSize - totalRead)) > 0)
-                    totalRead += bytesRead;
+                if (nameLen > 0 && pos + 33 + nameLen <= sector.Length)
+                {
+                    var name = System.Text.Encoding.ASCII.GetString(sector, pos + 33, nameLen);
+                    bool isDirectory = (flags & 0x02) != 0;
 
-                return totalRead > 0 ? decompressed : null;
+                    if (isDirectory && name.Equals(dirName, StringComparison.OrdinalIgnoreCase)) return BitConverter.ToUInt32(sector, pos + 2);
+                }
+
+                pos += recordLen;
             }
-            catch
+
+            return 0;
+        }
+
+        private static (uint lba, uint size)? FindFile(CsoStreamReader reader, uint dirLBA, string fileName)
+        {
+            var sector = reader.ReadSector(dirLBA);
+
+            if (sector == null) return null;
+
+            int pos = 0;
+
+            while (pos < sector.Length)
             {
-                return null;
+                byte recordLen = sector[pos];
+
+                if (recordLen == 0) break;
+                if (pos + 33 >= sector.Length) break;
+
+                byte flags = sector[pos + 25];
+                byte nameLen = sector[pos + 32];
+
+                if (nameLen > 0 && pos + 33 + nameLen <= sector.Length)
+                {
+                    var name = System.Text.Encoding.ASCII.GetString(sector, pos + 33, nameLen);
+                    bool isDirectory = (flags & 0x02) != 0;
+
+                    if (!isDirectory && name.StartsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        uint lba = BitConverter.ToUInt32(sector, pos + 2);
+                        uint size = BitConverter.ToUInt32(sector, pos + 10);
+
+                        return (lba, size);
+                    }
+                }
+
+                pos += recordLen;
             }
+
+            return null;
+        }
+
+        private static byte[] ReadFile(CsoStreamReader reader, uint startLBA, uint fileSize)
+        {
+            uint readSize = Math.Min(fileSize, 10240);
+            byte[] result = new byte[readSize];
+            uint sectorsNeeded = (readSize + 2047) / 2048;
+
+            for (uint i = 0; i < sectorsNeeded; i++)
+            {
+                var sector = reader.ReadSector(startLBA + i);
+
+                if (sector == null) break;
+
+                uint copySize = Math.Min(2048, readSize - i * 2048);
+                Array.Copy(sector, 0, result, i * 2048, copySize);
+            }
+
+            return result;
         }
     }
 }
