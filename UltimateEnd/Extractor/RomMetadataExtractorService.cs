@@ -15,9 +15,7 @@ namespace UltimateEnd.Extractor
         private CancellationTokenSource _cts;
         private bool _isRunning;
 
-        public event Action<int, int> ProgressChanged;
         public event Action<GameMetadata, ExtractedMetadata> MetadataExtracted;
-        public event Action Completed;
 
         public async Task ExtractInBackground(string platformId, IEnumerable<GameMetadata> games, int maxParallel = 2)
         {
@@ -50,7 +48,6 @@ namespace UltimateEnd.Extractor
                             await ProcessGame(platformId, game);
 
                             Interlocked.Increment(ref current);
-                            // Avalonia.Threading.Dispatcher.UIThread.Post(() => ProgressChanged?.Invoke(current, total));
                         }
                         catch (Exception ex)
                         {
@@ -61,7 +58,6 @@ namespace UltimateEnd.Extractor
                 finally
                 {
                     _isRunning = false;
-                    Completed?.Invoke();
                 }
             }, _cts.Token);
         }

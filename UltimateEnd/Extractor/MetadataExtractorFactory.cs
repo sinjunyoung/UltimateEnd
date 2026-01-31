@@ -9,22 +9,20 @@ namespace UltimateEnd.Extractor
     {
         private static readonly IAppBaseFolderProvider _factory = AppBaseFolderProviderFactory.Create.Invoke();
 
-        static MetadataExtractorFactory()
-        {
-            string keyPath = Path.Combine(_factory.GetSettingsFolder(), "aes_keys.txt");
-            ThreeDSMetadataExtractor.InitializeCrypto(keyPath);
-        }
-
         private static readonly Dictionary<string, Func<IMetadataExtractor>> _extractors = new()
         {
+            { "nintendods", () => new NdsMetadataExtractor() },
+            { "3ds", () =>
+            {
+                string keyPath = Path.Combine(_factory.GetSettingsFolder(), "aes_keys.txt");
+                return new ThreeDSMetadataExtractor(keyPath);
+            }},
             { "nintendoswitch", () =>
             {   
                 string keyPath = Path.Combine(_factory.GetSettingsFolder(), "prod.keys");
-
                 return File.Exists(keyPath) ? new SwitchMetadataExtractor(keyPath): null;
             }},
-            { "nintendods", () => new NdsMetadataExtractor() },
-            { "3ds", () => new ThreeDSMetadataExtractor() },
+            { "playstationportable", () => new PspMetadataExtractor() },
         };
 
         public static bool IsSupported(string platformId) => _extractors.ContainsKey(platformId);

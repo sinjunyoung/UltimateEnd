@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace UltimateEnd.Extractor
         private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
         private static bool _cryptoInitialized = false;
 
-        public static void InitializeCrypto(string aesKeysPath)
+        public ThreeDSMetadataExtractor(string aesKeysPath)
         {
             _cryptoInitialized = NCCHDecryption.Initialize(aesKeysPath);
         }
@@ -44,35 +45,33 @@ namespace UltimateEnd.Extractor
                     using var fs = File.OpenRead(path);
                     using var reader = new BinaryReader(fs);
 
-                    // 1. NCSD 헤더 찾기 (3DS/CCI)
                     long ncsdBase = 0;
                     fs.Seek(0, SeekOrigin.Begin);
+
                     if (Encoding.ASCII.GetString(reader.ReadBytes(4)) != "NCSD")
                     {
                         fs.Seek(0x100, SeekOrigin.Begin);
-                        if (Encoding.ASCII.GetString(reader.ReadBytes(4)) == "NCSD")
-                            ncsdBase = 0x100;
+
+                        if (Encoding.ASCII.GetString(reader.ReadBytes(4)) == "NCSD") ncsdBase = 0x100;
                     }
 
-                    // 2. NCCH 위치 파악
                     fs.Seek(ncsdBase + 0x120, SeekOrigin.Begin);
                     uint off0 = reader.ReadUInt32();
                     long ncchOffset = (off0 == 0) ? ncsdBase + 0x4000 : ncsdBase + (long)off0 * 0x200;
 
-                    // NCCH 매직 넘버 검증 및 재탐색
                     fs.Seek(ncchOffset + 0x100, SeekOrigin.Begin);
+
                     if (Encoding.ASCII.GetString(reader.ReadBytes(4)) != "NCCH")
                     {
                         ncchOffset = FindMagic(fs, "NCCH", ncsdBase, ncsdBase + 0x20000) - 0x100;
-                        if (ncchOffset < -100) return ScanForSMDH(fs); // NCCH도 못 찾으면 생으로 스캔
+
+                        if (ncchOffset < -100) return ScanForSMDH(fs);
                     }
 
-                    // 3. 암호화 여부 체크 (플래그 0x04가 설정되어 있으면 암호화가 '안 된' 것)
                     fs.Seek(ncchOffset + 0x18F, SeekOrigin.Begin);
                     byte cryptoFlags = reader.ReadByte();
                     bool isEncrypted = (cryptoFlags & 0x04) == 0;
 
-                    // 암호화 안 된 경우 - 정석 로직으로 추출
                     if (!isEncrypted)
                     {
                         fs.Seek(ncchOffset + 0x1A0, SeekOrigin.Begin);
@@ -80,6 +79,7 @@ namespace UltimateEnd.Extractor
                         long exefsStart = ncchOffset + exefsOff;
 
                         fs.Seek(exefsStart, SeekOrigin.Begin);
+
                         for (int i = 0; i < 10; i++)
                         {
                             var entryName = Encoding.ASCII.GetString(reader.ReadBytes(8)).Replace("\0", "").Trim().ToLower();
@@ -89,32 +89,67 @@ namespace UltimateEnd.Extractor
                             if (entryName == "icon")
                             {
                                 var res = ExtractSMDH(fs, exefsStart + 0x200 + entryOff);
+
                                 if (res != null) return res;
                             }
                         }
                     }
+                    else if (isEncrypted && _cryptoInitialized)
+                    {
+                        fs.Seek(ncchOffset + 0x1A0, SeekOrigin.Begin);
+                        uint exefsOff = reader.ReadUInt32() * 0x200;
+                        long exefsStart = ncchOffset + exefsOff;
 
-                    // 4. 암호화되어 있거나 정석 로직 실패 시: 파일 전체에서 SMDH 매직넘버 강제 스캔
-                    // (암호화된 파일도 SMDH 영역만 암호화가 안 된 경우가 매우 많음)
+                        fs.Seek(exefsStart, SeekOrigin.Begin);
+                        var encryptedExeFS = reader.ReadBytes(64);
+
+                        fs.Seek(ncchOffset, SeekOrigin.Begin);
+                        var header = NCCHHeader.Read(reader);
+
+                        using var decryptedStream = NCCHDecryption.CreateDecryptedStream(path, header, ncchOffset);
+
+                        if (decryptedStream != null)
+                        {
+                            using var decReader = new BinaryReader(decryptedStream);
+
+                            decryptedStream.Seek(exefsOff, SeekOrigin.Begin);
+
+                            var decryptedExeFS = decReader.ReadBytes(64);
+                            var asText = Encoding.ASCII.GetString(decryptedExeFS);
+
+                            decryptedStream.Seek(exefsOff, SeekOrigin.Begin);
+
+                            for (int i = 0; i < 10; i++)
+                            {
+                                var nameBytes = decReader.ReadBytes(8);
+                                var entryName = Encoding.ASCII.GetString(nameBytes).Replace("\0", "").Trim().ToLower();
+                                uint entryOff = decReader.ReadUInt32();
+                                uint entryLen = decReader.ReadUInt32();
+                                
+                                if (entryName == "icon")
+                                {
+                                    var res = ExtractSMDH(decryptedStream, exefsStart + 0x200 + entryOff);
+                                    if (res != null) return res;
+                                }
+                            }
+                        }
+                    }
+
                     return ScanForSMDH(fs);
                 }
-                catch (Exception e)
+                catch
                 {
-                    Debug.WriteLine(e.Message);
                     return null;
                 }
             });
         }
 
-        // 별도 스캔 함수 추가
         private static ExtractedMetadata ScanForSMDH(FileStream fs)
         {
-            // 보통 메타데이터는 파일 앞부분 10MB 안에 있음
             long smdhPos = FindMagic(fs, "SMDH", 0, 10 * 1024 * 1024);
-            if (smdhPos != -1)
-            {
-                return ExtractSMDH(fs, smdhPos);
-            }
+
+            if (smdhPos != -1) return ExtractSMDH(fs, smdhPos);
+
             return null;
         }
 
@@ -124,15 +159,17 @@ namespace UltimateEnd.Extractor
             byte[] buffer = new byte[target.Length];
             fs.Seek(start, SeekOrigin.Begin);
 
-            while (fs.Position < limit)
+            while (fs.Position < limit && fs.Position < fs.Length)
             {
-                fs.ReadExactly(buffer);
+                int read = fs.Read(buffer, 0, buffer.Length);
 
-                if (buffer.SequenceEqual(target))
-                    return fs.Position - target.Length;
+                if (read < buffer.Length) break;
+
+                if (buffer.SequenceEqual(target)) return fs.Position - target.Length;
 
                 fs.Seek(-target.Length + 1, SeekOrigin.Current);
             }
+
             return -1;
         }
 
@@ -162,8 +199,7 @@ namespace UltimateEnd.Extractor
                                        Align64(ticketSize) + Align64(tmdSize);
                     var metaOffset = Align64(contentOffset + (long)contentSize);
 
-                    if (metaSize > 0)
-                        return ExtractSMDH(fs, metaOffset + 0x400);
+                    if (metaSize > 0) return ExtractSMDH(fs, metaOffset + 0x400);
 
                     return null;
                 }
@@ -181,8 +217,7 @@ namespace UltimateEnd.Extractor
 
                 var magic = Encoding.ASCII.GetString(reader.ReadBytes(4));
 
-                if (magic != "SMDH")
-                    return null;
+                if (magic != "SMDH") return null;
 
                 var metadata = new ExtractedMetadata();
                 stream.Seek(offset + 8, SeekOrigin.Begin);
@@ -256,8 +291,7 @@ namespace UltimateEnd.Extractor
                             int pixelX = tileX + x;
                             int pixelY = tileY + y;
 
-                            if (index + 1 >= tiledData.Length)
-                                continue;
+                            if (index + 1 >= tiledData.Length) continue;
 
                             ushort rgb565 = BitConverter.ToUInt16(tiledData, index);
                             index += 2;
@@ -291,7 +325,7 @@ namespace UltimateEnd.Extractor
             using var ms = new MemoryStream();
             using var writer = new BinaryWriter(ms);
 
-            writer.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+            writer.Write([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
 
             WriteChunk(writer, "IHDR", w => {
                 w.Write(SwapEndian((uint)width));
@@ -343,6 +377,7 @@ namespace UltimateEnd.Extractor
             foreach (var b in d)
             {
                 c ^= b;
+
                 for (int i = 0; i < 8; i++)
                     c = (c >> 1) ^ ((c & 1) != 0 ? 0xEDB88320 : 0);
             }
@@ -356,8 +391,7 @@ namespace UltimateEnd.Extractor
 
             outS.WriteByte(0x78); outS.WriteByte(0x9C);
 
-            using (var ds = new System.IO.Compression.DeflateStream(outS,
-                   System.IO.Compression.CompressionMode.Compress, true))
+            using (var ds = new System.IO.Compression.DeflateStream(outS, CompressionMode.Compress, true))
                 ds.Write(d, 0, d.Length);
 
             var a32 = CalculateAdler32(d);
