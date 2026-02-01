@@ -24,6 +24,8 @@ namespace UltimateEnd.Extractor
             }},
             { "playstationportable", () => new PspMetadataExtractor() },
             { "wii", () => new WiiMetadataExtractor() },
+            { "wiiu", () => new WiiUMetadataExtractor() },
+
         };
 
         public static bool IsSupported(string platformId) => _extractors.ContainsKey(platformId);
