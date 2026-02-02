@@ -28,9 +28,7 @@ namespace UltimateEnd.Android.SaveFile
             return command.Id switch
             {
                 "ppsspp" => new PPSSPPSaveBackupService(_driveService, command, folderPicker),
-                "melonds"  => melonds,
-                "melondsdual022" => melonds,
-                "melondsdual041" => melonds,
+                "melondsdual" => melonds,
                 "edenstandard" => edenstandard,
                 "edenlegacy" => edenlegacy,
                 "edenoptimized" => edenoptimized,
@@ -51,9 +49,7 @@ namespace UltimateEnd.Android.SaveFile
             return command.Id switch
             {
                 "ppsspp" => true,
-                "melonds" => true,
-                "melondsdual022" => true,
-                "melondsdual041" => true,
+                "melondsdual" => true,
                 "edenstandard" => true,
                 "edenlegacy" => true,
                 "edenoptimized" => true,

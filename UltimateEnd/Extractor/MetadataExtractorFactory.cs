@@ -23,6 +23,7 @@ namespace UltimateEnd.Extractor
                 return File.Exists(keyPath) ? new SwitchMetadataExtractor(keyPath): null;
             }},
             { "playstationportable", () => new PspMetadataExtractor() },
+            { "playstation2", () => new Ps2MetadataExtractor() },
             { "wii", () => new WiiMetadataExtractor() },
             { "wiiu", () => new WiiUMetadataExtractor() },
 
