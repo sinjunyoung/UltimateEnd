@@ -10,6 +10,8 @@ namespace UltimateEnd.Extractor
 
         public string Developer { get; set; }
 
+        public string Description { get; set; }
+
         public string CoverImagePath { get; set; }
 
         public string LogoImagePath { get; set; }

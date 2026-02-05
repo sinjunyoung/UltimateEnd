@@ -16,6 +16,8 @@ namespace UltimateEnd.Services
     {
         string GetSettingsFolder();
 
+        string GetAssetsFolder();
+
         string GetPlatformsFolder();
 
         string GetSystemAppsFolder();

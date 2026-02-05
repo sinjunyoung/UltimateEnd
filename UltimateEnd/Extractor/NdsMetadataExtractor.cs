@@ -10,7 +10,7 @@ namespace UltimateEnd.Extractor
 {
     public class NdsMetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
         private const int MaxCacheSize = 1000;
 
         private const int ICON_OFFSET_LOCATION = 0x68;
@@ -22,12 +22,12 @@ namespace UltimateEnd.Extractor
         private const int BANNER_TITLE_ENGLISH_OFFSET = 0x340;
         private const int BANNER_TITLE_LENGTH = 256;
 
-        public async Task<ExtractedMetadata> Extract(string filePath)
+        public async Task<GameMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
             var extension = Path.GetExtension(filePath).ToLower();
-            ExtractedMetadata metadata = null;
+            GameMetadata metadata = null;
 
             if (extension == ".nds")
                 metadata = await ExtractFromNDS(filePath);
@@ -43,7 +43,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<ExtractedMetadata> ExtractFromNDS(string ndsPath)
+        private static async Task<GameMetadata> ExtractFromNDS(string ndsPath)
         {
             return await Task.Run(() =>
             {
@@ -77,7 +77,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<ExtractedMetadata> ExtractFromZip(string zipPath)
+        private static async Task<GameMetadata> ExtractFromZip(string zipPath)
         {
             return await Task.Run(() =>
             {
@@ -116,12 +116,12 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static ExtractedMetadata InternalProcessNDS(Stream stream)
+        private static GameMetadata InternalProcessNDS(Stream stream)
         {
             try
             {
                 using var reader = new BinaryReader(stream, Encoding.Default, leaveOpen: true);
-                var metadata = new ExtractedMetadata();
+                var metadata = new GameMetadata();
 
                 stream.Seek(ICON_OFFSET_LOCATION, SeekOrigin.Begin);
                 var bannerOffset = reader.ReadUInt32();
@@ -148,7 +148,7 @@ namespace UltimateEnd.Extractor
             }
         }
 
-        private static void ExtractTitle(BinaryReader reader, uint bannerOffset, ExtractedMetadata metadata, int offset)
+        private static void ExtractTitle(BinaryReader reader, uint bannerOffset, GameMetadata metadata, int offset)
         {
             reader.BaseStream.Seek(bannerOffset + offset, SeekOrigin.Begin);
             var titleBytes = reader.ReadBytes(BANNER_TITLE_LENGTH);

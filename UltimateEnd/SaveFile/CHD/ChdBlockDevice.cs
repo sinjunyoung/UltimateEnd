@@ -5,9 +5,10 @@ namespace UltimateEnd.SaveFile.CHD
     public class ChdBlockDevice(LibChdrWrapper chd, uint hunkbytes, uint unitbytes, uint numBlocks)
     {
         private readonly uint blocksPerHunk = hunkbytes / unitbytes;
-
         private byte[]? readBuffer = null;
         private int currentHunk = -1;
+
+        private int sessionOffset = -1;
 
         public byte[]? ReadBlock(uint blockNumber)
         {
@@ -25,21 +26,33 @@ namespace UltimateEnd.SaveFile.CHD
             if (readBuffer == null) return null;
 
             uint offset = blockInHunk * unitbytes;
-
             byte[] outPtr = new byte[2048];
 
-            if (unitbytes == 2352)
+            if (sessionOffset == -1 || blockNumber == 16)
             {
-                if (offset + 16 + 2048 > readBuffer.Length) return null;
+                if (unitbytes == 2448 || unitbytes == 2352)
+                {
+                    if (offset + 25 < readBuffer.Length && readBuffer[offset + 25] == 0x43 && readBuffer[offset + 26] == 0x44)
+                        sessionOffset = 24;
+                    else if (offset + 17 < readBuffer.Length && readBuffer[offset + 17] == 0x43 && readBuffer[offset + 18] == 0x44)
+                        sessionOffset = 16;
+                    else if (readBuffer[offset + 1] == 0x43 && readBuffer[offset + 2] == 0x44)
+                        sessionOffset = 0;
 
-                Array.Copy(readBuffer, offset + 16, outPtr, 0, 2048);
+                    if (sessionOffset == -1 && blockNumber == 16) sessionOffset = 0;
+                }
+                else
+                {
+                    sessionOffset = 0;
+                }
             }
+
+            int finalOffset = (sessionOffset == -1) ? 0 : sessionOffset;
+
+            if (offset + (uint)finalOffset + 2048 <= (uint)readBuffer.Length)
+                Array.Copy(readBuffer, (int)(offset + (uint)finalOffset), outPtr, 0, 2048);
             else
-            {
-                if (offset + 2048 > readBuffer.Length) return null;
-
-                Array.Copy(readBuffer, offset, outPtr, 0, 2048);
-            }
+                Array.Copy(readBuffer, (int)offset, outPtr, 0, (int)Math.Min(unitbytes, 2048u));
 
             return outPtr;
         }

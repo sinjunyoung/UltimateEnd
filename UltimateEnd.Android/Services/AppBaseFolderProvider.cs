@@ -1,16 +1,27 @@
-﻿using System.IO;
+﻿using Android.Content;
+using System;
+using System.IO;
 using UltimateEnd.Services;
-using Android.Content;
 using Application = global::Android.App.Application;
 
 namespace UltimateEnd.Android.Services
 {
     public class AppBaseFolderProvider : IAppBaseFolderProvider
     {
+        private string _cachedAssetsFolder;
         private string _cachedFolder;
         private string _cachedPlatformsFolder;
         private string _cachedSystemAppsFolder;
         private static bool _firstRunChecked = false;
+
+        public string GetAssetsFolder()
+        {
+            if (!string.IsNullOrEmpty(_cachedAssetsFolder)) return _cachedAssetsFolder;
+
+            _cachedAssetsFolder = GetOrCreateSubFolder("Assets") ?? string.Empty;
+
+            return _cachedAssetsFolder;
+        }
 
         public string GetSettingsFolder()
         {

@@ -20,7 +20,7 @@ namespace UltimateEnd.Extractor
     public class SwitchMetadataExtractor : IMetadataExtractor
     {
         private readonly KeySet _keySet;
-        private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
 
         public SwitchMetadataExtractor(string prodKeysPath)
         {
@@ -28,7 +28,7 @@ namespace UltimateEnd.Extractor
             ExternalKeyReader.ReadKeyFile(_keySet, prodKeysPath, null, null, (IProgressReport)null);
         }
 
-        public async Task<ExtractedMetadata> Extract(string filePath)
+        public async Task<GameMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
@@ -45,7 +45,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private async Task<ExtractedMetadata> ExtractFromNSP(string nspPath)
+        private async Task<GameMetadata> ExtractFromNSP(string nspPath)
         {
             return await Task.Run(() =>
             {
@@ -64,7 +64,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private async Task<ExtractedMetadata> ExtractFromXCI(string xciPath)
+        private async Task<GameMetadata> ExtractFromXCI(string xciPath)
         {
             return await Task.Run(() =>
             {
@@ -83,9 +83,9 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private ExtractedMetadata ExtractMetadata(IFileSystem fs)
+        private GameMetadata ExtractMetadata(IFileSystem fs)
         {
-            var metadata = new ExtractedMetadata();
+            var metadata = new GameMetadata();
 
             try
             {
@@ -110,7 +110,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static void ExtractMetadataFromRomFs(IFileSystem romfs, ExtractedMetadata metadata)
+        private static void ExtractMetadataFromRomFs(IFileSystem romfs, GameMetadata metadata)
         {
             try
             {

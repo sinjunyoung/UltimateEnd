@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibHac.Diag;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
@@ -10,10 +11,10 @@ namespace UltimateEnd.Extractor
 {
     public class PspMetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
         private static readonly byte[] PNG_SIGNATURE = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
-        public async Task<ExtractedMetadata> Extract(string filePath)
+        public async Task<GameMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
@@ -31,7 +32,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<ExtractedMetadata> ExtractFromISO(string isoPath)
+        private static async Task<GameMetadata> ExtractFromISO(string isoPath)
         {
             return await Task.Run(() =>
             {
@@ -47,7 +48,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<ExtractedMetadata> ExtractFromCSO(string csoPath)
+        private static async Task<GameMetadata> ExtractFromCSO(string csoPath)
         {
             return await Task.Run(() =>
             {
@@ -63,9 +64,9 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static ExtractedMetadata ExtractMetadataFromCsoReader(CsoStreamReader reader)
+        private static GameMetadata ExtractMetadataFromCsoReader(CsoStreamReader reader)
         {
-            var metadata = new ExtractedMetadata();
+            var metadata = new GameMetadata();
 
             try
             {
@@ -104,9 +105,6 @@ namespace UltimateEnd.Extractor
             }
             catch { }
 
-            if (string.IsNullOrEmpty(metadata.Title))
-                metadata.Title = "Unknown Title";
-
             return metadata;
         }
 
@@ -142,7 +140,7 @@ namespace UltimateEnd.Extractor
             return result;
         }
 
-        private static async Task<ExtractedMetadata> ExtractFromCHD(string chdPath)
+        private static async Task<GameMetadata> ExtractFromCHD(string chdPath)
         {
             return await Task.Run(() =>
             {
@@ -179,9 +177,9 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static ExtractedMetadata ExtractMetadataFromStream(Stream stream)
+        private static GameMetadata ExtractMetadataFromStream(Stream stream)
         {
-            var metadata = new ExtractedMetadata();
+            var metadata = new GameMetadata();
             try
             {
                 if (TryParseIso9660Stream(stream, metadata))
@@ -201,13 +199,10 @@ namespace UltimateEnd.Extractor
             }
             catch { }
 
-            if (string.IsNullOrEmpty(metadata.Title))
-                metadata.Title = "Unknown Title";
-
             return metadata;
         }
 
-        private static bool TryParseIso9660Stream(Stream stream, ExtractedMetadata metadata)
+        private static bool TryParseIso9660Stream(Stream stream, GameMetadata metadata)
         {
             try
             {
@@ -245,9 +240,9 @@ namespace UltimateEnd.Extractor
             }
         }
 
-        private static ExtractedMetadata ExtractMetadataFromBlockDevice(ChdBlockDevice device, LibChdrWrapper chd, ChdrHeader header)
+        private static GameMetadata ExtractMetadataFromBlockDevice(ChdBlockDevice device, LibChdrWrapper chd, ChdrHeader header)
         {
-            var metadata = new ExtractedMetadata();
+            var metadata = new GameMetadata();
 
             try
             {
@@ -381,7 +376,7 @@ namespace UltimateEnd.Extractor
             return maxSize;
         }
 
-        private static void ParseParamSfo(byte[] sfoData, ExtractedMetadata metadata)
+        private static void ParseParamSfo(byte[] sfoData, GameMetadata metadata)
         {
             try
             {
@@ -408,16 +403,25 @@ namespace UltimateEnd.Extractor
                     var keyNameOffset = keyTableOffset + keyOffset;
                     var keyName = ReadNullTerminatedString(sfoData, keyNameOffset);
 
+                    var valueOffset = dataTableOffset + dataOffset;
+
                     if (keyName == "TITLE")
                     {
-                        var valueOffset = dataTableOffset + dataOffset;
                         var title = ReadNullTerminatedString(sfoData, valueOffset);
+
                         if (!string.IsNullOrEmpty(title))
-                        {
                             metadata.Title = title;
-                            return;
-                        }
                     }
+                    else if (keyName == "DISC_ID")
+                    {
+                        var discId = ReadNullTerminatedString(sfoData, valueOffset);
+
+                        if (!string.IsNullOrEmpty(discId))
+                            metadata.Id = discId;
+                    }
+
+                    if (!string.IsNullOrEmpty(metadata.Title) && !string.IsNullOrEmpty(metadata.Id))
+                        return;
                 }
             }
             catch { }
@@ -555,7 +559,7 @@ namespace UltimateEnd.Extractor
             return result;
         }
 
-        private static void FallbackFullScan(LibChdrWrapper chd, ChdrHeader header, ExtractedMetadata metadata)
+        private static void FallbackFullScan(LibChdrWrapper chd, ChdrHeader header, GameMetadata metadata)
         {
             try
             {

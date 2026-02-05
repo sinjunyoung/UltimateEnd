@@ -11,7 +11,7 @@ namespace UltimateEnd.Extractor
 {
     public class ThreeDSMetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, ExtractedMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
         private static bool _cryptoInitialized = false;
 
         public ThreeDSMetadataExtractor(string aesKeysPath)
@@ -19,12 +19,12 @@ namespace UltimateEnd.Extractor
             _cryptoInitialized = NCCHDecryption.Initialize(aesKeysPath);
         }
 
-        public async Task<ExtractedMetadata> Extract(string filePath)
+        public async Task<GameMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
             var ext = Path.GetExtension(filePath).ToLower();
-            ExtractedMetadata metadata = null;
+            GameMetadata metadata = null;
 
             if (ext == ".3ds" || ext == ".cci")
                 metadata = await ExtractFrom3DS(filePath);
@@ -36,7 +36,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<ExtractedMetadata> ExtractFrom3DS(string path)
+        private static async Task<GameMetadata> ExtractFrom3DS(string path)
         {
             return await Task.Run(() =>
             {
@@ -144,7 +144,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static ExtractedMetadata ScanForSMDH(FileStream fs)
+        private static GameMetadata ScanForSMDH(FileStream fs)
         {
             long smdhPos = FindMagic(fs, "SMDH", 0, 10 * 1024 * 1024);
 
@@ -173,7 +173,7 @@ namespace UltimateEnd.Extractor
             return -1;
         }
 
-        private static async Task<ExtractedMetadata> ExtractFromCIA(string path)
+        private static async Task<GameMetadata> ExtractFromCIA(string path)
         {
             return await Task.Run(() =>
             {
@@ -207,7 +207,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static ExtractedMetadata ExtractSMDH(Stream stream, long offset)
+        private static GameMetadata ExtractSMDH(Stream stream, long offset)
         {
             try
             {
@@ -219,7 +219,7 @@ namespace UltimateEnd.Extractor
 
                 if (magic != "SMDH") return null;
 
-                var metadata = new ExtractedMetadata();
+                var metadata = new GameMetadata();
                 stream.Seek(offset + 8, SeekOrigin.Begin);
 
                 var titles = new (string name, string pub)[16];
