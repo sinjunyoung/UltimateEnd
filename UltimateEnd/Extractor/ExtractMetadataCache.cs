@@ -6,12 +6,12 @@ using UltimateEnd.Services;
 
 namespace UltimateEnd.Extractor
 {
-    public class GameMetadataCache
+    public class ExtractMetadataCache
     {
         private readonly string _cacheDirectory;
         private const string MetadataFileName = "metadata.json";
 
-        public GameMetadataCache(string platformId)
+        public ExtractMetadataCache(string platformId)
         {
             var factory = AppBaseFolderProviderFactory.Create.Invoke();            
             var baseCacheDir = Path.Combine(factory.GetPlatformsFolder(), platformId);
@@ -47,7 +47,7 @@ namespace UltimateEnd.Extractor
             }
         }
 
-        public async Task SaveMetadata(string romFilePath, GameMetadata metadata)
+        public async Task SaveMetadata(string romFilePath, ExtractorMetadata metadata)
         {
             var titleId = GetTitleId(romFilePath);
             var titleDir = Path.Combine(_cacheDirectory, titleId);

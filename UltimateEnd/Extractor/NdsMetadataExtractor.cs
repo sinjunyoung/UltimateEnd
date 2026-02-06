@@ -10,7 +10,7 @@ namespace UltimateEnd.Extractor
 {
     public class NdsMetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, ExtractorMetadata> _cache = new();
         private const int MaxCacheSize = 1000;
 
         private const int ICON_OFFSET_LOCATION = 0x68;
@@ -22,12 +22,12 @@ namespace UltimateEnd.Extractor
         private const int BANNER_TITLE_ENGLISH_OFFSET = 0x340;
         private const int BANNER_TITLE_LENGTH = 256;
 
-        public async Task<GameMetadata> Extract(string filePath)
+        public async Task<ExtractorMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
             var extension = Path.GetExtension(filePath).ToLower();
-            GameMetadata metadata = null;
+            ExtractorMetadata metadata = null;
 
             if (extension == ".nds")
                 metadata = await ExtractFromNDS(filePath);
@@ -43,7 +43,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<GameMetadata> ExtractFromNDS(string ndsPath)
+        private static async Task<ExtractorMetadata> ExtractFromNDS(string ndsPath)
         {
             return await Task.Run(() =>
             {
@@ -77,7 +77,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<GameMetadata> ExtractFromZip(string zipPath)
+        private static async Task<ExtractorMetadata> ExtractFromZip(string zipPath)
         {
             return await Task.Run(() =>
             {
@@ -116,12 +116,12 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static GameMetadata InternalProcessNDS(Stream stream)
+        private static ExtractorMetadata InternalProcessNDS(Stream stream)
         {
             try
             {
                 using var reader = new BinaryReader(stream, Encoding.Default, leaveOpen: true);
-                var metadata = new GameMetadata();
+                var metadata = new ExtractorMetadata();
 
                 stream.Seek(ICON_OFFSET_LOCATION, SeekOrigin.Begin);
                 var bannerOffset = reader.ReadUInt32();
@@ -137,8 +137,6 @@ namespace UltimateEnd.Extractor
                     metadata.LogoImage = iconData;
                 }
 
-                if (string.IsNullOrWhiteSpace(metadata.Title)) metadata.Title = "Unknown NDS Game";
-
                 return metadata;
             }
             catch (Exception ex)
@@ -148,7 +146,7 @@ namespace UltimateEnd.Extractor
             }
         }
 
-        private static void ExtractTitle(BinaryReader reader, uint bannerOffset, GameMetadata metadata, int offset)
+        private static void ExtractTitle(BinaryReader reader, uint bannerOffset, ExtractorMetadata metadata, int offset)
         {
             reader.BaseStream.Seek(bannerOffset + offset, SeekOrigin.Begin);
             var titleBytes = reader.ReadBytes(BANNER_TITLE_LENGTH);

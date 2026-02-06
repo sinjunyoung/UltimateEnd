@@ -11,10 +11,10 @@ namespace UltimateEnd.Extractor
 {
     public class Ps2MetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, ExtractorMetadata> _cache = new();
                 
 
-        public async Task<GameMetadata> Extract(string filePath)
+        public async Task<ExtractorMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
@@ -33,7 +33,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<GameMetadata> ExtractFromISO(string isoPath)
+        private static async Task<ExtractorMetadata> ExtractFromISO(string isoPath)
         {
             return await Task.Run(() =>
             {
@@ -50,7 +50,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<GameMetadata> ExtractFromBIN(string binPath)
+        private static async Task<ExtractorMetadata> ExtractFromBIN(string binPath)
         {
             return await Task.Run(() =>
             {
@@ -67,7 +67,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<GameMetadata> ExtractFromCHD(string chdPath)
+        private static async Task<ExtractorMetadata> ExtractFromCHD(string chdPath)
         {
             return await Task.Run(() =>
             {
@@ -161,9 +161,9 @@ namespace UltimateEnd.Extractor
             return result;
         }
 
-        private static GameMetadata ExtractMetadataFromBlockDevice(ChdBlockDevice device)
+        private static ExtractorMetadata ExtractMetadataFromBlockDevice(ChdBlockDevice device)
         {
-            var metadata = new GameMetadata();
+            var metadata = new ExtractorMetadata();
 
             try
             {
@@ -342,9 +342,9 @@ namespace UltimateEnd.Extractor
 
         public static void ClearCache() => _cache.Clear();
 
-        private static GameMetadata ExtractMetadataFromStream(Stream stream, bool isBin)
+        private static ExtractorMetadata ExtractMetadataFromStream(Stream stream, bool isBin)
         {
-            var metadata = new GameMetadata();
+            var metadata = new ExtractorMetadata();
             try
             {
                 int sectorSize = 2048;

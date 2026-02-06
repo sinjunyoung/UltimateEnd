@@ -4,6 +4,6 @@ namespace UltimateEnd.Extractor
 {
     public interface IMetadataExtractor
     {
-        Task<GameMetadata> Extract(string filePath);
+        Task<ExtractorMetadata> Extract(string filePath);
     }
 }

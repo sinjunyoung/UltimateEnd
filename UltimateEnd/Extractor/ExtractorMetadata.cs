@@ -1,6 +1,6 @@
 ﻿namespace UltimateEnd.Extractor
 {
-    public class GameMetadata
+    public class ExtractorMetadata
     {
         public string Title { get; set; }
 

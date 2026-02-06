@@ -20,7 +20,7 @@ namespace UltimateEnd.Extractor
     public class SwitchMetadataExtractor : IMetadataExtractor
     {
         private readonly KeySet _keySet;
-        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, ExtractorMetadata> _cache = new();
 
         public SwitchMetadataExtractor(string prodKeysPath)
         {
@@ -28,7 +28,7 @@ namespace UltimateEnd.Extractor
             ExternalKeyReader.ReadKeyFile(_keySet, prodKeysPath, null, null, (IProgressReport)null);
         }
 
-        public async Task<GameMetadata> Extract(string filePath)
+        public async Task<ExtractorMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
@@ -45,7 +45,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private async Task<GameMetadata> ExtractFromNSP(string nspPath)
+        private async Task<ExtractorMetadata> ExtractFromNSP(string nspPath)
         {
             return await Task.Run(() =>
             {
@@ -64,7 +64,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private async Task<GameMetadata> ExtractFromXCI(string xciPath)
+        private async Task<ExtractorMetadata> ExtractFromXCI(string xciPath)
         {
             return await Task.Run(() =>
             {
@@ -83,9 +83,9 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private GameMetadata ExtractMetadata(IFileSystem fs)
+        private ExtractorMetadata ExtractMetadata(IFileSystem fs)
         {
-            var metadata = new GameMetadata();
+            var metadata = new ExtractorMetadata();
 
             try
             {
@@ -110,7 +110,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static void ExtractMetadataFromRomFs(IFileSystem romfs, GameMetadata metadata)
+        private static void ExtractMetadataFromRomFs(IFileSystem romfs, ExtractorMetadata metadata)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace UltimateEnd.Extractor
                         }
                     }
 
-                    metadata.Title = foundTitle ?? "Unknown Title";
+                    metadata.Title = foundTitle ?? string.Empty;
                     metadata.Developer = foundPublisher;
                 }
 

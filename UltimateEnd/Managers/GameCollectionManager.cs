@@ -25,7 +25,7 @@ namespace UltimateEnd.Managers
         private readonly ObservableCollection<string> _genres = [];
         private readonly ObservableCollection<GameGenreItem> _editingGenres = [];
         private readonly List<Models.GameMetadata> _subscribedGames = [];
-        private GameMetadataEnricher _metadataExtractor;
+        private ExtractMetadataEnricher _metadataExtractor;
 
         private string _selectedGenre = "전체";
         private string _searchText = string.Empty;
@@ -115,12 +115,12 @@ namespace UltimateEnd.Managers
                 SubscribeToGame(game);
             }
 
-            var cache = new RomMetadataCache(platformId);
+            var cache = new Extractor.ExtractMetadataCache(platformId);
 
             _ = Task.Run(async () =>
             {
                 _metadataExtractor?.Cancel();
-                _metadataExtractor = new GameMetadataEnricher(platformId);
+                _metadataExtractor = new ExtractMetadataEnricher(platformId);
 
                 int maxParallel = OperatingSystem.IsAndroid() ? 1 : 4;
 

@@ -1,4 +1,5 @@
-﻿using UltimateEnd.Models;
+﻿using System.IO;
+using UltimateEnd.Models;
 using UltimateEnd.Scraper.Models;
 
 namespace UltimateEnd.Scraper.Helpers
@@ -18,13 +19,14 @@ namespace UltimateEnd.Scraper.Helpers
 
                 if (dbGame != null)
                 {
-                    if (!string.IsNullOrEmpty(dbGame.Title))
+
+                    if (Path.GetFileName(game.RomFile) == game.Title || (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(dbGame.Title)))
                     {
                         game.Title = dbGame.Title;
                         updated = true;
                     }
 
-                    if (!string.IsNullOrEmpty(dbGame.Description))
+                    if (string.IsNullOrEmpty(game.Description) || (ScreenScraperConfig.Instance.AllowScrapDescription && !string.IsNullOrEmpty(dbGame.Description)))
                     {
                         game.Description = dbGame.Description;
                         updated = true;
@@ -36,13 +38,13 @@ namespace UltimateEnd.Scraper.Helpers
                         updated = true;
                     }
 
-                    if (!string.IsNullOrEmpty(scrapedGame.Genre))
+                    if (string.IsNullOrEmpty(game.Genre) && !string.IsNullOrEmpty(scrapedGame.Genre))
                     {
                         game.Genre = scrapedGame.Genre;
                         updated = true;
                     }
 
-                    if (!string.IsNullOrEmpty(scrapedGame.Developer))
+                    if (string.IsNullOrEmpty(game.Developer) && !string.IsNullOrEmpty(scrapedGame.Developer))
                     {
                         game.Developer = scrapedGame.Developer;
                         updated = true;
@@ -53,7 +55,7 @@ namespace UltimateEnd.Scraper.Helpers
                 }
             }
 
-            if (string.IsNullOrEmpty(game.Title) || (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(scrapedGame.Title)))
+            if (Path.GetFileName(game.RomFile) == game.Title || (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(scrapedGame.Title)))
             {
                 game.Title = scrapedGame.Title;
                 updated = true;
@@ -65,13 +67,13 @@ namespace UltimateEnd.Scraper.Helpers
                 updated = true;
             }
 
-            if (!string.IsNullOrEmpty(scrapedGame.Genre))
+            if (string.IsNullOrEmpty(game.Genre) && !string.IsNullOrEmpty(scrapedGame.Genre))
             {
                 game.Genre = scrapedGame.Genre;
                 updated = true;
             }
 
-            if (!string.IsNullOrEmpty(scrapedGame.Developer))
+            if (string.IsNullOrEmpty(game.Developer) && !string.IsNullOrEmpty(scrapedGame.Developer))
             {
                 game.Developer = scrapedGame.Developer;
                 updated = true;

@@ -13,7 +13,7 @@ namespace UltimateEnd.Extractor
 {
     public class WiiUMetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, ExtractorMetadata> _cache = new();
 
         #region WUA Structures
 
@@ -43,7 +43,7 @@ namespace UltimateEnd.Extractor
 
         #endregion
 
-        public async Task<GameMetadata> Extract(string filePath)
+        public async Task<ExtractorMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
@@ -61,7 +61,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<GameMetadata> ExtractFromWUA(string wuaPath)
+        private static async Task<ExtractorMetadata> ExtractFromWUA(string wuaPath)
         {
             return await Task.Run(() =>
             {
@@ -89,7 +89,7 @@ namespace UltimateEnd.Extractor
 
                     if (fileTree == null || fileTree.Length <= 1) return null;
 
-                    var metadata = new GameMetadata();
+                    var metadata = new ExtractorMetadata();
                     string gameDirName = null;
 
                     if (!fileTree[1].IsFile) gameDirName = GetName(nameTable, fileTree[1].NameOffset);
@@ -147,14 +147,14 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<GameMetadata> ExtractFromWUD(string wudPath)
+        private static async Task<ExtractorMetadata> ExtractFromWUD(string wudPath)
         {
             return await Task.Run(() =>
             {
                 try
                 {                    
                     using var stream = File.OpenRead(wudPath);
-                    var metadata = new GameMetadata();                    
+                    var metadata = new ExtractorMetadata();                    
                     long metaPartitionOffset = 0x18000000;
 
                     if (stream.Length > metaPartitionOffset) stream.Seek(metaPartitionOffset, SeekOrigin.Begin);
@@ -168,14 +168,14 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static Task<GameMetadata> ExtractFromWUX(string wuxPath)
+        private static Task<ExtractorMetadata> ExtractFromWUX(string wuxPath)
         {
             return null;
         }
 
         #region Meta XML Parsing
 
-        private static void ParseMetaXml(string xmlContent, GameMetadata metadata)
+        private static void ParseMetaXml(string xmlContent, ExtractorMetadata metadata)
         {
             try
             {

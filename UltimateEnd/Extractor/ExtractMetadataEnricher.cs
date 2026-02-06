@@ -1,5 +1,4 @@
 ﻿using Avalonia.Threading;
-using LibHac.Diag;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,13 +10,13 @@ using UltimateEnd.Services;
 
 namespace UltimateEnd.Extractor
 {
-    public class GameMetadataEnricher(string platformId)
+    public class ExtractMetadataEnricher(string platformId)
     {
-        private readonly RomMetadataCache _cache = new(platformId);
+        private readonly ExtractMetadataCache _cache = new(platformId);
         private CancellationTokenSource _cts;
         private bool _isRunning;
 
-        public event Action<Models.GameMetadata, GameMetadata> MetadataExtracted;
+        public event Action<Models.GameMetadata, ExtractorMetadata> MetadataExtracted;
 
         public async Task ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games, int maxParallel = 2)
         {
@@ -85,14 +84,14 @@ namespace UltimateEnd.Extractor
 
             try
             {
-                GameMetadata metadata;
+                ExtractorMetadata metadata;
 
                 var systemId = PlatformInfoService.Instance.GetScreenScraperSystemId(platformId);
                 bool isArcade = ScreenScraperSystemClassifier.IsArcadeSystem(systemId);
 
                 if (isArcade)
                 {
-                    metadata = new GameMetadata
+                    metadata = new ExtractorMetadata
                     {
                         Id = Path.GetFileNameWithoutExtension(romPath)
                     };
@@ -111,6 +110,8 @@ namespace UltimateEnd.Extractor
 
                 if (!string.IsNullOrEmpty(metadata.Id))
                     EnrichFromDatabase(platformId, metadata);
+
+                System.Diagnostics.Debug.WriteLine($"{metadata.Id}/{metadata.Title}");
 
                 await _cache.SaveMetadata(romPath, metadata);
                 cached = await _cache.GetCachedMetadata(romPath);
@@ -141,7 +142,7 @@ namespace UltimateEnd.Extractor
             await ProcessGame(platformId, game);
         }
 
-        private static void EnrichFromDatabase(string platformId, GameMetadata metadata)
+        private static void EnrichFromDatabase(string platformId, ExtractorMetadata metadata)
         {
             if (!IsDbSupported(platformId)) return;
 

@@ -22,12 +22,8 @@ namespace UltimateEnd.Desktop.Services
 
             if (!string.IsNullOrEmpty(initialDirectory))
             {
-                Uri uri = new(initialDirectory);
-
-                if (!uri.IsUnc)
-                {
-                    if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory)) startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
-                }
+                if (!initialDirectory.StartsWith(@"\\") && Directory.Exists(initialDirectory))
+                    startLocation = await _storageProvider.TryGetFolderFromPathAsync(initialDirectory);
             }
 
             var files = await _storageProvider.OpenFilePickerAsync(

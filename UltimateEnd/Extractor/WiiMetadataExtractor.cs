@@ -8,9 +8,9 @@ namespace UltimateEnd.Extractor
 {
     public class WiiMetadataExtractor : IMetadataExtractor
     {
-        private static readonly ConcurrentDictionary<string, GameMetadata> _cache = new();
+        private static readonly ConcurrentDictionary<string, ExtractorMetadata> _cache = new();
 
-        public async Task<GameMetadata> Extract(string filePath)
+        public async Task<ExtractorMetadata> Extract(string filePath)
         {
             if (_cache.TryGetValue(filePath, out var cached)) return cached;
 
@@ -30,7 +30,7 @@ namespace UltimateEnd.Extractor
             return metadata;
         }
 
-        private static async Task<GameMetadata> ExtractFromWbfs(string wbfsPath)
+        private static async Task<ExtractorMetadata> ExtractFromWbfs(string wbfsPath)
         {
             return await Task.Run(() =>
             {
@@ -110,7 +110,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<GameMetadata> ExtractFromIso(string isoPath)
+        private static async Task<ExtractorMetadata> ExtractFromIso(string isoPath)
         {
             return await Task.Run(() =>
             {
@@ -138,7 +138,7 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static async Task<GameMetadata> ExtractFromWad(string wadPath)
+        private static async Task<ExtractorMetadata> ExtractFromWad(string wadPath)
         {
             return await Task.Run(() =>
             {
@@ -146,7 +146,7 @@ namespace UltimateEnd.Extractor
                 {
                     using var stream = File.OpenRead(wadPath);
                     using var reader = new BinaryReader(stream);
-                    var metadata = new GameMetadata();
+                    var metadata = new ExtractorMetadata();
 
                     stream.Seek(0x00, SeekOrigin.Begin);
 
@@ -175,9 +175,9 @@ namespace UltimateEnd.Extractor
             });
         }
 
-        private static GameMetadata ExtractFromDiscHeader(BinaryReader reader)
+        private static ExtractorMetadata ExtractFromDiscHeader(BinaryReader reader)
         {
-            var metadata = new GameMetadata();
+            var metadata = new ExtractorMetadata();
 
             try
             {
@@ -194,7 +194,7 @@ namespace UltimateEnd.Extractor
 
                 string title = Encoding.UTF8.GetString(titleBytes).Trim();
 
-                metadata.Title = string.IsNullOrWhiteSpace(title) ? "Unknown Title" : title;
+                metadata.Title = title;
                 reader.BaseStream.Seek(currentPos + 0x04, SeekOrigin.Begin);
 
                 byte[] makerBytes = reader.ReadBytes(2);
