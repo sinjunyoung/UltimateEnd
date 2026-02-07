@@ -27,7 +27,6 @@
 			<Setter Property="Background" Value="{DynamicResource Accent.Primary}"/>
 			<Setter Property="BorderBrush" Value="{DynamicResource Accent.Primary}"/>
 			<Setter Property="BorderThickness" Value="3"/>
-			<Setter Property="FontWeight" Value="Bold"/>
 		</Style>
 	</UserControl.Styles>
 
@@ -55,7 +54,7 @@
 				            Margin="15,0,0,0">
 					<TextBlock Text="키 설정"
 					           FontSize="24"
-					           FontWeight="Bold"
+					           
 					           Foreground="{DynamicResource Text.Primary}"/>
 					<TextBlock Text="버튼을 클릭한 후 할당할 키를 누르세요"
 					           FontSize="14"
@@ -115,8 +114,7 @@
 					<!-- 1개일 때 이름만 표시 -->
 					<TextBlock Text="{Binding SelectedGamepadName}"
 					           VerticalAlignment="Center"
-					           FontSize="14"
-					           FontWeight="SemiBold"
+					           FontSize="14"					           
 					           Foreground="{DynamicResource Accent.Primary}"
 					           IsVisible="{Binding !HasMultipleGamepads}"/>
 				</StackPanel>
@@ -152,7 +150,7 @@
 						        PointerPressed="OnButtonClick"
 						        Tag="LeftBumper">
 							<StackPanel VerticalAlignment="Center">
-								<TextBlock Text="LB" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Classes="ButtonLabel"
+								<TextBlock Text="LB" FontSize="18"  HorizontalAlignment="Center" Classes="ButtonLabel"
 								           Foreground="{DynamicResource Text.Primary}"/>
 								<TextBlock Text="{Binding LeftBumper}" FontSize="12" Classes="KeyLabel"
 								           HorizontalAlignment="Center"
@@ -176,7 +174,7 @@
 							<StackPanel VerticalAlignment="Center">
 								<TextBlock Text="RB"
 								           FontSize="18"
-								           FontWeight="Bold"
+								           
 								           HorizontalAlignment="Center"
 								           Classes="ButtonLabel"/>
 								<TextBlock Text="{Binding RightBumper}"
@@ -360,8 +358,7 @@
 						        Tag="ButtonY">
 							<StackPanel VerticalAlignment="Center">
 								<TextBlock Text="Y"
-								           FontSize="22"
-								           FontWeight="Bold"
+								           FontSize="22"								           
 								           HorizontalAlignment="Center"
 								           Classes="ButtonLabel"/>
 								<TextBlock Text="{Binding ButtonY}"
@@ -387,8 +384,7 @@
 						        Tag="ButtonX">
 							<StackPanel VerticalAlignment="Center">
 								<TextBlock Text="X"
-								           FontSize="22"
-								           FontWeight="Bold"
+								           FontSize="22"								           
 								           HorizontalAlignment="Center"
 								           Classes="ButtonLabel"/>
 								<TextBlock Text="{Binding ButtonX}"
@@ -414,8 +410,7 @@
 						        Tag="ButtonB">
 							<StackPanel VerticalAlignment="Center">
 								<TextBlock Text="B"
-								           FontSize="22"
-								           FontWeight="Bold"
+								           FontSize="22"								           
 								           HorizontalAlignment="Center"
 								           Classes="ButtonLabel"/>
 								<TextBlock Text="{Binding ButtonB}"
@@ -441,8 +436,7 @@
 						        Tag="ButtonA">
 							<StackPanel VerticalAlignment="Center">
 								<TextBlock Text="A"
-								           FontSize="22"
-								           FontWeight="Bold"
+								           FontSize="22"								           
 								           HorizontalAlignment="Center"
 								           Classes="ButtonLabel"/>
 								<TextBlock Text="{Binding ButtonA}"
@@ -466,7 +460,7 @@
 						        IsVisible="{Binding IsBinding}">
 							<StackPanel VerticalAlignment="Center">
 								<TextBlock Text="{Binding BindingButtonName}"
-								           FontSize="20" FontWeight="Bold"
+								           FontSize="20" 
 								           HorizontalAlignment="Center"
 								           Foreground="{DynamicResource Text.Primary}"/>
 								<TextBlock FontSize="16"

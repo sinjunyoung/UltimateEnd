@@ -29,8 +29,7 @@
 				</Border>
 				<StackPanel Grid.Column="1" Margin="15,0,0,0">
 					<TextBlock Text="키 설정"
-                               FontSize="20"
-                               FontWeight="Bold"
+                               FontSize="20"                               
                                Foreground="{DynamicResource Text.Primary}"/>
 					<TextBlock Text="버튼을 탭하여 키를 할당하세요"
                                FontSize="14"
@@ -69,8 +68,7 @@
                                         Background="{DynamicResource Accent.Primary}"
                                         VerticalAlignment="Center">
 									<TextBlock Text="{Binding Icon}"
-                                               FontSize="22"
-                                               FontWeight="Bold"
+                                               FontSize="22"                                               
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
                                                Foreground="{DynamicResource Text.Primary}"/>
@@ -81,8 +79,7 @@
                                             Margin="15,0,0,0"
                                             VerticalAlignment="Center">
 									<TextBlock Text="{Binding Description}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"
+                                               FontSize="16"                                               
                                                Foreground="{DynamicResource Text.Primary}"/>
 									<TextBlock Text="{Binding CurrentValue}"
                                                FontSize="14"
@@ -137,8 +134,7 @@
 				<StackPanel Spacing="20">
 					<!-- 버튼 이름 -->
 					<TextBlock Text="{Binding BindingButtonName}"
-                               FontSize="24"
-                               FontWeight="Bold"
+                               FontSize="24"                               
                                HorizontalAlignment="Center"
                                Foreground="{DynamicResource Text.Primary}"/>
 

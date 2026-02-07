@@ -16,7 +16,7 @@
 			<StackPanel Spacing="15">
 				<TextBlock Text="설명 편집"
 						   FontSize="20"
-						   FontWeight="Bold"
+						   
 						   Foreground="{DynamicResource Text.Primary}"/>
 				<TextBox x:Name="OverlayDescriptionTextBox"
 						 AcceptsReturn="True"

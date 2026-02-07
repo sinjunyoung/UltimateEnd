@@ -37,7 +37,7 @@
 						<TextBlock Grid.Column="1"
 								   Text="장르 선택"
 								   FontSize="20"
-								   FontWeight="Bold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   VerticalAlignment="Center"/>
 					</Grid>
@@ -59,7 +59,7 @@
 										<TextBlock Grid.Column="0"
 												   Text="{Binding DisplayText}"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   Foreground="{DynamicResource Text.Primary}"
 												   VerticalAlignment="Center"/>
 										<Path Grid.Column="1"

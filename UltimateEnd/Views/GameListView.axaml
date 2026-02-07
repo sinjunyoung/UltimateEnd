@@ -183,8 +183,7 @@
 										   FontSize="{StaticResource FontSize.GameDetailTitle}"
 										   behaviors:LongPressBehavior.IsEnabled="True"
 										   behaviors:LongPressBehavior.Target="{Binding #RootControl}"
-										   behaviors:LongPressBehavior.MethodName="OnGameTitleLongPress"
-										   FontWeight="Bold"
+										   behaviors:LongPressBehavior.MethodName="OnGameTitleLongPress"										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   TextWrapping="Wrap"/>
 
@@ -221,8 +220,7 @@
 													   VerticalAlignment="Center"/>
 												<TextBlock Text="{Binding SelectedGame.TotalPlayTimeText}"
 														   FontSize="{StaticResource FontSize.Tag}"
-														   Foreground="{DynamicResource Text.Primary}"
-														   FontWeight="SemiBold"
+														   Foreground="{DynamicResource Text.Primary}"														   
 														   VerticalAlignment="Center"/>
 											</StackPanel>
 										</Border>
@@ -240,8 +238,8 @@
 												IsVisible="{Binding SelectedGame.Developer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 											<TextBlock Text="{Binding SelectedGame.Developer}"
 													   FontSize="{StaticResource FontSize.Tag}"
-													   Foreground="{DynamicResource Background.Primary}"
-													   FontWeight="SemiBold"/>
+													   VerticalAlignment="Center"
+													   Foreground="{DynamicResource Background.Primary}"/>
 										</Border>
 										<Border Background="{DynamicResource Accent.Red}"
 												CornerRadius="4"
@@ -249,8 +247,8 @@
 												IsVisible="{Binding SelectedGame.Genre, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 											<TextBlock Text="{Binding SelectedGame.Genre}"
 													   FontSize="{StaticResource FontSize.Tag}"
-													   Foreground="{DynamicResource Background.Primary}"
-													   FontWeight="SemiBold"/>
+													   VerticalAlignment="Center"
+													   Foreground="{DynamicResource Background.Primary}"/>
 										</Border>
 										<Border Background="{DynamicResource Accent.Green}"
 												CornerRadius="4"
@@ -258,8 +256,8 @@
 												IsVisible="{Binding SelectedGame.HasKorean}">
 											<TextBlock Text="한글"
 													   FontSize="{StaticResource FontSize.Tag}"
-													   Foreground="{DynamicResource Background.Primary}"
-													   FontWeight="SemiBold"/>
+													   VerticalAlignment="Center"
+													   Foreground="{DynamicResource Background.Primary}"/>
 										</Border>
 									</StackPanel>
 								</Grid>
@@ -499,7 +497,7 @@
 																	Spacing="5">
 															<TextBlock Text="{Binding Name}"
 																	   FontSize="{StaticResource FontSize.ListGameTitle}"
-																	   FontWeight="Bold"
+																	   
 																	   Foreground="{DynamicResource Text.Primary}"/>
 
 															<!-- 게임 개수와 폴더 아이콘 -->
@@ -566,7 +564,7 @@
 																</Image>
 																<TextBlock Text="{Binding Game.DisplayTitle}"
 																		   FontSize="{StaticResource FontSize.ListLogoFallback}"
-																		   FontWeight="Bold"
+																		   
 																		   TextAlignment="Center"
 																		   TextWrapping="Wrap"
 																		   VerticalAlignment="Center"
@@ -609,7 +607,6 @@
 																				   Text="{Binding Game.DisplayTitle}"
 																				   ClipToBounds="True"
 																				   FontSize="{Binding ((vm:GameListViewModel)DataContext).SimpleGameListMode, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToFontSizeConverter}}"
-																				   FontWeight="Bold"
 																				   Foreground="{DynamicResource Text.Primary}"
 																				   TextWrapping="NoWrap"
 																				   TextTrimming="CharacterEllipsis"
@@ -658,7 +655,7 @@
 																		<TextBlock Text="{Binding Game.ShortPlatformId}"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
-																				   FontWeight="SemiBold"
+																				   VerticalAlignment="Center"
 																				   MaxLines="1"
 																				   TextTrimming="CharacterEllipsis"
 																				   MaxWidth="{StaticResource MaxWidth.TagDeveloper}"/>
@@ -670,7 +667,7 @@
 																		<TextBlock Text="{Binding Game.Developer}"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
-																				   FontWeight="SemiBold"
+																				   VerticalAlignment="Center"
 																				   MaxLines="1"
 																				   TextTrimming="CharacterEllipsis"
 																				   MaxWidth="{StaticResource MaxWidth.TagDeveloper}"/>
@@ -682,7 +679,7 @@
 																		<TextBlock Text="{Binding Game.Genre}"
 																				   FontSize="{StaticResource FontSize.ListTag}"
 																				   Foreground="{DynamicResource Background.Primary}"
-																				   FontWeight="SemiBold"
+																				   VerticalAlignment="Center"
 																				   MaxLines="1"
 																				   TextTrimming="CharacterEllipsis"
 																				   MaxWidth="{StaticResource MaxWidth.TagGenre}"/>
@@ -693,8 +690,8 @@
 																			IsVisible="{Binding Game.HasKorean}">
 																		<TextBlock Text="한글"
 																				   FontSize="{StaticResource FontSize.ListTag}"
-																				   Foreground="{DynamicResource Background.Primary}"
-																				   FontWeight="SemiBold"/>
+																				   VerticalAlignment="Center"
+																				   Foreground="{DynamicResource Background.Primary}"/>
 																	</Border>
 																</StackPanel>
 															</StackPanel>

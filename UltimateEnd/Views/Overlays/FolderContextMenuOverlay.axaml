@@ -24,7 +24,7 @@
                                Name="FolderNameText"
                                Text="폴더"
                                FontSize="18"
-                               FontWeight="Bold"
+                               
                                Foreground="{DynamicResource Text.Primary}"/>
 					<Border Grid.Column="1"
                             PointerPressed="OnClose"
@@ -167,7 +167,7 @@
 						<TextBlock Grid.Column="0"
                                    Text="폴더 이름 변경"
                                    FontSize="18"
-                                   FontWeight="Bold"
+                                   
                                    Foreground="{DynamicResource Text.Primary}"/>
 						<Border Grid.Column="1"
                                 PointerPressed="OnRenameOverlayClose"
@@ -251,7 +251,7 @@
 				<StackPanel Spacing="15">
 					<TextBlock Text="폴더 삭제"
                                FontSize="18"
-                               FontWeight="Bold"
+                               
                                Foreground="{DynamicResource Text.Primary}"/>
 
 					<TextBlock Name="DeleteMessageText"

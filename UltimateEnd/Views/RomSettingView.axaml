@@ -20,7 +20,7 @@
 						<!-- Header -->
 						<TextBlock Text="롬 경로 설정"
                                    FontSize="32"
-                                   FontWeight="Bold"
+                                   
                                    Foreground="{DynamicResource Text.Primary}"/>
 
 						<!-- Base Paths Section (다중) -->
@@ -33,7 +33,7 @@
 									<StackPanel Grid.Column="0" Spacing="5">
 										<TextBlock Text="롬 기본 폴더"
                                                    FontSize="18"
-                                                   FontWeight="SemiBold"
+                                                   
                                                    Foreground="{DynamicResource TextBox.Foreground}"/>
 
 										<TextBlock Text="여러 롬 폴더를 추가할 수 있습니다"
@@ -134,7 +134,7 @@
 								<StackPanel Spacing="5">
 									<TextBlock Text="플랫폼 매핑"
                                                FontSize="18"
-                                               FontWeight="SemiBold"
+                                               
                                                Foreground="{DynamicResource TextBox.Foreground}"/>
 
 									<TextBlock Text="스캔된 플랫폼 폴더를 매핑하세요"
@@ -192,7 +192,7 @@
 																VerticalAlignment="Center">
 														<TextBlock Text="{Binding FolderName}"
 																   FontSize="16"
-																   FontWeight="SemiBold"
+																   
 																   Foreground="{DynamicResource Text.Primary}"
 																   VerticalAlignment="Center"/>
 														<Border Background="{DynamicResource Accent.Blue}"
@@ -203,7 +203,7 @@
 															<TextBlock Text="신규"
 																	   FontSize="11"
 																	   Foreground="{DynamicResource Button.Foreground}"
-																	   FontWeight="SemiBold"/>
+																	   />
 														</Border>
 													</StackPanel>
 

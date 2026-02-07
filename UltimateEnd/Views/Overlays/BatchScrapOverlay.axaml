@@ -21,7 +21,7 @@
 					<!-- 헤더 -->
 					<TextBlock Text="스크랩 진행 중"
 								FontSize="20"
-								FontWeight="Bold"
+								
 								Foreground="{DynamicResource Text.Primary}"
 								HorizontalAlignment="Center"/>
 
@@ -52,7 +52,7 @@
 								<!-- 게임 제목 -->
 								<TextBlock Text="{Binding CurrentGameTitle}"
 											FontSize="16"
-											FontWeight="Bold"
+											
 											Foreground="{DynamicResource Text.Primary}"
 											TextWrapping="Wrap"
 											TextAlignment="Center"
@@ -88,7 +88,7 @@
 										Foreground="{DynamicResource Text.Secondary}"
 										HorizontalAlignment="Center"/>
 							<TextBlock FontSize="24"
-										FontWeight="Bold"
+										
 										Foreground="{DynamicResource Text.Primary}"
 										HorizontalAlignment="Center">
 								<Run Text="{Binding CurrentCount}"/>
@@ -104,7 +104,7 @@
 										HorizontalAlignment="Center"/>
 							<TextBlock Text="{Binding SuccessCount}"
 										FontSize="24"
-										FontWeight="Bold"
+										
 										Foreground="#4CAF50"
 										HorizontalAlignment="Center"/>
 						</StackPanel>
@@ -116,7 +116,7 @@
 										HorizontalAlignment="Center"/>
 							<TextBlock Text="{Binding CachedCount}"
 										FontSize="24"
-										FontWeight="Bold"
+										
 										Foreground="#2196F3"
 										HorizontalAlignment="Center"/>
 						</StackPanel>
@@ -128,7 +128,7 @@
 										HorizontalAlignment="Center"/>
 							<TextBlock Text="{Binding SkippedCount}"
 										FontSize="24"
-										FontWeight="Bold"
+										
 										Foreground="#FF9800"
 										HorizontalAlignment="Center"/>
 						</StackPanel>
@@ -140,7 +140,7 @@
 										HorizontalAlignment="Center"/>
 							<TextBlock Text="{Binding FailedCount}"
 										FontSize="24"
-										FontWeight="Bold"
+										
 										Foreground="#F44336"
 										HorizontalAlignment="Center"/>
 						</StackPanel>
@@ -185,7 +185,7 @@
 						<StackPanel Spacing="10">
 							<TextBlock Text="실패한 파일"
 										FontSize="14"
-										FontWeight="Bold"
+										
 										Foreground="#F44336"/>
 							<ScrollViewer Height="150">
 								<ItemsControl ItemsSource="{Binding FailedItems}">

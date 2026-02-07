@@ -249,7 +249,7 @@ namespace UltimateEnd.Services
             db.Platforms.Add(new PlatformInfo { Id = "seganaomi2", DisplayName = "NAOMI 2", Aliases = ["naomi2"], Extensions = [".bin", ".dat", ".elf", ".lst", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.SegaNaomi2 });
 
             // Sony
-            db.Platforms.Add(new PlatformInfo { Id = "playstation", DisplayName = "PlayStation", Aliases = ["ps", "ps1", "psx"], Extensions = [".bin", ".cue", ".ccd", ".m3u", ".img", ".mdf", ".iso", ".pbp", ".chd", ".zip"], ScreenScraperSystemId = ScreenScraperSystemId.PlayStation });
+            db.Platforms.Add(new PlatformInfo { Id = "playstation", DisplayName = "PlayStation", Aliases = ["ps", "ps1", "psx"], Extensions = [".bin", ".cue", ".ccd", ".m3u", ".img", ".mdf", ".iso", ".pbp", ".chd"], ScreenScraperSystemId = ScreenScraperSystemId.PlayStation });
             db.Platforms.Add(new PlatformInfo { Id = "playstation2", DisplayName = "PlayStation 2", Aliases = ["ps2"], Extensions = [".bin", ".chd", ".ciso", ".cso", ".elf", ".gz", ".m3u", ".mdf", ".img", ".iso", ".isz", ".nrg"], ScreenScraperSystemId = ScreenScraperSystemId.PlayStation2 });
             db.Platforms.Add(new PlatformInfo { Id = "playstation3", DisplayName = "PlayStation 3", Aliases = ["ps3"], Extensions = [".iso", ".ps3"], ScreenScraperSystemId = ScreenScraperSystemId.PlayStation3 });
             db.Platforms.Add(new PlatformInfo { Id = "playstationportable", DisplayName = "PlayStation Portable", Aliases = ["psp"], Extensions = [".bin", ".cue", ".iso", ".cso", ".pbp", ".chd", ".elf", ".prx"], ScreenScraperSystemId = ScreenScraperSystemId.PSP });

@@ -151,22 +151,6 @@
 	<!-- ============================================ -->
 	<!-- 공통 스타일 정의 -->
 	<!-- ============================================ -->
-	<Style Selector=":is(TemplatedControl)">
-		<Setter Property="FontFamily" Value="sans-serif"/>
-	</Style>
-
-	<Style Selector="TextBlock">
-		<Setter Property="FontFamily" Value="avares://UltimateEnd/Assets/Fonts#Pretendard, Noto Color Emoji, sans-serif"/>
-	</Style>
-	<Style Selector="Button">
-		<Setter Property="FontFamily" Value="avares://UltimateEnd/Assets/Fonts#Pretendard, Noto Color Emoji, sans-serif"/>
-	</Style>
-	<Style Selector="TextBox">
-		<Setter Property="FontFamily" Value="avares://UltimateEnd/Assets/Fonts#Pretendard, Noto Color Emoji, sans-serif"/>
-	</Style>
-	<Style Selector="ComboBox">
-		<Setter Property="FontFamily" Value="avares://UltimateEnd/Assets/Fonts#Pretendard, Noto Color Emoji, sans-serif"/>
-	</Style>
 
 	<Style Selector="Border.EditMode">
 		<Setter Property="BorderBrush" Value="#FF6B6B"/>
@@ -193,11 +177,9 @@
 	<!-- TextBlock 스타일 -->
 	<Style Selector="TextBlock.description">
 		<Setter Property="Foreground" Value="{DynamicResource Description.Foreground}"/>
-		<Setter Property="FontStyle" Value="Normal"/>
 	</Style>
 	<Style Selector="TextBlock.description.placeholder">
 		<Setter Property="Foreground" Value="{DynamicResource Description.PlaceholderForeground}"/>
-		<Setter Property="FontStyle" Value="Italic"/>
 	</Style>
 
 	<!-- TextBox 스타일 -->

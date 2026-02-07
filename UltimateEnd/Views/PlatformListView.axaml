@@ -111,7 +111,6 @@
 
 											<!-- 플랫폼 이름 -->
 											<TextBlock Text="{Binding Name}"
-													   FontWeight="SemiBold"
 													   Foreground="{DynamicResource Text.Primary}"
 													   TextAlignment="Center"
 													   TextWrapping="Wrap"
@@ -146,7 +145,7 @@
 			<StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
 				<TextBlock Text="PLATFORMS"
 						   FontSize="{Binding #PlatformListViewRoot.TitleFontSize}"
-						   FontWeight="Bold"
+						   
 						   Foreground="{DynamicResource Text.Primary}"
 						   Opacity="0.9"
 						   LetterSpacing="2"/>
@@ -210,7 +209,7 @@
 					   FontSize="{Binding #PlatformListViewRoot.ClockFontSize}"
 					   Foreground="{DynamicResource Text.Primary}"
 					   TextAlignment="Right"
-					   FontWeight="SemiBold"/>
+					   />
 			<TextBlock Text="{Binding CurrentDate}"
 					   FontSize="{Binding #PlatformListViewRoot.DateFontSize}"
 					   Foreground="{DynamicResource Text.Muted}"

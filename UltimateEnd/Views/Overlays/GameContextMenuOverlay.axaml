@@ -43,7 +43,7 @@
 								   x:Name="TitleText"
 								   Text="게임 메뉴"
 								   FontSize="20"
-								   FontWeight="Bold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   VerticalAlignment="Center"
 								   TextTrimming="CharacterEllipsis"/>
@@ -63,7 +63,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="게임 실행" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="게임 실행" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -79,7 +79,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="에뮬레이터 변경" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="에뮬레이터 변경" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -95,7 +95,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="세이브 파일 백업" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="세이브 파일 백업" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -111,7 +111,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="세이브 파일 복원" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="세이브 파일 복원" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -128,7 +128,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-									<TextBlock Text="즐겨찾기" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
+									<TextBlock Text="즐겨찾기" FontSize="16" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
 								</StackPanel>
 								<Border Grid.Column="1" x:Name="FavoriteToggle" Width="50" Height="28" CornerRadius="14" Padding="2">
 									<Border Width="24" Height="24" CornerRadius="12" Background="White" x:Name="FavoriteToggleThumb"/>
@@ -149,7 +149,7 @@
 									   Width="32"
 									   Height="32"
 									   Stretch="Uniform"/>
-								<TextBlock Text="플레이리스트에 추가" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="플레이리스트에 추가" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -165,7 +165,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="미디어 스크랩" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="미디어 스크랩" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 
@@ -182,7 +182,7 @@
 									   Width="32"
 									   Height="32"
 									   Stretch="Uniform"/>
-								<TextBlock Text="스크랩 힌트 추가" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="스크랩 힌트 추가" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -200,7 +200,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="게임 이름 변경" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="게임 이름 변경" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -216,7 +216,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="장르 변경" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="장르 변경" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -233,7 +233,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-									<TextBlock Text="한글 지원" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
+									<TextBlock Text="한글 지원" FontSize="16" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
 								</StackPanel>
 								<Border Grid.Column="1" x:Name="KoreanToggle" Width="50" Height="28" CornerRadius="14" Padding="2">
 									<Border Width="24" Height="24" CornerRadius="12" Background="White" x:Name="KoreanToggleThumb"/>
@@ -255,7 +255,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="로고 이미지 변경" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="로고 이미지 변경" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -271,7 +271,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="커버 이미지 변경" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="커버 이미지 변경" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -287,7 +287,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-								<TextBlock Text="동영상 변경" FontSize="16" FontWeight="SemiBold" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
+								<TextBlock Text="동영상 변경" FontSize="16" VerticalAlignment ="Center" Foreground="{DynamicResource Text.Primary}"/>
 							</StackPanel>
 						</Border>
 						
@@ -304,7 +304,7 @@
 												   Width="32"
 												   Height="32"
 												   Stretch="Uniform"/>
-									<TextBlock Text="목록에서 숨기기" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
+									<TextBlock Text="목록에서 숨기기" FontSize="16" Foreground="{DynamicResource Text.Primary}" VerticalAlignment="Center"/>
 								</StackPanel>
 								<Border Grid.Column="1" x:Name="IgnoreToggle" Width="50" Height="28" CornerRadius="14" Padding="2">
 									<Border Width="24" Height="24" CornerRadius="12" Background="White" x:Name="IgnoreToggleThumb"/>

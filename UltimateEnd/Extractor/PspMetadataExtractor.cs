@@ -279,13 +279,10 @@ namespace UltimateEnd.Extractor
                     }
                 }
 
-                if (string.IsNullOrEmpty(metadata.Title) || metadata.LogoImage == null)
+                if (metadata.LogoImage == null)
                     FallbackFullScan(chd, header, metadata);
             }
             catch { }
-
-            if (string.IsNullOrEmpty(metadata.Title))
-                metadata.Title = "Unknown Title";
 
             return metadata;
         }
@@ -405,14 +402,7 @@ namespace UltimateEnd.Extractor
 
                     var valueOffset = dataTableOffset + dataOffset;
 
-                    if (keyName == "TITLE")
-                    {
-                        var title = ReadNullTerminatedString(sfoData, valueOffset);
-
-                        if (!string.IsNullOrEmpty(title))
-                            metadata.Title = title;
-                    }
-                    else if (keyName == "DISC_ID")
+                    if (keyName == "DISC_ID")
                     {
                         var discId = ReadNullTerminatedString(sfoData, valueOffset);
 
@@ -420,7 +410,7 @@ namespace UltimateEnd.Extractor
                             metadata.Id = discId;
                     }
 
-                    if (!string.IsNullOrEmpty(metadata.Title) && !string.IsNullOrEmpty(metadata.Id))
+                    if (!string.IsNullOrEmpty(metadata.Id))
                         return;
                 }
             }
@@ -570,13 +560,6 @@ namespace UltimateEnd.Extractor
                     var hunk = chd.ReadHunk(i);
                     if (hunk == null) continue;
 
-                    if (string.IsNullOrEmpty(metadata.Title))
-                    {
-                        var sfoData = SearchInHunk(hunk, 0x00, 0x50, 0x53, 0x46, 20480);
-                        if (sfoData != null)
-                            ParseParamSfo(sfoData, metadata);
-                    }
-
                     if (metadata.LogoImage == null)
                     {
                         var iconData = SearchPngInHunk(hunk);
@@ -593,13 +576,6 @@ namespace UltimateEnd.Extractor
                         Array.Copy(prevHunk, prevHunk.Length - 4096, boundary, 0, 4096);
                         Array.Copy(hunk, 0, boundary, 4096, 4096);
 
-                        if (string.IsNullOrEmpty(metadata.Title))
-                        {
-                            var sfoData = SearchInHunk(boundary, 0x00, 0x50, 0x53, 0x46, 20480);
-                            if (sfoData != null)
-                                ParseParamSfo(sfoData, metadata);
-                        }
-
                         if (metadata.LogoImage == null)
                         {
                             var iconData = SearchPngInHunk(boundary);
@@ -613,7 +589,7 @@ namespace UltimateEnd.Extractor
 
                     prevHunk = hunk;
 
-                    if (!string.IsNullOrEmpty(metadata.Title) && metadata.LogoImage != null)
+                    if (metadata.LogoImage != null)
                         break;
                 }
             }

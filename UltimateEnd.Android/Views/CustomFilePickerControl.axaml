@@ -40,7 +40,7 @@
 
 		<!-- 필터 정보 -->
 		<Border Grid.Row="1" Background="{DynamicResource Background.Primary}" Padding="10,6">
-			<TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource Text.Primary}"/>
+			<TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource Text.Primary}"/>
 		</Border>
 
 		<!-- 파일/폴더 리스트 -->

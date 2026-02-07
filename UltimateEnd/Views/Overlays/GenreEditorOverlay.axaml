@@ -47,7 +47,7 @@
 						<TextBlock Grid.Column="1"
 						           Text="장르 관리"
 						           FontSize="20"
-						           FontWeight="Bold"
+						           
 						           Foreground="{DynamicResource Text.Primary}"
 						           VerticalAlignment="Center"/>
 						<Border Grid.Column="2"
@@ -91,7 +91,7 @@
 										<TextBlock Grid.Column="1"
 										           Text="{Binding Genre}"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 
@@ -169,7 +169,7 @@
 						<TextBlock Grid.Column="0"
 						           Text="장르 검색/추가"
 						           FontSize="18"
-						           FontWeight="Bold"
+						           
 						           Foreground="{DynamicResource Text.Primary}"/>
 						<Border Grid.Column="1"
 						        PointerPressed="OnSearchOverlayClose"
@@ -252,7 +252,7 @@
 						<TextBlock Grid.Column="0"
 						           Text="장르 이름 변경"
 						           FontSize="18"
-						           FontWeight="Bold"
+						           
 						           Foreground="{DynamicResource Text.Primary}"/>
 						<Border Grid.Column="1"
 						        PointerPressed="OnRenameOverlayClose"

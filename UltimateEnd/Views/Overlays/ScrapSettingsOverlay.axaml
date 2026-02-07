@@ -40,7 +40,7 @@
 						<TextBlock Grid.Column="1"
 						           Text="스크랩 설정"
 						           FontSize="20"
-						           FontWeight="Bold"
+						           
 						           Foreground="{DynamicResource Text.Primary}"
 						           VerticalAlignment="Center"/>
 					</Grid>
@@ -63,7 +63,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="게임명 스타일 ( 일본 vs 서양 )"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -137,7 +137,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="지역 스타일 ( 일본 vs 서양 )"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -211,7 +211,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="로고 스타일 ( 일반 vs 스틸 )"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -285,7 +285,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="커버 스타일 ( 2D vs 3D )"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -360,7 +360,7 @@
 										<TextBlock Grid.Column="0"
 												   Text="검색 방식 ( 파일명 vs CRC )"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   Foreground="{DynamicResource Text.Primary}"
 												   VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -383,7 +383,7 @@
 											<TextBlock Grid.Row="0"
 													   Text="파일명"
 													   FontSize="14"
-													   FontWeight="SemiBold"
+													   
 													   HorizontalAlignment="Center"
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<StackPanel Grid.Row="1"
@@ -421,7 +421,7 @@
 											<TextBlock Grid.Row="0"
 													   Text="CRC"
 													   FontSize="14"
-													   FontWeight="SemiBold"
+													   
 													   HorizontalAlignment="Center"
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<StackPanel Grid.Row="1"
@@ -464,7 +464,7 @@
 										<TextBlock Grid.Column="0"
 												   Text="압축 파일 검색 방식"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   Foreground="{DynamicResource Text.Primary}"
 												   VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -543,7 +543,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="스크랩 대상"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -661,7 +661,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="스크랩 조회 조건"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -800,7 +800,7 @@
 										<TextBlock Grid.Column="0"
 										           Text="계정 및 고급 설정"
 										           FontSize="16"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -836,7 +836,7 @@
 									<StackPanel Spacing="8">
 										<TextBlock Text="ScreenScraper 계정"
 										           FontSize="15"
-										           FontWeight="SemiBold"
+										           
 										           Foreground="{DynamicResource Text.Primary}"/>
 										<TextBlock Text="계정 등록 시 API 제한 상한 증가"
 										           FontSize="12"
@@ -859,7 +859,7 @@
 											<TextBlock Grid.Column="0"
 											           Text="요청 딜레이"
 											           FontSize="15"
-											           FontWeight="SemiBold"
+											           
 											           Foreground="{DynamicResource Text.Primary}"/>
 											<TextBlock Grid.Column="1"
 											           Name="DelayValueText"
@@ -882,7 +882,7 @@
 											<TextBlock Grid.Column="0"
 													   Text="타임아웃"
 													   FontSize="15"
-													   FontWeight="SemiBold"
+													   
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<TextBlock Grid.Column="1"
 													   Name="HttpTimeoutValueText"
@@ -903,7 +903,7 @@
 									<StackPanel Spacing="8">
 										<TextBlock Text="자동 스크래핑"
 												   FontSize="15"
-												   FontWeight="SemiBold"
+												   
 												   Foreground="{DynamicResource Text.Primary}"/>
 										<TextBlock Text="뷰 진입 시 미디어 없는 게임을 백그라운드로 자동 스크래핑"
 												   FontSize="12"

@@ -39,7 +39,7 @@
 						<TextBlock Grid.Column="1"
 						           Text="설정"
 						           FontSize="20"
-						           FontWeight="Bold"
+						           
 								   Margin="15,0,0,0"
 						           Foreground="{DynamicResource Text.Primary}"
 						           VerticalAlignment="Center"/>
@@ -70,7 +70,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="테마 설정"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -105,7 +105,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="배경 이미지 설정"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -135,7 +135,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="에뮬레이터 설정"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -165,7 +165,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="키 설정"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -195,7 +195,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="스크랩 설정"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -225,7 +225,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="플레이리스트 관리"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -255,7 +255,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="세이브 백업 모드"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -291,7 +291,7 @@
 												VerticalAlignment="Center">
 										<TextBlock Text="장르 관리"
 												   FontSize="16"
-												   FontWeight="SemiBold"
+												   
 												   VerticalAlignment="Center"
 												   HorizontalAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
@@ -320,7 +320,7 @@
 									<TextBlock Grid.Column="1"
 											   Text="{OnPlatform Android='앱 플랫폼 표시', Default='Desktop 플랫폼 표시'}"
 											   FontSize="16"
-											   FontWeight="SemiBold"
+											   
 											   Foreground="{DynamicResource Text.Primary}"
 											   VerticalAlignment="Center"
 											   HorizontalAlignment="Center"/>
@@ -345,7 +345,7 @@
 										<TextBlock Grid.Column="0"
 												   Text="화면보호기 대기시간"
 												   FontSize="15"
-												   FontWeight="SemiBold"
+												   
 												   Foreground="{DynamicResource Text.Primary}"/>
 										<TextBlock Grid.Column="1"
 												   Name="ScreensaverTimeoutValueText"

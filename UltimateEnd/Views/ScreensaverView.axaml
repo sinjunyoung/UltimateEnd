@@ -72,7 +72,7 @@
 						</Border>
 						<TextBlock Text="{Binding GameTitle}"
 						          FontSize="{Binding #ScreensaverRoot.GameTitleFontSize}"
-						          FontWeight="Bold"
+						          
 						          Foreground="White"
 						          TextAlignment="Center"
 						          Classes="GameTitle"
@@ -88,7 +88,7 @@
 			            Margin="{Binding #ScreensaverRoot.BottomMargin}">
 				<TextBlock Text="{Binding CurrentTime}"
 				          FontSize="{Binding #ScreensaverRoot.TimeFontSize}"
-				          FontWeight="SemiBold"
+				          
 				          Foreground="White"
 				          HorizontalAlignment="Center"
 				          Classes="Time"

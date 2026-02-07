@@ -36,7 +36,7 @@
 						<TextBlock Grid.Column="1"
 								   Text="커맨드 편집"
 								   FontSize="20"
-								   FontWeight="Bold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   VerticalAlignment="Center"/>
 					</Grid>
@@ -47,7 +47,7 @@
 					<StackPanel Margin="15">
 
 						<!-- 이름 -->
-						<TextBlock Text="커맨드 이름" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<TextBlock Text="커맨드 이름" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
 						<TextBox Text="{Binding SelectedCommand.Name}"
 								 Foreground="{DynamicResource Text.Primary}"
 								 CaretBrush="{DynamicResource Text.Primary}"
@@ -70,7 +70,7 @@
 
 						<!-- Core Name -->
 						<TextBlock Text="Core 이름"
-								   FontWeight="SemiBold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   Margin="0,0,0,5"
 								   IsVisible="{Binding SelectedCommand.IsRetroArch}"/>
@@ -86,7 +86,7 @@
 						</TextBox>
 
 						<!-- Package Name -->
-						<TextBlock Text="Package Name" FontWeight="SemiBold"
+						<TextBlock Text="Package Name" 
 								   Foreground="{DynamicResource Text.Primary}"
 								   Margin="0,10,0,5"/>
 						<Grid ColumnDefinitions="Auto,*" Margin="0,0,0,12">
@@ -121,7 +121,7 @@
 								</Button.Styles>
 								<StackPanel Spacing="2">
 									<TextBlock Text="{Binding SelectedAppName}"
-											   FontWeight="SemiBold"
+											   
 											   FontSize="14"
 											   Foreground="{DynamicResource Button.Foreground}"
 											   TextTrimming="CharacterEllipsis">
@@ -145,7 +145,7 @@
 						</Grid>
 
 						<!-- Activity Name -->
-						<TextBlock Text="Activity Name" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<TextBlock Text="Activity Name" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
 						<ComboBox ItemsSource="{Binding AvailableActivities}"
 								  behaviors:InputMappingBehavior.Enable="True"
 								  SelectedItem="{Binding SelectedActivity}"
@@ -164,7 +164,7 @@
 						</ComboBox>
 
 						<!-- Action -->
-						<TextBlock Text="Action" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<TextBlock Text="Action" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
 						<Button Click="OnShowActionPickerClicked"
 								behaviors:SoundBehavior.ClickSound="OK"
 								Focusable="False"
@@ -176,7 +176,7 @@
 								Margin="0,0,0,12"/>
 
 						<!-- Category -->
-						<TextBlock Text="Category" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
+						<TextBlock Text="Category" Foreground="{DynamicResource Text.Primary}" Margin="0,0,0,5"/>
 						<Button Click="OnShowCategoryPickerClicked"
 								behaviors:SoundBehavior.ClickSound="OK"
 								Focusable="False"
@@ -202,7 +202,7 @@
 							<Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
 								<TextBlock Grid.Column="0"
 										   Text="Data URI"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"/>
 								<Button Grid.Column="1"
 										Click="OnInsertVariableToDataUri"
@@ -238,7 +238,7 @@
 
 
 						<!-- Flags -->
-						<TextBlock Text="Flags" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
+						<TextBlock Text="Flags"  Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
 						<CheckBox Content="FLAG_ACTIVITY_NEW_TASK" Foreground="{DynamicResource Text.Primary}" IsChecked="{Binding FlagNewTask}" Margin="0,5" behaviors:SoundBehavior.ClickSound="OK">
 							<Interaction.Behaviors>
 								<behaviors:CheckBoxColorFixBehavior/>
@@ -266,7 +266,7 @@
 						</CheckBox>
 
 						<!-- Extras -->
-						<TextBlock Text="Extras" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,15,0,10"/>
+						<TextBlock Text="Extras"  Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,15,0,10"/>
 						<ItemsControl ItemsSource="{Binding Extras}">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
@@ -345,7 +345,7 @@
 								Margin="0,5,0,15"/>
 
 						<!-- 지원 플랫폼 -->
-						<TextBlock Text="지원 플랫폼" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
+						<TextBlock Text="지원 플랫폼"  Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
 						<Button Click="OnShowPlatformPickerClicked"
 								Content="플랫폼 선택"
 								behaviors:SoundBehavior.ClickSound="OK"
@@ -370,7 +370,7 @@
 												Margin="4">
 											<StackPanel Orientation="Horizontal" Spacing="8">
 												<Image Source="{Binding Image}" Width="24" Height="24"/>
-												<TextBlock Text="{Binding Id}" Foreground="{DynamicResource Button.Foreground}" FontWeight="SemiBold"/>
+												<TextBlock Text="{Binding Id}" Foreground="{DynamicResource Button.Foreground}" />
 												<Button Content="×"
 														Focusable="False"
 														Click="OnRemovePlatformClicked"
@@ -388,7 +388,7 @@
 						</ScrollViewer>
 
 						<!-- 미리보기 -->
-						<TextBlock Text="LaunchCommand 미리보기" FontWeight="Bold" Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
+						<TextBlock Text="LaunchCommand 미리보기"  Foreground="{DynamicResource Text.Primary}" FontSize="16" Margin="0,10,0,10"/>
 						<ScrollViewer MaxHeight="100">
 							<TextBox Text="{Binding PreviewLaunchCommand}"
 									 Foreground="{DynamicResource Text.Primary}"

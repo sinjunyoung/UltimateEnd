@@ -22,7 +22,7 @@
 					<TextBlock Grid.Column="0"
                                Text="플레이리스트 선택"
                                FontSize="18"
-                               FontWeight="Bold"
+                               
                                Foreground="{DynamicResource Text.Primary}"/>
 					<Border Grid.Column="1"
                             PointerPressed="OnClose"

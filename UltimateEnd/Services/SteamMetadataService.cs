@@ -94,7 +94,7 @@ namespace UltimateEnd.Services
 
         private static void ApplyApiMetadata(GameMetadata game, SteamAppData data, string appId)
         {
-            if (string.IsNullOrEmpty(game.Title) && !string.IsNullOrEmpty(data.Name)) game.Title = data.Name;
+            if (!string.IsNullOrEmpty(data.Name)) game.Title = data.Name;
 
             if (string.IsNullOrEmpty(game.Description))
             {

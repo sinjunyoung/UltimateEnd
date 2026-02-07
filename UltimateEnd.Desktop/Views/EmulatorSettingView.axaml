@@ -11,7 +11,7 @@
 				<TextBlock Text="에뮬레이터 커맨드 관리"
 						   Foreground="{DynamicResource Text.Primary}"
 						   FontSize="24"
-						   FontWeight="Bold"
+						   
 						   Margin="0,0,0,20"/>
 
 				<!-- 검색 및 필터 -->
@@ -76,7 +76,7 @@
 										   Margin="0,0,10,0"
 										   IsVisible="{Binding Image, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 									<TextBlock Text="{Binding Name}"
-											   FontWeight="SemiBold"
+											   
 											   VerticalAlignment="Center"
 											   Foreground="{DynamicResource Text.Primary}"
 											   Width="200"/>
@@ -131,7 +131,7 @@
 
 						<TextBlock Text="커맨드 정보"
 								   FontSize="18"
-								   FontWeight="SemiBold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   Margin="0,0,0,15"/>
 
@@ -502,7 +502,7 @@
 													<TextBlock Text="{Binding Id}"
 															   VerticalAlignment="Center"
 															   Foreground="{DynamicResource Text.Primary}"
-															   FontWeight="SemiBold"/>
+															   />
 													<Button Content="×"
 															Focusable="False"
 															Command="{Binding DataContext.RemovePlatformCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -512,7 +512,7 @@
 															BorderThickness="0"
 															Padding="4,0"
 															FontSize="16"
-															FontWeight="Bold"
+															
 															Cursor="Hand"
 															ToolTip.Tip="제거"/>
 												</StackPanel>

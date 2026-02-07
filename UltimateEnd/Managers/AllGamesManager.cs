@@ -250,7 +250,7 @@ namespace UltimateEnd.Managers
 
         private void LoadGamesFromFolder(string folderPath, string platformId, string compositeKey, string? subFolder)
         {
-            var games = MetadataService.LoadMetadata(folderPath);
+            var games = MetadataService.LoadMetadataFromRealPath(platformId, folderPath);
 
             foreach (var game in games)
             {
@@ -263,7 +263,6 @@ namespace UltimateEnd.Managers
                 lock (_gamesLock)
                 {
                     if (_allGames.ContainsKey(key)) continue;
-
                     _allGames[key] = game;
                 }
             }
@@ -541,8 +540,8 @@ namespace UltimateEnd.Managers
 
                 foreach (var group in gamesByBasePath)
                 {
-                    var basePath = group.Key;
-                    MetadataService.SaveMetadata(basePath, [.. group]);
+                    var realPath = group.Key;
+                    MetadataService.SaveMetadataToRealPath(realPath, [.. group]);
                 }
             }
         }

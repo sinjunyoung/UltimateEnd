@@ -37,7 +37,7 @@
 								   Name="TitleText"
 								   Text="선택"
 								   FontSize="20"
-								   FontWeight="Bold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   VerticalAlignment="Center"/>
 					</Grid>

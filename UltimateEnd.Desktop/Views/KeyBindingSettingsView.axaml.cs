@@ -67,7 +67,6 @@ namespace UltimateEnd.Desktop.Views
             _coordsDisplay = new TextBlock
             {
                 FontSize = 24,
-                FontWeight = FontWeight.Bold,
                 Foreground = Brushes.Red,
                 Background = new SolidColorBrush(Color.FromArgb(220, 0, 0, 0)),
                 Padding = new Thickness(15),

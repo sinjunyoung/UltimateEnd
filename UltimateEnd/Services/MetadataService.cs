@@ -40,31 +40,42 @@ namespace UltimateEnd.Services
 
         public static void InvalidatePlatformCache(string platformKey) => _hasGamesCache.TryRemove(platformKey, out _);
 
-        public static List<GameMetadata> LoadMetadata(string folderPath)
+        public static List<GameMetadata> LoadMetadata(string compositeKey)
         {
-            var platformPath = SettingsService.GetPlatformPath(folderPath);
+            var realPath = SettingsService.GetPlatformPath(compositeKey);
+            string mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(compositeKey) ?? compositeKey;
 
-            return LoadMetadataFromPath(folderPath, platformPath);
+            return LoadMetadataFromRealPath(mappedPlatformId, realPath);
         }
 
         public static List<GameMetadata> LoadMetadata(string platformId, string basePath)
         {
-            var platformPath = Path.Combine(basePath, platformId);
+            var realPath = Path.Combine(basePath, platformId);
+            string mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(platformId) ?? platformId;
 
-            return LoadMetadataFromPath(platformId, platformPath);
+            return LoadMetadataFromRealPath(mappedPlatformId, realPath);
         }
 
-        private static List<GameMetadata> LoadMetadataFromPath(string folderPath, string platformPath)
+        public static List<GameMetadata> LoadMetadataFromRealPath(string platformId, string realPath)
         {
-            if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return [];
+            if (string.IsNullOrEmpty(realPath) || !Directory.Exists(realPath)) return [];
 
-            string fileName = Path.Combine(platformPath, MetadataFileName);
+            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(platformId);
 
-            if (File.Exists(fileName))
+            string metadataFilePath = Path.Combine(realPath, MetadataFileName);
+
+            if (File.Exists(metadataFilePath))
             {
                 try
                 {
-                    return GameMetadataParser.Parse(fileName, platformPath);
+                    var games = GameMetadataParser.Parse(metadataFilePath, realPath);
+
+                    return [.. games.Where(g =>
+                    {
+                        if (string.IsNullOrEmpty(g.RomFile)) return false;
+                        var ext = Path.GetExtension(g.RomFile);
+                        return validExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+                    })];
                 }
                 catch (Exception)
                 {
@@ -72,22 +83,22 @@ namespace UltimateEnd.Services
                 }
             }
 
-            fileName = Path.Combine(platformPath, PegasusMetadataFileName);
+            metadataFilePath = Path.Combine(realPath, PegasusMetadataFileName);
 
-            if (File.Exists(fileName))
+            if (File.Exists(metadataFilePath))
             {
                 try
                 {
-                    var games = PegasusMetadataParser.Parse(fileName);
+                    var games = PegasusMetadataParser.Parse(metadataFilePath);
 
                     if (games.Count > 0)
                     {
-                        if (IsSystemApp(folderPath))
+                        games = [.. games.Where(g =>
                         {
-                            var settings = SettingsService.LoadSettings();
-                            SaveMetadata(folderPath, AppSettings.SystemAppsPath, games);
-                        }
-                        else SaveMetadata(folderPath, games);
+                            if (string.IsNullOrEmpty(g.RomFile)) return false;
+                            var ext = Path.GetExtension(g.RomFile);
+                            return validExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+                        })];
                     }
 
                     return games;
@@ -98,30 +109,30 @@ namespace UltimateEnd.Services
             return [];
         }
 
-        public static void SaveMetadata(string folderPath, IEnumerable<GameMetadata> games)
+        public static void SaveMetadata(string compositeKey, IEnumerable<GameMetadata> games)
         {
-            var platformPath = SettingsService.GetPlatformPath(folderPath);
-            SaveMetadataToPath(platformPath, games);
-            InvalidatePlatformCache(folderPath);
+            var realPath = SettingsService.GetPlatformPath(compositeKey);
+            SaveMetadataToRealPath(realPath, games);
+            InvalidatePlatformCache(compositeKey);
         }
 
-        public static void SaveMetadata(string folderPath, string basePath, IEnumerable<GameMetadata> games)
+        public static void SaveMetadata(string platformId, string basePath, IEnumerable<GameMetadata> games)
         {
-            var platformPath = Path.Combine(basePath, folderPath);
-            SaveMetadataToPath(platformPath, games);
-            InvalidatePlatformCache(folderPath);
+            var realPath = Path.Combine(basePath, platformId);
+            SaveMetadataToRealPath(realPath, games);
+            InvalidatePlatformCache(platformId);
         }
 
-        private static void SaveMetadataToPath(string platformPath, IEnumerable<GameMetadata> games)
+        public static void SaveMetadataToRealPath(string realPath, IEnumerable<GameMetadata> games)
         {
-            if (string.IsNullOrEmpty(platformPath)) return;
+            if (string.IsNullOrEmpty(realPath)) return;
 
             var converter = PathConverterFactory.Create?.Invoke();
-            var realPath = converter?.FriendlyPathToRealPath(platformPath) ?? platformPath;
+            var actualPath = converter?.FriendlyPathToRealPath(realPath) ?? realPath;
 
-            if (!Directory.Exists(realPath)) Directory.CreateDirectory(realPath);
+            if (!Directory.Exists(actualPath)) Directory.CreateDirectory(actualPath);
 
-            var filePath = Path.Combine(realPath, MetadataFileName);
+            var filePath = Path.Combine(actualPath, MetadataFileName);
 
             try
             {
@@ -131,19 +142,35 @@ namespace UltimateEnd.Services
             {
                 throw;
             }
+
+            var settings = SettingsService.LoadSettings();
+            if (settings.PlatformSettings != null)
+            {
+                foreach (var platform in settings.PlatformSettings)
+                {
+                    var compositeKey = platform.Key;
+                    var keyRealPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
+
+                    if (keyRealPath.Equals(actualPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        InvalidatePlatformCache(compositeKey);
+                        break;
+                    }
+                }
+            }
         }
 
-        public static void ScanRomsFolder(string realPath)
+        public static void ScanRomsFolder(string compositeKey)
         {
             try
             {
-                var platformPath = SettingsService.GetPlatformPath(realPath);
+                var realPath = SettingsService.GetPlatformPath(compositeKey);
 
-                if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return;
+                if (string.IsNullOrEmpty(realPath) || !Directory.Exists(realPath)) return;
 
-                string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? realPath;
+                string mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(compositeKey) ?? compositeKey;
 
-                ScanRomsFolder(realPath, mappedId);
+                ScanRomsFolderInternal(compositeKey, realPath, mappedPlatformId);
             }
             catch { }
         }
@@ -152,47 +179,82 @@ namespace UltimateEnd.Services
         {
             try
             {
-                var platformPath = SettingsService.GetPlatformPath(realPath);
+                if (string.IsNullOrEmpty(realPath) || !Directory.Exists(realPath)) return;
 
-                if (string.IsNullOrEmpty(platformPath) || !Directory.Exists(platformPath)) return;
+                var converter = PathConverterFactory.Create?.Invoke();
+                var friendlyPath = converter?.RealPathToFriendlyPath(realPath) ?? realPath;
 
-                var validExtensions = PlatformInfoService.Instance.GetValidExtensions(platformId);
-
-                List<GameMetadata> existingMetadata;
-
-                try
-                {
-                    existingMetadata = LoadMetadata(realPath);
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-
-                var existingRomFiles = new HashSet<string>(existingMetadata.Select(g => $"{g.SubFolder ?? string.Empty}|{g.RomFile}"), StringComparer.OrdinalIgnoreCase);
-                var addedCount = 0;
-
-                ScanFolder(platformPath, null, validExtensions, existingRomFiles, existingMetadata, ref addedCount);
-
-                if (addedCount > 0)
-                {
-                    try
-                    {
-                        SaveMetadata(realPath, existingMetadata);
-                    }
-                    catch { }
-                }
+                ScanRomsFolderInternal(friendlyPath, realPath, platformId);
             }
             catch { }
         }
 
-        private static void ScanFolder(string folderPath, string? subFolder, IEnumerable<string> validExtensions, HashSet<string> existingRomFiles, List<GameMetadata> existingMetadata, ref int addedCount)
+        private static void ScanRomsFolderInternal(string compositeKey, string realPath, string platformId)
+        {
+            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(platformId);
+
+            List<GameMetadata> existingMetadata;
+
+            try
+            {
+                existingMetadata = LoadMetadataFromRealPath(platformId, realPath);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            var existingRomFiles = new HashSet<string>(
+                existingMetadata.Select(g => $"{g.SubFolder ?? string.Empty}|{g.RomFile}"),
+                StringComparer.OrdinalIgnoreCase);
+            var addedCount = 0;
+
+            ScanFolder(realPath, null, validExtensions, existingRomFiles, existingMetadata, ref addedCount);
+
+            try
+            {
+                var topLevelRomNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var ext in validExtensions)
+                {
+                    try
+                    {
+                        foreach (var file in Directory.EnumerateFiles(realPath, $"*{ext}", SearchOption.TopDirectoryOnly))
+                            topLevelRomNames.Add(Path.GetFileNameWithoutExtension(file));
+                    }
+                    catch { }
+                }
+
+                foreach (var subDir in Directory.EnumerateDirectories(realPath))
+                {
+                    var subFolderName = Path.GetFileName(subDir);
+
+                    if (IsBiosFolder(subFolderName)) continue;
+
+                    if (topLevelRomNames.Contains(subFolderName)) continue;
+
+                    ScanFolder(subDir, subFolderName, validExtensions, existingRomFiles, existingMetadata, ref addedCount);
+                }
+            }
+            catch { }
+
+            if (addedCount > 0)
+            {
+                try
+                {
+                    SaveMetadata(compositeKey, existingMetadata);
+                }
+                catch { }
+            }
+        }
+
+        private static void ScanFolder(string realFolderPath, string? subFolder, IEnumerable<string> validExtensions, HashSet<string> existingRomFiles, List<GameMetadata> existingMetadata, ref int addedCount)
         {
             string[] romFiles;
 
             try
             {
-                romFiles = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly);
+                romFiles = Directory.GetFiles(realFolderPath, "*.*", SearchOption.TopDirectoryOnly);
             }
             catch
             {
@@ -215,8 +277,9 @@ namespace UltimateEnd.Services
                         RomFile = fileName,
                         SubFolder = subFolder
                     };
-                    newGame.SetBasePath(folderPath);
+                    newGame.SetBasePath(realFolderPath);
                     existingMetadata.Add(newGame);
+                    existingRomFiles.Add(key);
                     addedCount++;
                 }
             }
@@ -228,38 +291,38 @@ namespace UltimateEnd.Services
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var mappedFolderIds = mappingConfig.FolderMappings
+            var mappedCompositeKeys = mappingConfig.FolderMappings
                 .Where(kvp => kvp.Value.Equals(platformId, StringComparison.OrdinalIgnoreCase))
                 .Select(kvp => kvp.Key)
                 .ToList();
 
-            if (mappedFolderIds.Count == 0) mappedFolderIds.Add(platformId);
+            if (mappedCompositeKeys.Count == 0) mappedCompositeKeys.Add(platformId);
 
             var allActualRomFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var validPlatformPaths = new Dictionary<string, string>();
+            var validRealPaths = new Dictionary<string, string>();
 
-            foreach (var folderId in mappedFolderIds)
+            foreach (var compositeKey in mappedCompositeKeys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var platformPath = SettingsService.GetPlatformPath(folderId);
+                var realPath = SettingsService.GetPlatformPath(compositeKey);
 
-                if (!string.IsNullOrEmpty(platformPath) && Directory.Exists(platformPath))
+                if (!string.IsNullOrEmpty(realPath) && Directory.Exists(realPath))
                 {
-                    var romFiles = GetActualRomFiles(platformPath, folderId);
+                    var romFiles = GetActualRomFiles(realPath, compositeKey);
 
                     foreach (var romFile in romFiles)
                     {
-                        if (!validPlatformPaths.ContainsKey(romFile))
+                        if (!validRealPaths.ContainsKey(romFile))
                         {
-                            validPlatformPaths[romFile] = platformPath;
+                            validRealPaths[romFile] = realPath;
                             allActualRomFiles.Add(romFile);
                         }
                     }
                 }
             }
 
-            if (validPlatformPaths.Count == 0) return [];
+            if (validRealPaths.Count == 0) return [];
 
             if (!File.Exists(metadataFileName)) return [];
 
@@ -294,13 +357,13 @@ namespace UltimateEnd.Services
                     }
                     else
                     {
-                        if (validPlatformPaths.TryGetValue(externalGame.RomFile, out var actualPlatformPath))
+                        if (validRealPaths.TryGetValue(externalGame.RomFile, out var actualRealPath))
                         {
-                            var folderId = mappedFolderIds.FirstOrDefault(id => SettingsService.GetPlatformPath(id) == actualPlatformPath);
+                            var compositeKey = mappedCompositeKeys.FirstOrDefault(key => SettingsService.GetPlatformPath(key) == actualRealPath);
 
-                            if (!string.IsNullOrEmpty(folderId)) externalGame.PlatformId = folderId;
+                            if (!string.IsNullOrEmpty(compositeKey)) externalGame.PlatformId = compositeKey;
 
-                            externalGame.SetBasePath(actualPlatformPath);
+                            externalGame.SetBasePath(actualRealPath);
                             games.Add(externalGame);
                             changedGames.Add(externalGame);
                         }
@@ -309,11 +372,11 @@ namespace UltimateEnd.Services
 
                 if (changedGames.Count > 0)
                 {
-                    var gamesByFolder = games
-                        .Where(g => mappedFolderIds.Contains(g.PlatformId))
+                    var gamesByCompositeKey = games
+                        .Where(g => mappedCompositeKeys.Contains(g.PlatformId))
                         .GroupBy(g => g.PlatformId);
 
-                    foreach (var group in gamesByFolder)
+                    foreach (var group in gamesByCompositeKey)
                         if (!string.IsNullOrEmpty(group.Key)) SaveMetadata(group.Key, [.. group]);
                 }
 
@@ -329,26 +392,26 @@ namespace UltimateEnd.Services
 
         public static HashSet<GameMetadata> UpdateFromEsDeMetadata(ObservableCollection<GameMetadata> games, string platformId, string esdeFileName, CancellationToken cancellationToken = default) => UpdateFromExternalMetadata(games, platformId, esdeFileName, EsDeMetadataParser.Parse, cancellationToken);
 
-        private static HashSet<string> GetActualRomFiles(string platformPath, string platformKey)
+        private static HashSet<string> GetActualRomFiles(string realPath, string compositeKey)
         {
             var actualRomFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            if (string.IsNullOrEmpty(platformPath)) return actualRomFiles;
+            if (string.IsNullOrEmpty(realPath)) return actualRomFiles;
 
-            var realPath = GetRealPath(platformPath);
-            if (!Directory.Exists(realPath)) return actualRomFiles;
+            var actualPath = GetRealPath(realPath);
+            if (!Directory.Exists(actualPath)) return actualRomFiles;
 
-            string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(platformKey) ?? platformKey;
-            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
+            string mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(compositeKey) ?? compositeKey;
+            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedPlatformId);
 
-            CollectRomFilesFromDirectory(realPath, validExtensions, actualRomFiles);
+            CollectRomFilesFromDirectory(actualPath, validExtensions, actualRomFiles);
 
             return actualRomFiles;
         }
 
-        private static void CollectRomFilesFromDirectory(string dirPath, IEnumerable<string> validExtensions, HashSet<string> romFiles)
+        private static void CollectRomFilesFromDirectory(string realDirPath, IEnumerable<string> validExtensions, HashSet<string> romFiles)
         {
-            ScanFolderForFiles(dirPath, validExtensions, romFiles);
+            ScanFolderForFiles(realDirPath, validExtensions, romFiles);
 
             var topLevelRomNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -356,7 +419,7 @@ namespace UltimateEnd.Services
             {
                 try
                 {
-                    foreach (var file in Directory.EnumerateFiles(dirPath, $"*{ext}", SearchOption.TopDirectoryOnly))
+                    foreach (var file in Directory.EnumerateFiles(realDirPath, $"*{ext}", SearchOption.TopDirectoryOnly))
                         topLevelRomNames.Add(Path.GetFileNameWithoutExtension(file));
                 }
                 catch { }
@@ -364,7 +427,7 @@ namespace UltimateEnd.Services
 
             try
             {
-                foreach (var subDir in Directory.EnumerateDirectories(dirPath))
+                foreach (var subDir in Directory.EnumerateDirectories(realDirPath))
                 {
                     var subFolderName = Path.GetFileName(subDir);
 
@@ -378,52 +441,52 @@ namespace UltimateEnd.Services
             catch { }
         }
 
-        private static void ScanFolderForFiles(string folderPath, IEnumerable<string> validExtensions, HashSet<string> actualRomFiles)
+        private static void ScanFolderForFiles(string realFolderPath, IEnumerable<string> validExtensions, HashSet<string> actualRomFiles)
         {
             foreach (var ext in validExtensions)
             {
                 try
                 {
-                    foreach (var file in Directory.EnumerateFiles(folderPath, $"*{ext}", SearchOption.TopDirectoryOnly))
+                    foreach (var file in Directory.EnumerateFiles(realFolderPath, $"*{ext}", SearchOption.TopDirectoryOnly))
                         actualRomFiles.Add(Path.GetFileName(file));
                 }
                 catch { }
             }
         }
 
-        public static bool HasGames(string platformKey)
+        public static bool HasGames(string compositeKey)
         {
-            if (_hasGamesCache.TryGetValue(platformKey, out var cached))
+            if (_hasGamesCache.TryGetValue(compositeKey, out var cached))
             {
                 if (DateTime.UtcNow - cached.scanned < CacheValidDuration) return cached.hasGames;
             }
 
-            bool result = ScanForGamesOptimized(platformKey);
-            _hasGamesCache[platformKey] = (result, DateTime.UtcNow);
+            bool result = ScanForGamesOptimized(compositeKey);
+            _hasGamesCache[compositeKey] = (result, DateTime.UtcNow);
 
             return result;
         }
 
-        private static bool ScanForGamesOptimized(string platformKey)
+        private static bool ScanForGamesOptimized(string compositeKey)
         {
-            var platformPath = SettingsService.GetPlatformPath(platformKey);
-            
-            if (string.IsNullOrEmpty(platformPath)) return false;
+            var realPath = SettingsService.GetPlatformPath(compositeKey);
 
-            var realPath = GetRealPath(platformPath);
+            if (string.IsNullOrEmpty(realPath)) return false;
 
-            if (!Directory.Exists(realPath)) return false;
+            var actualPath = GetRealPath(realPath);
 
-            string mappedId = PlatformMappingService.Instance.GetMappedPlatformId(platformKey) ?? platformKey;
-            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedId);
+            if (!Directory.Exists(actualPath)) return false;
+
+            string mappedPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(compositeKey) ?? compositeKey;
+            var validExtensions = PlatformInfoService.Instance.GetValidExtensions(mappedPlatformId);
 
             var extensionSet = new HashSet<string>(validExtensions, StringComparer.OrdinalIgnoreCase);
 
             try
             {
-                if (HasAnyValidFile(realPath, extensionSet)) return true;
+                if (HasAnyValidFile(actualPath, extensionSet)) return true;
 
-                foreach (var subDir in Directory.EnumerateDirectories(realPath))
+                foreach (var subDir in Directory.EnumerateDirectories(actualPath))
                 {
                     var subFolderName = Path.GetFileName(subDir);
 
@@ -437,22 +500,22 @@ namespace UltimateEnd.Services
                 return false;
             }
 
-            var metadataPath = Path.Combine(realPath, MetadataFileName);
+            var metadataPath = Path.Combine(actualPath, MetadataFileName);
 
             if (File.Exists(metadataPath) && new FileInfo(metadataPath).Length > 10) return true;
 
-            var pegasusPath = Path.Combine(realPath, PegasusMetadataFileName);
+            var pegasusPath = Path.Combine(actualPath, PegasusMetadataFileName);
 
             if (File.Exists(pegasusPath) && new FileInfo(pegasusPath).Length > 10) return true;
 
             return false;
         }
 
-        private static bool HasAnyValidFile(string folderPath, HashSet<string> validExtensions)
+        private static bool HasAnyValidFile(string realFolderPath, HashSet<string> validExtensions)
         {
             try
             {
-                return Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                return Directory.EnumerateFiles(realFolderPath, "*.*", SearchOption.TopDirectoryOnly)
                     .Any(file =>
                     {
                         var ext = Path.GetExtension(file);
@@ -466,11 +529,11 @@ namespace UltimateEnd.Services
             }
         }
 
-        private static string GetRealPath(string platformPath)
+        private static string GetRealPath(string path)
         {
             var converter = PathConverterFactory.Create?.Invoke();
 
-            return converter?.FriendlyPathToRealPath(platformPath) ?? platformPath;
+            return converter?.FriendlyPathToRealPath(path) ?? path;
         }
 
         private static bool IsBiosFolder(string folderName) => !string.IsNullOrEmpty(folderName) && folderName.StartsWith("bios", StringComparison.OrdinalIgnoreCase);

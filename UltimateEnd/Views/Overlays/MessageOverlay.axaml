@@ -47,7 +47,7 @@
                           Grid.Row="1"
                           Text="메시지"
                           FontSize="24"
-                          FontWeight="Bold"
+                          
                           Foreground="{DynamicResource Text.Primary}"
                           HorizontalAlignment="Center"
                           Margin="0,0,0,20"/>
@@ -84,7 +84,7 @@
 						</Border.Transitions>
 						<TextBlock Text="확인"
 						          FontSize="17"
-						          FontWeight="SemiBold"
+						          
 						          Foreground="{DynamicResource Text.Primary}"
 						          HorizontalAlignment="Center"
 						          VerticalAlignment="Center"/>
@@ -108,7 +108,7 @@
 							</Border.Transitions>
 							<TextBlock Text="취소"
 									   FontSize="17"
-									   FontWeight="SemiBold"
+									   
 									   Foreground="{DynamicResource Text.Primary}"
 									   HorizontalAlignment="Center"
 									   VerticalAlignment="Center"/>
@@ -130,7 +130,7 @@
 							</Border.Transitions>
 							<TextBlock Text="확인"
 							          FontSize="17"
-							          FontWeight="SemiBold"
+							          
 									   Foreground="{DynamicResource Button.Foreground}"
 							          HorizontalAlignment="Center"
 							          VerticalAlignment="Center"/>
@@ -157,7 +157,7 @@
 							<TextBlock x:Name="Button1Text"
 									   Text="버튼1"
 									   FontSize="15"
-									   FontWeight="SemiBold"
+									   
 									   Foreground="{DynamicResource Text.Primary}"
 									   HorizontalAlignment="Center"
 									   VerticalAlignment="Center"/>
@@ -179,7 +179,7 @@
 							<TextBlock x:Name="Button2Text"
 							          Text="버튼2"
 							          FontSize="15"
-							          FontWeight="SemiBold"
+							          
 									   Foreground="{DynamicResource Button.Foreground}"
 							          HorizontalAlignment="Center"
 							          VerticalAlignment="Center"/>
@@ -201,7 +201,7 @@
 							<TextBlock x:Name="Button3Text"
 									   Text="버튼3"
 									   FontSize="15"
-									   FontWeight="SemiBold"
+									   
 									   Foreground="{DynamicResource Text.Primary}"
 									   HorizontalAlignment="Center"
 									   VerticalAlignment="Center"/>

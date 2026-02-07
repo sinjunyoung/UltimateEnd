@@ -191,8 +191,7 @@
 												  Height="80"
 												  Foreground="{DynamicResource Accent.Blue}"/>
 										<TextBlock Text="{Binding Name}"
-												   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"
-												   FontWeight="Bold"
+												   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"												   
 												   TextAlignment="Center"
 												   Foreground="{DynamicResource Text.Primary}"/>
 										<TextBlock Text="{Binding GameCount, StringFormat='{}{0}개의 게임'}"
@@ -220,8 +219,7 @@
 									<!-- Placeholder (커버 없을 때) -->
 									<Grid IsVisible="{Binding Game.HasCoverImage, Converter={x:Static BoolConverters.Not}}">
 										<TextBlock Text="{Binding Game.DisplayTitle}"
-												   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"
-												   FontWeight="Bold"
+												   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"												   
 												   TextAlignment="Center"
 												   TextWrapping="Wrap"
 												   VerticalAlignment="Center"
@@ -272,11 +270,10 @@
 											<!-- 게임명 텍스트 (2줄 표시) -->
 											<TextBlock Grid.Column="0"
 													   Text="{Binding Game.DisplayTitle}"
-													   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"
-													   FontWeight="Bold"
+													   FontSize="{Binding $parent[UserControl].((vm:GameListViewModel)DataContext).GridTitleFontSize}"													   
 													   Foreground="{DynamicResource Text.Primary}"
 													   TextWrapping="Wrap"
-													   TextTrimming="CharacterEllipsis"
+													   TextTrimming="WordEllipsis"
 													   MaxLines="2"
 													   HorizontalAlignment="Center"
 													   VerticalAlignment="Center"

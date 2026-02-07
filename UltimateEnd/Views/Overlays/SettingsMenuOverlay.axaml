@@ -41,7 +41,7 @@
 						<TextBlock Grid.Column="1"
 								   Text="플랫폼 설정"
 								   FontSize="20"
-								   FontWeight="Bold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   VerticalAlignment="Center"/>						
 					</Grid>
@@ -68,7 +68,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="에뮬레이터 변경"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -92,7 +92,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="미디어 스크랩"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -116,7 +116,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="플레이리스트 추가"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -139,7 +139,7 @@
 										   Stretch="Uniform"/>
 									<TextBlock Text="숨긴 게임 표시"
 											   FontSize="16"
-											   FontWeight="SemiBold"
+											   
 											   Foreground="{DynamicResource Text.Primary}"
 											   VerticalAlignment="Center"/>
 								</StackPanel>
@@ -168,14 +168,14 @@
 									<TextBlock Grid.Column="1"
 											   Text="그리드 열 개수"
 											   FontSize="16"
-											   FontWeight="SemiBold"
+											   
 											   Foreground="{DynamicResource Text.Primary}"
 											   VerticalAlignment="Center"/>
 									<TextBlock Grid.Column="2"
 											   Name="GridColumnsValue"
 											   Text="자동"
 											   FontSize="16"
-											   FontWeight="Bold"
+											   
 											   Foreground="{DynamicResource Text.Accent}"
 											   VerticalAlignment="Center"
 											   Margin="10,0,0,0"/>
@@ -209,7 +209,7 @@
 										   Stretch="Uniform"/>
 									<TextBlock Text="심플한 게임명 표시"
 											   FontSize="16"
-											   FontWeight="SemiBold"
+											   
 											   Foreground="{DynamicResource Text.Primary}"
 											   VerticalAlignment="Center"/>
 								</StackPanel>
@@ -237,7 +237,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="화면 레이아웃 초기화"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -261,7 +261,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="플랫폼 템플릿 변경"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -285,7 +285,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="플랫폼 이미지 변경"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -308,7 +308,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="메타데이터 불러오기"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>
@@ -331,7 +331,7 @@
 								<TextBlock Grid.Column="1"
 										   Text="메타데이터 불러오기"
 										   FontSize="16"
-										   FontWeight="SemiBold"
+										   
 										   Foreground="{DynamicResource Text.Primary}"
 										   VerticalAlignment="Center"/>
 							</StackPanel>

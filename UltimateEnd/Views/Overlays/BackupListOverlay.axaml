@@ -45,7 +45,7 @@
 						<TextBlock Grid.Column="1"
                                    Text="세이브 복원"
                                    FontSize="20"
-                                   FontWeight="Bold"
+                                   
                                    Foreground="{DynamicResource Text.Primary}"
                                    VerticalAlignment="Center"/>
 					</Grid>
@@ -91,7 +91,7 @@
 										<StackPanel Grid.Column="1" Spacing="4">
 											<TextBlock Text="{Binding DisplayName}"
 													   FontSize="14"
-													   FontWeight="SemiBold"
+													   
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<TextBlock Text="{Binding FileName}"
 													   FontSize="11"

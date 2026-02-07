@@ -37,7 +37,7 @@
 						<TextBlock Grid.Column="1"
 								   Text="플랫폼 필터"
 								   FontSize="20"
-								   FontWeight="Bold"
+								   
 								   Foreground="{DynamicResource Text.Primary}"
 								   VerticalAlignment="Center"/>
 					</Grid>
