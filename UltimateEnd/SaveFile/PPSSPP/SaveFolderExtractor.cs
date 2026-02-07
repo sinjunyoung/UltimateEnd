@@ -49,7 +49,7 @@ namespace UltimateEnd.SaveFile.PPSSPP
                 if (unitcount == 0) unitcount = header.logicalbytes / unitbytes;
 
                 var blockDevice = new ChdBlockDevice(chd, header.hunkbytes, unitbytes, (uint)unitcount);
-                var ebootData = ExtractEbootFromBlockDevice(lba => blockDevice.ReadBlock(lba));
+                var ebootData = ExtractParamSfoFromBlockDevice(lba => blockDevice.ReadBlock(lba));
 
                 return ebootData != null ? DecryptAndSearchSavePath(ebootData) : null;
             }
@@ -64,7 +64,7 @@ namespace UltimateEnd.SaveFile.PPSSPP
             try
             {
                 using var stream = File.OpenRead(isoPath);
-                var ebootData = ExtractEbootFromBlockDevice(lba =>
+                var ebootData = ExtractParamSfoFromBlockDevice(lba =>
                 {
                     stream.Seek(lba * 2048, SeekOrigin.Begin);
                     byte[] sector = new byte[2048];
@@ -85,7 +85,7 @@ namespace UltimateEnd.SaveFile.PPSSPP
             try
             {
                 using var cso = new CsoStreamReader(csoPath);
-                var ebootData = ExtractEbootFromBlockDevice(lba => cso.ReadSector(lba));
+                var ebootData = ExtractParamSfoFromBlockDevice(lba => cso.ReadSector(lba));
 
                 return ebootData != null ? DecryptAndSearchSavePath(ebootData) : null;
             }
@@ -95,31 +95,25 @@ namespace UltimateEnd.SaveFile.PPSSPP
             }
         }
 
-        private static byte[]? ExtractEbootFromBlockDevice(Func<uint, byte[]?> readSector)
+        private static byte[]? ExtractParamSfoFromBlockDevice(Func<uint, byte[]?> readSector)
         {
             try
             {
                 var pvd = Iso9660Utils.ReadPrimaryVolumeDescriptor(readSector);
-
                 if (pvd == null) return null;
 
                 uint rootLBA = Iso9660Utils.GetRootLBA(pvd);
                 var rootSector = readSector(rootLBA);
-                uint pspGameLBA = Iso9660Utils.FindDirectory(rootSector, "PSP_GAME");
 
+                uint pspGameLBA = Iso9660Utils.FindDirectory(rootSector, "PSP_GAME");
                 if (pspGameLBA == 0) return null;
 
                 var pspGameSector = readSector(pspGameLBA);
-                uint sysdirLBA = Iso9660Utils.FindDirectory(pspGameSector, "SYSDIR");
+                var sfoInfo = Iso9660Utils.FindFile(pspGameSector, "PARAM.SFO");
 
-                if (sysdirLBA == 0) return null;
+                if (sfoInfo == null) return null;
 
-                var sysdirSector = readSector(sysdirLBA);
-                var ebootInfo = Iso9660Utils.FindFile(sysdirSector, "EBOOT.BIN");
-
-                if (ebootInfo == null) return null;
-
-                return Iso9660Utils.ReadFileFromSectors(readSector, ebootInfo.Value.lba, ebootInfo.Value.size);
+                return Iso9660Utils.ReadFileFromSectors(readSector, sfoInfo.Value.lba, sfoInfo.Value.size);
             }
             catch
             {
