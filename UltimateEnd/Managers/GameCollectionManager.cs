@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls.Platform;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using DynamicData;
 using ReactiveUI;
 using System;
@@ -21,19 +20,19 @@ namespace UltimateEnd.Managers
     {
         private readonly GameFilterService _filterService;
         private readonly GameMetadataManager _metadataManager;
-        private readonly ObservableCollection<Models.GameMetadata> _allGames = [];
+        private readonly ObservableCollection<GameMetadata> _allGames = [];
         private readonly ObservableCollection<string> _genres = [];
         private readonly ObservableCollection<GameGenreItem> _editingGenres = [];
-        private readonly List<Models.GameMetadata> _subscribedGames = [];
+        private readonly List<GameMetadata> _subscribedGames = [];
         private ExtractMetadataEnricher _metadataExtractor;
 
         private string _selectedGenre = "전체";
         private string _searchText = string.Empty;
-        private Models.GameMetadata? _selectedGame;
+        private GameMetadata? _selectedGame;
         private bool _disposed;
         private bool _isShowingDeletedGames = false;
 
-        public ObservableCollection<Models.GameMetadata> Games { get; }
+        public ObservableCollection<GameMetadata> Games { get; }
 
         public ObservableCollection<string> Genres => _genres;
 
@@ -75,7 +74,7 @@ namespace UltimateEnd.Managers
             }
         }
 
-        public Models.GameMetadata? SelectedGame
+        public GameMetadata? SelectedGame
         {
             get => _selectedGame;
             set
@@ -92,8 +91,8 @@ namespace UltimateEnd.Managers
         public event Action<bool>? ShowingDeletedGamesChanged;
         public event Action<string>? SelectedGenreChanged;
         public event Action<string>? SearchTextChanged;
-        public event Action<Models.GameMetadata?>? SelectedGameChanged;
-        public event Action<Models.GameMetadata>? GamePropertyChanged;
+        public event Action<GameMetadata?>? SelectedGameChanged;
+        public event Action<GameMetadata>? GamePropertyChanged;
 
         public GameCollectionManager()
         {
@@ -114,8 +113,6 @@ namespace UltimateEnd.Managers
                 _allGames.Add(game);
                 SubscribeToGame(game);
             }
-
-            var cache = new Extractor.ExtractMetadataCache(platformId);
 
             _ = Task.Run(async () =>
             {
@@ -138,7 +135,7 @@ namespace UltimateEnd.Managers
             Games.Clear();
         }
 
-        private static List<Models.GameMetadata> SortGames(List<Models.GameMetadata> games, string platformId)
+        private static List<GameMetadata> SortGames(List<GameMetadata> games, string platformId)
         {
             if (platformId == GameMetadataManager.HistoriesKey) return games;
 
@@ -147,7 +144,7 @@ namespace UltimateEnd.Managers
                 .ThenBy(g => g.Title!, new KoreanStringComparer())];
         }
 
-        private void SubscribeToGame(Models.GameMetadata game)
+        private void SubscribeToGame(GameMetadata game)
         {
             game.PropertyChanged += Game_PropertyChanged;
             _subscribedGames.Add(game);
@@ -183,7 +180,7 @@ namespace UltimateEnd.Managers
 
         private void FilterGames()
         {
-            IEnumerable<Models.GameMetadata> source;
+            IEnumerable<GameMetadata> source;
 
             source = _allGames.Where(g => _isShowingDeletedGames ? g.Ignore : !g.Ignore);
             var filtered = _filterService.Filter(source, SelectedGenre, _searchText);
@@ -193,7 +190,7 @@ namespace UltimateEnd.Managers
             else Dispatcher.UIThread.Post(() => UpdateFilteredGames(filtered, currentSelection));
         }
 
-        private void UpdateFilteredGames(List<Models.GameMetadata> filtered, Models.GameMetadata? currentSelection)
+        private void UpdateFilteredGames(List<GameMetadata> filtered, GameMetadata? currentSelection)
         {
             Games.Clear();
             Games.AddRange(filtered);
@@ -208,29 +205,35 @@ namespace UltimateEnd.Managers
         {
             if (_disposed) return;
 
-            if (sender is Models.GameMetadata game)
+            if (sender is GameMetadata game)
             {
-                if (e.PropertyName == nameof(Models.GameMetadata.Title) ||
-                    e.PropertyName == nameof(Models.GameMetadata.Description) ||
-                    e.PropertyName == nameof(Models.GameMetadata.Developer) ||
-                    e.PropertyName == nameof(Models.GameMetadata.Genre) ||
-                    e.PropertyName == nameof(Models.GameMetadata.IsFavorite) ||
-                    e.PropertyName == nameof(Models.GameMetadata.Ignore) ||
-                    e.PropertyName == nameof(Models.GameMetadata.HasKorean) ||
-                    e.PropertyName == nameof(Models.GameMetadata.EmulatorId) ||
-                    e.PropertyName == nameof(Models.GameMetadata.CoverImagePath) ||
-                    e.PropertyName == nameof(Models.GameMetadata.LogoImagePath) ||
-                    e.PropertyName == nameof(Models.GameMetadata.VideoPath) ||
-                    e.PropertyName == nameof(Models.GameMetadata.ScrapHint))
+                if (e.PropertyName == nameof(GameMetadata.Title) ||
+                    e.PropertyName == nameof(GameMetadata.Description) ||
+                    e.PropertyName == nameof(GameMetadata.Developer) ||
+                    e.PropertyName == nameof(GameMetadata.Genre) ||
+                    e.PropertyName == nameof(GameMetadata.IsFavorite) ||
+                    e.PropertyName == nameof(GameMetadata.Ignore) ||
+                    e.PropertyName == nameof(GameMetadata.HasKorean) ||
+                    e.PropertyName == nameof(GameMetadata.EmulatorId) ||
+                    e.PropertyName == nameof(GameMetadata.CoverImagePath) ||
+                    e.PropertyName == nameof(GameMetadata.LogoImagePath) ||
+                    e.PropertyName == nameof(GameMetadata.VideoPath) ||
+                    e.PropertyName == nameof(GameMetadata.ScrapHint))
 
                 {
                     GamePropertyChanged?.Invoke(game);
                 }
 
-                if (e.PropertyName == nameof(Models.GameMetadata.Genre))
+                if (e.PropertyName == nameof(GameMetadata.Genre))
+                {
+                    LoadGenres();
                     FilterGames();
-                else if (e.PropertyName == nameof(Models.GameMetadata.Ignore))
+                }
+                else if (e.PropertyName == nameof(GameMetadata.Ignore))
+                {
+                    LoadGenres();
                     FilterGames();
+                }
             }
         }
 
@@ -241,13 +244,13 @@ namespace UltimateEnd.Managers
             _subscribedGames.Clear();
         }
 
-        public List<Models.GameMetadata> GetAllGames() => [.. _allGames];
+        public List<GameMetadata> GetAllGames() => [.. _allGames];
 
         public int GetDeletedGamesCount() => _allGames.Count(g => g.Ignore);
 
         public void ClearCache() => _filterService.ClearCache();
 
-        private HashSet<Models.GameMetadata> UpdateFromExternalMetadataInternal(string platformId, string path, Func<ObservableCollection<Models.GameMetadata>, string, string, CancellationToken, HashSet<Models.GameMetadata>> updateFunc, CancellationToken cancellationToken)
+        private HashSet<GameMetadata> UpdateFromExternalMetadataInternal(string platformId, string path, Func<ObservableCollection<GameMetadata>, string, string, CancellationToken, HashSet<GameMetadata>> updateFunc, CancellationToken cancellationToken)
         {
             foreach (var game in _subscribedGames) game.PropertyChanged -= Game_PropertyChanged;
 
@@ -272,13 +275,13 @@ namespace UltimateEnd.Managers
             }
         }
 
-        public HashSet<Models.GameMetadata> UpdateFromPegasusMetadata(string platformId, string path, CancellationToken cancellationToken = default) => UpdateFromExternalMetadataInternal(platformId, path, MetadataService.UpdateFromPegasusMetadata, cancellationToken);
+        public HashSet<GameMetadata> UpdateFromPegasusMetadata(string platformId, string path, CancellationToken cancellationToken = default) => UpdateFromExternalMetadataInternal(platformId, path, MetadataService.UpdateFromPegasusMetadata, cancellationToken);
 
-        public HashSet<Models.GameMetadata> UpdateFromEsDeMetadata(string platformId, string path, CancellationToken cancellationToken = default) => UpdateFromExternalMetadataInternal(platformId, path, MetadataService.UpdateFromEsDeMetadata, cancellationToken);
+        public HashSet<GameMetadata> UpdateFromEsDeMetadata(string platformId, string path, CancellationToken cancellationToken = default) => UpdateFromExternalMetadataInternal(platformId, path, MetadataService.UpdateFromEsDeMetadata, cancellationToken);
 
-        public static void AddToPlaylist(string playlistId, Models.GameMetadata game) => PlaylistManager.Instance.AddGameToPlaylist(playlistId, game);
+        public static void AddToPlaylist(string playlistId, GameMetadata game) => PlaylistManager.Instance.AddGameToPlaylist(playlistId, game);
 
-        public void RemoveFromPlaylist(string playlistId, Models.GameMetadata game)
+        public void RemoveFromPlaylist(string playlistId, GameMetadata game)
         {
             if (game.PlatformId == null) return;
 
@@ -287,7 +290,7 @@ namespace UltimateEnd.Managers
             FilterGames();
         }
 
-        public static List<Playlist> GetPlaylistsForGame(Models.GameMetadata game)
+        public static List<Playlist> GetPlaylistsForGame(GameMetadata game)
         {
             if (game.PlatformId == null) return [];
 

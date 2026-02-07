@@ -175,6 +175,12 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
+                Id = "citron", Name = "Citron", SupportedPlatforms = ["switch"],
+                LaunchCommand = @"Emulators\citron\citron.exe -f -g {romPath}"
+            });
+
+            config.AddEmulator(new Command
+            {
                 Id = "xemu", Name = "xemu", SupportedPlatforms = ["xbox"],
                 LaunchCommand = @"Emulators\xemu\xemu.exe -dvd_path {romPath} -full-screen"
             });

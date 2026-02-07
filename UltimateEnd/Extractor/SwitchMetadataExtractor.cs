@@ -191,11 +191,7 @@ namespace UltimateEnd.Extractor
                     if (iconFiles.Count != 0) targetIconPath = iconFiles.First().FullPath;
                 }
 
-                if (targetIconPath != null)
-                {   
-                    metadata.LogoImage = ReadFile(romfs, targetIconPath);
-                    metadata.CoverImage = metadata.LogoImage;
-                }
+                if (targetIconPath != null) metadata.Image = ReadFile(romfs, targetIconPath);
             }
             catch (Exception ex)
             {

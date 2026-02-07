@@ -167,5 +167,17 @@ namespace UltimateEnd.Scraper.Models
         };
 
         public static string GetKoreanName(int id) => GenreMap.TryGetValue(id, out var genre) ? genre : UnknownGenreKorean;
+
+        public static string GetFirstGenreKorean(string genreIds)
+        {
+            if (string.IsNullOrWhiteSpace(genreIds))
+                return string.Empty;
+
+            var firstId = genreIds.Split(',')[0].Trim();
+            if (!int.TryParse(firstId, out int id))
+                return string.Empty;
+
+            return GetKoreanName(id);
+        }
     }
 }

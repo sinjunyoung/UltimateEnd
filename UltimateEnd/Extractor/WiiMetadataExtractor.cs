@@ -96,7 +96,7 @@ namespace UltimateEnd.Extractor
 
                     try
                     {
-                        metadata.CoverImage = ExtractBannerImage(wbfsReader); 
+                        metadata.Image = ExtractBannerImage(wbfsReader); 
 
                     }
                     catch { }
@@ -125,7 +125,7 @@ namespace UltimateEnd.Extractor
 
                     try
                     {
-                        metadata.CoverImage = ExtractBannerImage(reader);
+                        metadata.Image = ExtractBannerImage(reader);
                     }
                     catch { }
 

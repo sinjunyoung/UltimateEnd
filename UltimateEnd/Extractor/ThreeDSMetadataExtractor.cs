@@ -253,8 +253,7 @@ namespace UltimateEnd.Extractor
 
                 var iconData = reader.ReadBytes(0x1200);
 
-                metadata.CoverImage = ConvertTiledRGB565ToPNG(iconData, 48, 48);
-                metadata.LogoImage = metadata.CoverImage;
+                metadata.Image = ConvertTiledRGB565ToPNG(iconData, 48, 48);
 
                 return metadata;
             }

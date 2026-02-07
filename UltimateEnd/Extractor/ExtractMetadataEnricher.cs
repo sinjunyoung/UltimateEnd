@@ -6,17 +6,24 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UltimateEnd.Scraper.Helpers;
+using UltimateEnd.Scraper.Models;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Extractor
 {
-    public class ExtractMetadataEnricher(string platformId)
+    public class ExtractMetadataEnricher
     {
-        private readonly ExtractMetadataCache _cache = new(platformId);
+        private readonly string _imageDirectory;
         private CancellationTokenSource _cts;
         private bool _isRunning;
 
         public event Action<Models.GameMetadata, ExtractorMetadata> MetadataExtracted;
+
+        public ExtractMetadataEnricher(string platformId)
+        {
+            var factory = AppBaseFolderProviderFactory.Create.Invoke();
+            _imageDirectory = Path.Combine(factory.GetPlatformsFolder(), platformId);
+        }
 
         public async Task ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games, int maxParallel = 2)
         {
@@ -74,11 +81,17 @@ namespace UltimateEnd.Extractor
 
             if (!File.Exists(romPath)) return;
 
-            var cached = await _cache.GetCachedMetadata(romPath);
+            // 이미 이미지가 있는지 확인
+            var titleId = Path.GetFileNameWithoutExtension(romPath);
+            var imagePath = Path.Combine(_imageDirectory, titleId, "image.png");
 
-            if (cached != null)
+            if (File.Exists(imagePath))
             {
-                ApplyMetadataToGame(game, cached);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (!game.HasCoverImage) game.CoverImagePath = imagePath;
+                    if (!game.HasLogoImage) game.LogoImagePath = imagePath;
+                });
                 return;
             }
 
@@ -113,32 +126,49 @@ namespace UltimateEnd.Extractor
 
                 System.Diagnostics.Debug.WriteLine($"{metadata.Id}/{metadata.Title}");
 
-                await _cache.SaveMetadata(romPath, metadata);
-                cached = await _cache.GetCachedMetadata(romPath);
+                // 이미지 저장
+                if (metadata.Image != null)
+                {
+                    var titleDir = Path.Combine(_imageDirectory, titleId);
+                    Directory.CreateDirectory(titleDir);
 
-                ApplyMetadataToGame(game, cached);
+                    imagePath = Path.Combine(titleDir, "image.png");
+                    await File.WriteAllBytesAsync(imagePath, metadata.Image);
+                }
+
+                // 메타데이터 적용
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (!string.IsNullOrEmpty(metadata.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile)))
+                        game.Title = metadata.Title;
+                    if (!string.IsNullOrEmpty(metadata.Developer) && string.IsNullOrEmpty(game.Developer))
+                        game.Developer = metadata.Developer;
+                    if (!string.IsNullOrEmpty(metadata.Genre) && string.IsNullOrEmpty(game.Genre))
+                        game.Genre = metadata.Genre;
+                    if (!string.IsNullOrEmpty(metadata.Description) && string.IsNullOrEmpty(game.Description))
+                        game.Description = metadata.Description;
+
+                    if (File.Exists(imagePath))
+                    {
+                        if (!game.HasCoverImage) game.CoverImagePath = imagePath;
+                        if (!game.HasLogoImage) game.LogoImagePath = imagePath;
+                    }
+                });
+
                 MetadataExtracted?.Invoke(game, metadata);
             }
             catch { }
         }
 
-        private static void ApplyMetadataToGame(Models.GameMetadata game, CachedMetadata cached)
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (!string.IsNullOrEmpty(cached.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile))) game.Title = cached.Title;
-                if (!string.IsNullOrEmpty(cached.Developer) && string.IsNullOrEmpty(game.Developer)) game.Developer = cached.Developer;
-                //if (!string.IsNullOrEmpty(cached.Genre) && string.IsNullOrEmpty(game.Genre)) game.Genre = cached.Genre;
-                if (!string.IsNullOrEmpty(cached.Description) && string.IsNullOrEmpty(game.Description)) game.Description = cached.Description;
-                if (!string.IsNullOrEmpty(cached.CoverImagePath) && !game.HasCoverImage) game.CoverImagePath = cached.CoverImagePath;
-                if (!string.IsNullOrEmpty(cached.LogoImagePath) && !game.HasLogoImage) game.LogoImagePath = cached.LogoImagePath;
-            });
-        }
-
         public async Task ForceExtract(string platformId, Models.GameMetadata game)
         {
             var romPath = game.GetRomFullPath();
-            _cache.DeleteCache(romPath);
+            var titleId = Path.GetFileNameWithoutExtension(romPath);
+            var titleDir = Path.Combine(_imageDirectory, titleId);
+
+            if (Directory.Exists(titleDir))
+                Directory.Delete(titleDir, true);
+
             await ProcessGame(platformId, game);
         }
 
@@ -156,6 +186,7 @@ namespace UltimateEnd.Extractor
                     metadata.Title = game.Name ?? game.NameEn;
                     metadata.Description = game.Description;
                     metadata.Developer = game.Developer;
+                    metadata.Genre = ScreenScraperGenre.GetFirstGenreKorean(game.GenreId);
                 }
             }
             catch (Exception ex)
@@ -176,15 +207,32 @@ namespace UltimateEnd.Extractor
             };
         }
 
-
         public void Cancel()
         {
             _cts?.Cancel();
             _isRunning = false;
         }
 
-        public long GetCacheSizeMB() => _cache.GetCacheSize();
+        public long GetCacheSizeMB()
+        {
+            if (!Directory.Exists(_imageDirectory)) return 0;
 
-        public void ClearCache() => _cache.ClearAllCache();
+            long size = 0;
+            var dirInfo = new DirectoryInfo(_imageDirectory);
+
+            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                size += file.Length;
+
+            return size / 1024 / 1024;
+        }
+
+        public void ClearCache()
+        {
+            if (Directory.Exists(_imageDirectory))
+            {
+                Directory.Delete(_imageDirectory, true);
+                Directory.CreateDirectory(_imageDirectory);
+            }
+        }
     }
 }

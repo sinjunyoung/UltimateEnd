@@ -133,8 +133,7 @@ namespace UltimateEnd.Extractor
                     if (string.IsNullOrWhiteSpace(metadata.Title)) ExtractTitle(reader, bannerOffset, metadata, BANNER_TITLE_JAPANESE_OFFSET);
 
                     var iconData = ExtractIcon(reader, bannerOffset);
-                    metadata.CoverImage = iconData;
-                    metadata.LogoImage = iconData;
+                    metadata.Image = iconData;
                 }
 
                 return metadata;

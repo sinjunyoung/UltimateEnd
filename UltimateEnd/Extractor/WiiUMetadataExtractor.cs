@@ -130,8 +130,7 @@ namespace UltimateEnd.Extractor
 
                                 if (convertedIcon != null)
                                 {
-                                    metadata.LogoImage = convertedIcon;
-                                    metadata.CoverImage = convertedIcon;
+                                    metadata.Image = convertedIcon;
                                     break;
                                 }
                             }
