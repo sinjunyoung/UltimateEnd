@@ -1,6 +1,7 @@
 ﻿using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -81,7 +82,6 @@ namespace UltimateEnd.Extractor
 
             if (!File.Exists(romPath)) return;
 
-            // 이미 이미지가 있는지 확인
             var titleId = Path.GetFileNameWithoutExtension(romPath);
             var imagePath = Path.Combine(_imageDirectory, titleId, "image.png");
 
@@ -124,9 +124,8 @@ namespace UltimateEnd.Extractor
                 if (!string.IsNullOrEmpty(metadata.Id))
                     EnrichFromDatabase(platformId, metadata);
 
-                System.Diagnostics.Debug.WriteLine($"{metadata.Id}/{metadata.Title}");
+                Debug.WriteLine($"{metadata.Id}/{metadata.Title}");
 
-                // 이미지 저장
                 if (metadata.Image != null)
                 {
                     var titleDir = Path.Combine(_imageDirectory, titleId);
@@ -136,7 +135,6 @@ namespace UltimateEnd.Extractor
                     await File.WriteAllBytesAsync(imagePath, metadata.Image);
                 }
 
-                // 메타데이터 적용
                 Dispatcher.UIThread.Post(() =>
                 {
                     if (!string.IsNullOrEmpty(metadata.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile)))
@@ -147,6 +145,9 @@ namespace UltimateEnd.Extractor
                         game.Genre = metadata.Genre;
                     if (!string.IsNullOrEmpty(metadata.Description) && string.IsNullOrEmpty(game.Description))
                         game.Description = metadata.Description;
+
+                    if (metadata.HasKorean)
+                        game.HasKorean = metadata.HasKorean;
 
                     if (File.Exists(imagePath))
                     {
@@ -186,6 +187,7 @@ namespace UltimateEnd.Extractor
                     metadata.Title = game.Name ?? game.NameEn;
                     metadata.Description = game.Description;
                     metadata.Developer = game.Developer;
+                    metadata.HasKorean = game.Languages.Contains("KO");
                     metadata.Genre = ScreenScraperGenre.GetFirstGenreKorean(game.GenreId);
                 }
             }

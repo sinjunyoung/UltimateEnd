@@ -10,6 +10,7 @@ using LibHac.Tools.FsSystem;
 using LibHac.Tools.FsSystem.NcaUtils;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -134,6 +135,8 @@ namespace UltimateEnd.Extractor
                         handle.Free();
                     }
 
+                    metadata.HasKorean = ExtractSupportedLanguages(control.SupportedLanguageFlag).Contains("ko");
+
                     string foundTitle = null;
                     string foundPublisher = null;
 
@@ -172,7 +175,7 @@ namespace UltimateEnd.Extractor
                     metadata.Developer = foundPublisher;
                 }
 
-                string[] iconPriorities = [ "/icon_Korean.dat", "/icon_AmericanEnglish.dat", "/icon_English.dat" ];
+                string[] iconPriorities = ["/icon_Korean.dat", "/icon_AmericanEnglish.dat", "/icon_English.dat"];
                 string targetIconPath = null;
 
                 foreach (var path in iconPriorities)
@@ -198,6 +201,44 @@ namespace UltimateEnd.Extractor
                 if (string.IsNullOrEmpty(metadata.Title)) metadata.Title = "Extraction Failed";
                 System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
             }
+        }
+
+        private static List<string> ExtractSupportedLanguages(uint languageFlag)
+        {
+            System.Diagnostics.Debug.WriteLine($"Language Flag: 0x{languageFlag:X8} = {Convert.ToString(languageFlag, 2).PadLeft(32, '0')}");
+
+            var languages = new List<string>();
+            var flagValue = languageFlag;
+
+            var languageMap = new Dictionary<uint, string>
+            {
+                { 1u << 0, "ja" },      // Japanese
+                { 1u << 1, "en" },      // American English
+                { 1u << 2, "fr" },      // French
+                { 1u << 3, "de" },      // German
+                { 1u << 4, "it" },      // Italian
+                { 1u << 5, "es" },      // Spanish
+                { 1u << 6, "zh-CN" },   // Chinese (Simplified)
+                { 1u << 7, "ko" },      // Korean
+                { 1u << 8, "nl" },      // Dutch
+                { 1u << 9, "pt" },      // Portuguese
+                { 1u << 10, "ru" },     // Russian
+                { 1u << 11, "zh-TW" },  // Chinese (Traditional)
+                { 1u << 12, "en-GB" },  // British English
+                { 1u << 13, "fr-CA" },  // Canadian French
+                { 1u << 14, "es-419" }, // Latin American Spanish
+                { 1u << 15, "pt-BR" }   // Brazilian Portuguese
+            };
+
+            foreach (var kvp in languageMap)
+            {
+                if ((flagValue & kvp.Key) != 0)
+                {
+                    languages.Add(kvp.Value);
+                }
+            }
+
+            return languages;
         }
 
         private static byte[] ReadFile(IFileSystem fs, string path)

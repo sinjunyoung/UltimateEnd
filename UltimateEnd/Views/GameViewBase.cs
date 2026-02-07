@@ -330,7 +330,7 @@ namespace UltimateEnd.Views
         protected async void OnGenreFilterClick(object? sender, PointerPressedEventArgs e)
         {
             e.Handled = true;
-            await WavSounds.OK();
+            await WavSounds.OK();            
             GenreFilterOverlayBase?.SetGenres(ViewModel.Genres, ViewModel.SelectedGenre);
             GenreFilterOverlayBase?.Show();
         }

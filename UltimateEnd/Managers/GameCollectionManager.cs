@@ -224,16 +224,8 @@ namespace UltimateEnd.Managers
                     GamePropertyChanged?.Invoke(game);
                 }
 
-                if (e.PropertyName == nameof(GameMetadata.Genre))
-                {
-                    LoadGenres();
+                if (e.PropertyName == nameof(GameMetadata.Genre) || e.PropertyName == nameof(GameMetadata.Ignore))
                     FilterGames();
-                }
-                else if (e.PropertyName == nameof(GameMetadata.Ignore))
-                {
-                    LoadGenres();
-                    FilterGames();
-                }
             }
         }
 

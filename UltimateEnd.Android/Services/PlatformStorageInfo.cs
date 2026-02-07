@@ -1,6 +1,4 @@
 ﻿using Android.Content;
-using Android.OS;
-using Android.OS.Storage;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Android.Services
@@ -15,31 +13,18 @@ namespace UltimateEnd.Android.Services
         {
             try
             {
-                var storageManager = (StorageManager)_context.GetSystemService(Context.StorageService);
+                var externalDirs = _context.GetExternalFilesDirs(null);
 
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
+                if (externalDirs?.Length > 1)
                 {
-                    foreach (var volume in storageManager.StorageVolumes)
+                    var sdCardPath = externalDirs[1]?.AbsolutePath;
+
+                    if (!string.IsNullOrEmpty(sdCardPath))
                     {
-                        if (volume.IsRemovable && volume.State == global::Android.OS.Environment.MediaMounted)
-                            return volume.Directory?.AbsolutePath;
-                    }
-                }
-                else
-                {
-                    var externalDirs = _context.GetExternalFilesDirs(null);
+                        var parts = sdCardPath.Split('/');
 
-                    if (externalDirs?.Length > 1)
-                    {
-                        var sdCardPath = externalDirs[1]?.AbsolutePath;
-
-                        if (!string.IsNullOrEmpty(sdCardPath))
-                        {
-                            var parts = sdCardPath.Split('/');
-
-                            if (parts.Length > 2 && parts[1] == "storage")
-                                return $"/storage/{parts[2]}";
-                        }
+                        if (parts.Length > 2 && parts[1] == "storage")
+                            return $"/storage/{parts[2]}";
                     }
                 }
             }

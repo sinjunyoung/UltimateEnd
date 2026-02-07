@@ -143,7 +143,14 @@ namespace UltimateEnd.ViewModels
         }
 
         public ObservableCollection<GameMetadata> Games => _collectionManager.Games;
-        public ObservableCollection<string> Genres => _collectionManager.Genres;
+        public ObservableCollection<string> Genres
+        {
+            get 
+            {
+                _collectionManager.LoadGenres();
+                return _collectionManager.Genres; 
+            }
+        }
         public ObservableCollection<GameGenreItem> EditingGenres => _collectionManager.EditingGenres;
 
         public string SelectedGenre

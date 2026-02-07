@@ -20,7 +20,7 @@ namespace UltimateEnd.Extractor
             { "nintendoswitch", () =>
             {   
                 string keyPath = Path.Combine(_factory.GetSettingsFolder(), "prod.keys");
-                return File.Exists(keyPath) ? new SwitchMetadataExtractor(keyPath): null;
+                return File.Exists(keyPath) ? new SwitchMetadataExtractor(keyPath): throw new FileNotFoundException("prod.keys 파일이 없습니다.");
             }},
             { "playstationportable", () => new PspMetadataExtractor() },
             { "playstation2", () => new Ps2MetadataExtractor() },

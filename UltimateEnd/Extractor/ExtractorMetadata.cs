@@ -12,6 +12,8 @@
 
         public string Genre { get; set; }
 
+        public bool HasKorean { get; set; }
+
         public byte[] Image { get; set; }
     }
 }
