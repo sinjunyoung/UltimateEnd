@@ -32,7 +32,7 @@ namespace UltimateEnd.Android.Services
             if (!string.IsNullOrEmpty(settingsFolder))
             {
                 GetOrCreateSubFolder("Themes");
-                CheckAndHandleFirstRun(settingsFolder);
+                DeleteConfigFilesOnFirstRun(settingsFolder);
 
                 _cachedFolder = settingsFolder;
 
@@ -80,7 +80,7 @@ namespace UltimateEnd.Android.Services
             return subFolder;
         }
 
-        private static void CheckAndHandleFirstRun(string settingsFolder)
+        private static void DeleteConfigFilesOnFirstRun(string settingsFolder)
         {
             if (_firstRunChecked) return;
 
@@ -93,9 +93,15 @@ namespace UltimateEnd.Android.Services
                 string[] settingsFiles = ["commands.txt", "platform_info.json"];
                 DeleteFilesInFolder(settingsFolder, settingsFiles);
 
-                //var themesFolder = GetOrCreateSubFolder("Themes");
-                //string[] themeFiles = ["BlueTheme.axaml", "CyberpunkTheme.axaml", "DarkTheme.axaml", "LightTheme.axaml"];
-                //DeleteFilesInFolder(themesFolder, themeFiles);
+                var assetsFolder = GetOrCreateSubFolder("Assets");
+
+                if (!string.IsNullOrEmpty(assetsFolder))
+                {
+                    var dbPath = Path.Combine(assetsFolder, "DBs");
+                    var gamesDbPath = Path.Combine(dbPath, "games.db");
+
+                    if (File.Exists(gamesDbPath)) File.Delete(gamesDbPath);
+                }
 
                 var editor = prefs.Edit();
                 editor.PutBoolean("is_first_run", false);

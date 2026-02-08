@@ -32,7 +32,7 @@ namespace UltimateEnd.Updater
                     Details = "기존 설정을 안전하게 보관합니다.",
                     Progress = 0.05
                 });
-                BackupConfigFiles();
+                BackupAndDeleteConfigFiles();
 
                 var release = await GetLatestReleaseAsync();
                 await _platformUpdater.PerformUpdateAsync(release, progress);
@@ -48,12 +48,12 @@ namespace UltimateEnd.Updater
             }
         }
 
-        private static void BackupConfigFiles()
+        private static void BackupAndDeleteConfigFiles()
         {
             var factory = AppBaseFolderProviderFactory.Create();
             var settingsPath = factory.GetSettingsFolder();
+            var dbPath = Path.Combine(factory.GetAssetsFolder(), "DBs");
             var backupPath = Path.Combine(Directory.GetParent(settingsPath).FullName, BackupFolderName);
-
             string[] settingsFiles = ["commands.txt", "platform_info.json"];
 
             if (!Directory.Exists(settingsPath)) return;
@@ -62,16 +62,23 @@ namespace UltimateEnd.Updater
 
             Directory.CreateDirectory(backupPath);
 
+            // settings 파일들 백업 후 삭제
             foreach (var fileName in settingsFiles)
             {
                 var sourceFile = Path.Combine(settingsPath, fileName);
-
+            
                 if (File.Exists(sourceFile))
                 {
                     var destFile = Path.Combine(backupPath, fileName);
                     File.Copy(sourceFile, destFile, true);
+                    File.Delete(sourceFile);
                 }
             }
+
+            // games.db는 백업 없이 바로 삭제
+            string gamesdb = Path.Combine(dbPath, "games.db");
+
+            if (File.Exists(gamesdb)) File.Delete(gamesdb);
         }
 
         public async Task<string> GetLatestVersionAsync()

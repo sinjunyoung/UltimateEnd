@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using UltimateEnd.Services;
 
 namespace UltimateEnd.Android.Services
@@ -54,10 +56,12 @@ namespace UltimateEnd.Android.Services
                     fileStream.Flush();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Asset copy failed: {ex.Message}");
+            }
         }
 
-        public string GetAssetPath(string subFolder, string fileName)
-            => Path.Combine(_baseDir, subFolder, fileName);
+        public string GetAssetPath(string subFolder, string fileName) => Path.Combine(_baseDir, subFolder, fileName);
     }
 }
