@@ -193,7 +193,7 @@ namespace UltimateEnd.Extractor
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"DB lookup failed: {ex.Message}");
+                Debug.WriteLine($"DB lookup failed: {ex.Message}");
             }
         }
 

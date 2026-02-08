@@ -62,7 +62,6 @@ namespace UltimateEnd.Updater
 
             Directory.CreateDirectory(backupPath);
 
-            // settings 파일들 백업 후 삭제
             foreach (var fileName in settingsFiles)
             {
                 var sourceFile = Path.Combine(settingsPath, fileName);
@@ -75,7 +74,6 @@ namespace UltimateEnd.Updater
                 }
             }
 
-            // games.db는 백업 없이 바로 삭제
             string gamesdb = Path.Combine(dbPath, "games.db");
 
             if (File.Exists(gamesdb)) File.Delete(gamesdb);

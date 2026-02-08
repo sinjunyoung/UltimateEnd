@@ -62,8 +62,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="게임명 스타일 ( 일본 vs 서양 )"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -136,8 +135,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="지역 스타일 ( 일본 vs 서양 )"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -210,8 +208,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="로고 스타일 ( 일반 vs 스틸 )"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -284,8 +281,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="커버 스타일 ( 2D vs 3D )"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -359,8 +355,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 												   Text="검색 방식 ( 파일명 vs CRC )"
-												   FontSize="16"
-												   
+												   FontSize="16"												   
 												   Foreground="{DynamicResource Text.Primary}"
 												   VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -382,8 +377,7 @@
 										<Grid RowDefinitions="Auto,Auto,Auto">
 											<TextBlock Grid.Row="0"
 													   Text="파일명"
-													   FontSize="14"
-													   
+													   FontSize="14"													   
 													   HorizontalAlignment="Center"
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<StackPanel Grid.Row="1"
@@ -420,8 +414,7 @@
 										<Grid RowDefinitions="Auto,Auto,Auto">
 											<TextBlock Grid.Row="0"
 													   Text="CRC"
-													   FontSize="14"
-													   
+													   FontSize="14"													   
 													   HorizontalAlignment="Center"
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<StackPanel Grid.Row="1"
@@ -463,8 +456,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 												   Text="압축 파일 검색 방식"
-												   FontSize="16"
-												   
+												   FontSize="16"												   
 												   Foreground="{DynamicResource Text.Primary}"
 												   VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -493,7 +485,6 @@
 											<TextBlock Grid.Column="0"
 													   Text="내부 파일 (game.nes)"
 													   FontSize="14"
-													   FontWeight="Medium"
 													   Foreground="{DynamicResource Text.Primary}"
 													   VerticalAlignment="Center"/>
 											<PathIcon Name="ZipInternalCheck"
@@ -515,7 +506,6 @@
 											<TextBlock Grid.Column="0"
 													   Text="압축 파일 (game.zip)"
 													   FontSize="14"
-													   FontWeight="Medium"
 													   Foreground="{DynamicResource Text.Primary}"
 													   VerticalAlignment="Center"/>
 											<PathIcon Name="ZipExternalCheck"
@@ -542,8 +532,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="스크랩 대상"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -563,8 +552,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="게임명"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<Border Grid.Column="1" Name="ScrapTitleToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
@@ -581,8 +569,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="게임 설명"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<Border Grid.Column="1" Name="ScrapDescriptionToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
@@ -599,8 +586,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="로고"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<Border Grid.Column="1" Name="ScrapLogoToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
@@ -617,8 +603,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="커버"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<Border Grid.Column="1" Name="ScrapCoverToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
@@ -635,8 +620,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="비디오"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<Border Grid.Column="1" Name="ScrapVideoToggleBack" Width="50" Height="28" CornerRadius="14" Padding="2">
@@ -660,8 +644,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="스크랩 조회 조건"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -683,8 +666,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="무조건"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<PathIcon Name="ConditionNoneCheck"
@@ -705,8 +687,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="미디어가 전부 없는 경우"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<PathIcon Name="ConditionAllMissingCheck"
@@ -727,8 +708,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="로고만 없는 경우"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<PathIcon Name="ConditionLogoMissingCheck"
@@ -749,8 +729,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="커버만 없는 경우"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<PathIcon Name="ConditionCoverMissingCheck"
@@ -771,8 +750,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="비디오만 없는 경우"
-											           FontSize="14"
-											           FontWeight="Medium"
+											           FontSize="14"											           
 											           Foreground="{DynamicResource Text.Primary}"
 											           VerticalAlignment="Center"/>
 											<PathIcon Name="ConditionVideoMissingCheck"
@@ -799,8 +777,7 @@
 									<Grid ColumnDefinitions="*,Auto">
 										<TextBlock Grid.Column="0"
 										           Text="계정 및 고급 설정"
-										           FontSize="16"
-										           
+										           FontSize="16"										           
 										           Foreground="{DynamicResource Text.Primary}"
 										           VerticalAlignment="Center"/>
 										<PathIcon Grid.Column="1"
@@ -858,8 +835,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 											           Text="요청 딜레이"
-											           FontSize="15"
-											           
+											           FontSize="15"											           
 											           Foreground="{DynamicResource Text.Primary}"/>
 											<TextBlock Grid.Column="1"
 											           Name="DelayValueText"
@@ -881,8 +857,7 @@
 										<Grid ColumnDefinitions="*,Auto">
 											<TextBlock Grid.Column="0"
 													   Text="타임아웃"
-													   FontSize="15"
-													   
+													   FontSize="15"													   
 													   Foreground="{DynamicResource Text.Primary}"/>
 											<TextBlock Grid.Column="1"
 													   Name="HttpTimeoutValueText"
@@ -920,7 +895,6 @@
 												<TextBlock Grid.Column="0"
 														   Text="자동 스크래핑 활성화"
 														   FontSize="14"
-														   FontWeight="Medium"
 														   Foreground="{DynamicResource Text.Primary}"
 														   VerticalAlignment="Center"/>
 												<Border Grid.Column="1"

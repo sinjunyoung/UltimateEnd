@@ -73,7 +73,10 @@ namespace UltimateEnd.Services
                     return [.. games.Where(g =>
                     {
                         if (string.IsNullOrEmpty(g.RomFile)) return false;
+                        if (IsSystemApp(platformId)) return true;
+
                         var ext = Path.GetExtension(g.RomFile);
+
                         return validExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
                     })];
                 }
@@ -96,7 +99,10 @@ namespace UltimateEnd.Services
                         games = [.. games.Where(g =>
                         {
                             if (string.IsNullOrEmpty(g.RomFile)) return false;
+                            if (IsSystemApp(platformId)) return true;
+
                             var ext = Path.GetExtension(g.RomFile);
+
                             return validExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
                         })];
                     }

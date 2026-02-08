@@ -89,7 +89,7 @@ namespace UltimateEnd.Views.Overlays
             if (_focusableItems.Count == 0) return;
 
             _selectedIndex = (_selectedIndex - 1 + _focusableItems.Count) % _focusableItems.Count;
-            UpdateSelection();
+            UpdateSelection(true);
             
             var selected = _focusableItems[_selectedIndex];
 
@@ -101,7 +101,7 @@ namespace UltimateEnd.Views.Overlays
             if (_focusableItems.Count == 0) return;
 
             _selectedIndex = (_selectedIndex + 1) % _focusableItems.Count;
-            UpdateSelection();
+            UpdateSelection(true);
 
             var selected = _focusableItems[_selectedIndex];
 
@@ -247,7 +247,7 @@ namespace UltimateEnd.Views.Overlays
                 _selectedIndex = Math.Max(0, _focusableItems.Count - 1);
         }
 
-        private void UpdateSelection()
+        private void UpdateSelection(bool bringIntoView = false)
         {
             if (_focusableItems.Count == 0) return;
 
@@ -281,7 +281,7 @@ namespace UltimateEnd.Views.Overlays
                         slider.Focus();
                     }
 
-                    item.BringIntoView();
+                    if (bringIntoView) item.BringIntoView();
                 }
                 else
                 {
