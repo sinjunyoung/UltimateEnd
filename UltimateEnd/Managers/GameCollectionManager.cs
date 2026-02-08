@@ -116,12 +116,22 @@ namespace UltimateEnd.Managers
 
             _ = Task.Run(async () =>
             {
+                await Dispatcher.UIThread.InvokeAsync(() => UnsubscribeAllGames());
+
                 _metadataExtractor?.Cancel();
                 _metadataExtractor = new ExtractMetadataEnricher(platformId);
 
                 int maxParallel = OperatingSystem.IsAndroid() ? 1 : 4;
 
                 await _metadataExtractor.ExtractInBackground(platformId, sortedGames, maxParallel);
+
+                _metadataManager.ForceSave(platformId);
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    foreach (var game in _allGames)
+                        SubscribeToGame(game);
+                });
             });
 
             FilterGames();

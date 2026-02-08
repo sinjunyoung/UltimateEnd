@@ -73,6 +73,13 @@ namespace UltimateEnd.Managers
                     _changedPlatforms.Remove(platformId);
         }
 
+        public void ForceSave(string platformId)
+        {
+            if (string.IsNullOrEmpty(platformId)) return;
+
+            AllGamesManager.Instance.SavePlatformGames(platformId);
+        }
+
         public void ClearChangedPlatforms()
         {
             lock (_lockObject) _changedPlatforms.Clear();

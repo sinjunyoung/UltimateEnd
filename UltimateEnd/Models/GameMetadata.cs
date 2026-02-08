@@ -631,6 +631,7 @@ namespace UltimateEnd.Models
         }
 
         public static void ClearDirectoryCache() => GameMediaPathResolver.ClearDirectoryCache();
+
         public static void InvalidateDirectoryCache(string basePath) => GameMediaPathResolver.InvalidateDirectoryCache(basePath);
 
         #endregion

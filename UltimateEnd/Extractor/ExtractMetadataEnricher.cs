@@ -18,8 +18,6 @@ namespace UltimateEnd.Extractor
         private CancellationTokenSource _cts;
         private bool _isRunning;
 
-        public event Action<Models.GameMetadata, ExtractorMetadata> MetadataExtracted;
-
         public ExtractMetadataEnricher(string platformId)
         {
             var factory = AppBaseFolderProviderFactory.Create.Invoke();
@@ -28,6 +26,8 @@ namespace UltimateEnd.Extractor
 
         public async Task ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games, int maxParallel = 2)
         {
+            Debug.WriteLine("추출 시작");
+
             if (_isRunning) return;
 
             var systemId = PlatformInfoService.Instance.GetScreenScraperSystemId(platformId);
@@ -49,31 +49,26 @@ namespace UltimateEnd.Extractor
 
                     if (total == 0) return;
 
-                    var current = 0;
+                    foreach (var game in gameList)
+                    {
+                        if (_cts.Token.IsCancellationRequested) break;
 
-                    await Parallel.ForEachAsync(gameList, new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = maxParallel,
-                        CancellationToken = _cts.Token
-                    }, async (game, ct) =>
-                    {
                         try
                         {
                             await ProcessGame(platformId, game);
-
-                            Interlocked.Increment(ref current);
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Error processing game {game.Title}: {ex.Message}");
+                            Debug.WriteLine($"Error processing game {game.Title}: {ex.Message}");
                         }
-                    });
+                    }
                 }
                 finally
                 {
                     _isRunning = false;
+                    Debug.WriteLine("추출 완료");
                 }
-            }, _cts.Token);
+            }, _cts.Token);            
         }
 
         private async Task ProcessGame(string platformId, Models.GameMetadata game)
@@ -87,11 +82,9 @@ namespace UltimateEnd.Extractor
 
             if (File.Exists(imagePath))
             {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    if (!game.HasCoverImage) game.CoverImagePath = imagePath;
-                    if (!game.HasLogoImage) game.LogoImagePath = imagePath;
-                });
+                if (!game.HasCoverImage) game.CoverImagePath = imagePath;
+                if (!game.HasLogoImage) game.LogoImagePath = imagePath;
+
                 return;
             }
 
@@ -133,30 +126,27 @@ namespace UltimateEnd.Extractor
 
                     imagePath = Path.Combine(titleDir, "image.png");
                     await File.WriteAllBytesAsync(imagePath, metadata.Image);
+
+                    metadata.Image = null;
                 }
 
-                Dispatcher.UIThread.Post(() =>
+                if (!string.IsNullOrEmpty(metadata.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile)))
+                    game.Title = metadata.Title;
+                if (!string.IsNullOrEmpty(metadata.Developer) && string.IsNullOrEmpty(game.Developer))
+                    game.Developer = metadata.Developer;
+                if (!string.IsNullOrEmpty(metadata.Genre) && string.IsNullOrEmpty(game.Genre))
+                    game.Genre = metadata.Genre;
+                if (!string.IsNullOrEmpty(metadata.Description) && string.IsNullOrEmpty(game.Description))
+                    game.Description = metadata.Description;
+
+                if (metadata.HasKorean)
+                    game.HasKorean = metadata.HasKorean;
+
+                if (File.Exists(imagePath))
                 {
-                    if (!string.IsNullOrEmpty(metadata.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile)))
-                        game.Title = metadata.Title;
-                    if (!string.IsNullOrEmpty(metadata.Developer) && string.IsNullOrEmpty(game.Developer))
-                        game.Developer = metadata.Developer;
-                    if (!string.IsNullOrEmpty(metadata.Genre) && string.IsNullOrEmpty(game.Genre))
-                        game.Genre = metadata.Genre;
-                    if (!string.IsNullOrEmpty(metadata.Description) && string.IsNullOrEmpty(game.Description))
-                        game.Description = metadata.Description;
-
-                    if (metadata.HasKorean)
-                        game.HasKorean = metadata.HasKorean;
-
-                    if (File.Exists(imagePath))
-                    {
-                        if (!game.HasCoverImage) game.CoverImagePath = imagePath;
-                        if (!game.HasLogoImage) game.LogoImagePath = imagePath;
-                    }
-                });
-
-                MetadataExtracted?.Invoke(game, metadata);
+                    if (!game.HasCoverImage) game.CoverImagePath = imagePath;
+                    if (!game.HasLogoImage) game.LogoImagePath = imagePath;
+                }
             }
             catch { }
         }
@@ -187,7 +177,7 @@ namespace UltimateEnd.Extractor
                     metadata.Title = game.Name ?? game.NameEn;
                     metadata.Description = game.Description;
                     metadata.Developer = game.Developer;
-                    metadata.HasKorean = game.Languages.Contains("KO");
+                    metadata.HasKorean = game.Languages.ToUpperInvariant().Contains("KO");
                     metadata.Genre = ScreenScraperGenre.GetFirstGenreKorean(game.GenreId);
                 }
             }
@@ -213,28 +203,6 @@ namespace UltimateEnd.Extractor
         {
             _cts?.Cancel();
             _isRunning = false;
-        }
-
-        public long GetCacheSizeMB()
-        {
-            if (!Directory.Exists(_imageDirectory)) return 0;
-
-            long size = 0;
-            var dirInfo = new DirectoryInfo(_imageDirectory);
-
-            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
-                size += file.Length;
-
-            return size / 1024 / 1024;
-        }
-
-        public void ClearCache()
-        {
-            if (Directory.Exists(_imageDirectory))
-            {
-                Directory.Delete(_imageDirectory, true);
-                Directory.CreateDirectory(_imageDirectory);
-            }
         }
     }
 }
