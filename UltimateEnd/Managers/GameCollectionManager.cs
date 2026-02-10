@@ -121,11 +121,9 @@ namespace UltimateEnd.Managers
                 _metadataExtractor?.Cancel();
                 _metadataExtractor = new ExtractMetadataEnricher(platformId);
 
-                int maxParallel = OperatingSystem.IsAndroid() ? 1 : 4;
+                await _metadataExtractor.ExtractInBackground(platformId, sortedGames);
 
-                await _metadataExtractor.ExtractInBackground(platformId, sortedGames, maxParallel);
-
-                _metadataManager.ForceSave(platformId);
+                GameMetadataManager.ForceSave(platformId);
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {

@@ -73,7 +73,7 @@ namespace UltimateEnd.Managers
                     _changedPlatforms.Remove(platformId);
         }
 
-        public void ForceSave(string platformId)
+        public static void ForceSave(string platformId)
         {
             if (string.IsNullOrEmpty(platformId)) return;
 

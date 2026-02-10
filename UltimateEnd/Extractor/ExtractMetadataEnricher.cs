@@ -24,10 +24,8 @@ namespace UltimateEnd.Extractor
             _imageDirectory = Path.Combine(factory.GetPlatformsFolder(), platformId);
         }
 
-        public async Task ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games, int maxParallel = 2)
+        public async Task ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games)
         {
-            Debug.WriteLine("추출 시작");
-
             if (_isRunning) return;
 
             var systemId = PlatformInfoService.Instance.GetScreenScraperSystemId(platformId);
@@ -66,7 +64,6 @@ namespace UltimateEnd.Extractor
                 finally
                 {
                     _isRunning = false;
-                    Debug.WriteLine("추출 완료");
                 }
             }, _cts.Token);            
         }
@@ -177,7 +174,7 @@ namespace UltimateEnd.Extractor
                     metadata.Title = game.Name ?? game.NameEn;
                     metadata.Description = game.Description;
                     metadata.Developer = game.Developer;
-                    metadata.HasKorean = game.Languages.ToUpperInvariant().Contains("KO");
+                    metadata.HasKorean = game.Languages.Contains("KO", StringComparison.InvariantCultureIgnoreCase);
                     metadata.Genre = ScreenScraperGenre.GetFirstGenreKorean(game.GenreId);
                 }
             }

@@ -181,6 +181,12 @@ namespace UltimateEnd.Desktop.Services
 
             config.AddEmulator(new Command
             {
+                Id = "eden", Name = "Eden", SupportedPlatforms = ["switch"],
+                LaunchCommand = @"Emulators\eden\eden.exe -f -g {romPath}"
+            });
+
+            config.AddEmulator(new Command
+            {
                 Id = "xemu", Name = "xemu", SupportedPlatforms = ["xbox"],
                 LaunchCommand = @"Emulators\xemu\xemu.exe -dvd_path {romPath} -full-screen"
             });
