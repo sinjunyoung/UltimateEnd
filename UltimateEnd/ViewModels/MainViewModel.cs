@@ -164,7 +164,7 @@ namespace UltimateEnd.ViewModels
                 _ = Task.Run(async () =>
                 {
                     await Task.Delay(100);
-                    try { gameListVM.Dispose(); }
+                    try { await gameListVM.DisposeAsync(); }
                     catch { }
                 });
             }
@@ -241,7 +241,7 @@ namespace UltimateEnd.ViewModels
                                 Task.Run(async () =>
                                 {
                                     await Task.Delay(500);
-                                    try { oldGameListVM.Dispose(); }
+                                    try { await oldGameListVM.DisposeAsync(); }
                                     catch { }
                                 });
                             }
@@ -286,7 +286,7 @@ namespace UltimateEnd.ViewModels
                                 Task.Run(async () =>
                                 {
                                     await Task.Delay(500);
-                                    try { oldGameListVM.Dispose(); }
+                                    try { await oldGameListVM.DisposeAsync(); }
                                     catch { }
                                 });
                             }

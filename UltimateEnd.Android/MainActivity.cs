@@ -188,6 +188,13 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
     }
 
+    protected override void OnStop()
+    {
+        ScreenScraperCache.FlushSync();
+
+        base.OnStop();
+    }
+
     public void SetGameExitWaiter(TaskCompletionSource<bool> tcs)
     {
         _gameExitTcs?.TrySetCanceled();

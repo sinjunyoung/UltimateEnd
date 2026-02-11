@@ -24,19 +24,21 @@ namespace UltimateEnd.Extractor
             _imageDirectory = Path.Combine(factory.GetPlatformsFolder(), platformId);
         }
 
-        public async Task ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games)
+        public async Task<bool> ExtractInBackground(string platformId, IEnumerable<Models.GameMetadata> games)
         {
-            if (_isRunning) return;
+            if (_isRunning) return false;
 
             var systemId = PlatformInfoService.Instance.GetScreenScraperSystemId(platformId);
             bool isArcade = ScreenScraperSystemClassifier.IsArcadeSystem(systemId);
             bool canExtract = MetadataExtractorFactory.IsSupported(platformId);
             bool hasDbSupport = IsDbSupported(platformId);
 
-            if (!isArcade && !canExtract && !hasDbSupport) return;
+            if (!isArcade && !canExtract && !hasDbSupport) return false;
 
             _isRunning = true;
             _cts = new CancellationTokenSource();
+
+            bool hasUpdates = false;
 
             await Task.Run(async () =>
             {
@@ -53,7 +55,8 @@ namespace UltimateEnd.Extractor
 
                         try
                         {
-                            await ProcessGame(platformId, game);
+                            bool updated = await ProcessGame(platformId, game);
+                            if (updated) hasUpdates = true;
                         }
                         catch (Exception ex)
                         {
@@ -65,24 +68,37 @@ namespace UltimateEnd.Extractor
                 {
                     _isRunning = false;
                 }
-            }, _cts.Token);            
+            }, _cts.Token);
+
+            return hasUpdates;
         }
 
-        private async Task ProcessGame(string platformId, Models.GameMetadata game)
+        private async Task<bool> ProcessGame(string platformId, Models.GameMetadata game)
         {
             var romPath = game.GetRomFullPath();
 
-            if (!File.Exists(romPath)) return;
+            if (!File.Exists(romPath)) return false;
 
             var titleId = Path.GetFileNameWithoutExtension(romPath);
             var imagePath = Path.Combine(_imageDirectory, titleId, "image.png");
 
             if (File.Exists(imagePath))
             {
-                if (!game.HasCoverImage) game.CoverImagePath = imagePath;
-                if (!game.HasLogoImage) game.LogoImagePath = imagePath;
+                bool updated = false;
 
-                return;
+                if (!game.HasCoverImage)
+                {
+                    game.CoverImagePath = imagePath;
+                    updated = true;
+                }
+
+                if (!game.HasLogoImage)
+                {
+                    game.LogoImagePath = imagePath;
+                    updated = true;
+                }
+
+                return updated;
             }
 
             try
@@ -104,17 +120,19 @@ namespace UltimateEnd.Extractor
                     var extractor = MetadataExtractorFactory.GetExtractor(platformId);
                     metadata = await extractor.Extract(romPath);
 
-                    if (metadata == null) return;
+                    if (metadata == null) return false;
                 }
                 else
                 {
-                    return;
+                    return false;
                 }
 
                 if (!string.IsNullOrEmpty(metadata.Id))
                     EnrichFromDatabase(platformId, metadata);
 
                 Debug.WriteLine($"{metadata.Id}/{metadata.Title}");
+
+                bool updated = false;
 
                 if (metadata.Image != null)
                 {
@@ -128,24 +146,56 @@ namespace UltimateEnd.Extractor
                 }
 
                 if (!string.IsNullOrEmpty(metadata.Title) && (string.IsNullOrEmpty(game.Title) || game.Title == Path.GetFileNameWithoutExtension(game.RomFile)))
+                {
                     game.Title = metadata.Title;
+                    updated = true;
+                }
+
                 if (!string.IsNullOrEmpty(metadata.Developer) && string.IsNullOrEmpty(game.Developer))
+                {
                     game.Developer = metadata.Developer;
+                    updated = true;
+                }
+
                 if (!string.IsNullOrEmpty(metadata.Genre) && string.IsNullOrEmpty(game.Genre))
+                {
                     game.Genre = metadata.Genre;
+                    updated = true;
+                }
+
                 if (!string.IsNullOrEmpty(metadata.Description) && string.IsNullOrEmpty(game.Description))
+                {
                     game.Description = metadata.Description;
+                    updated = true;
+                }
 
                 if (metadata.HasKorean)
+                {
                     game.HasKorean = metadata.HasKorean;
+                    updated = true;
+                }
 
                 if (File.Exists(imagePath))
                 {
-                    if (!game.HasCoverImage) game.CoverImagePath = imagePath;
-                    if (!game.HasLogoImage) game.LogoImagePath = imagePath;
+                    if (!game.HasCoverImage)
+                    {
+                        game.CoverImagePath = imagePath;
+                        updated = true;
+                    }
+
+                    if (!game.HasLogoImage)
+                    {
+                        game.LogoImagePath = imagePath;
+                        updated = true;
+                    }
                 }
+
+                return updated;
             }
-            catch { }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task ForceExtract(string platformId, Models.GameMetadata game)

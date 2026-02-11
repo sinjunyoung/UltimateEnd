@@ -22,7 +22,7 @@ using UltimateEnd.Utils;
 
 namespace UltimateEnd.ViewModels
 {   
-    public class GameListViewModel : ViewModelBase, IDisposable
+    public class GameListViewModel : ViewModelBase, IAsyncDisposable
     {
         #region Separated Components
 
@@ -492,7 +492,6 @@ namespace UltimateEnd.ViewModels
             if (_currentSubFolder != null)
             {
                 _videoCoordinator.ReleaseMedia();
-
                 CurrentSubFolder = null;
                 BuildDisplayItems();
 
@@ -504,7 +503,6 @@ namespace UltimateEnd.ViewModels
                         Dispatcher.UIThread.Post(() =>
                         {
                             SelectedItem = DisplayItems[savedIndex];
-
                             if (SelectedItem?.IsGame == true && SelectedItem.Game != null)
                                 RequestExplicitScroll?.Invoke(this, SelectedItem.Game);
                         }, DispatcherPriority.Background);
@@ -514,12 +512,21 @@ namespace UltimateEnd.ViewModels
             else
             {
                 _scrollPositionStack.Clear();
-
                 _videoCoordinator.Stop();
                 _selectionSubscription?.Dispose();
 
                 if (_persistenceService.HasUnsavedChanges)
-                    _ = Task.Run(() => _persistenceService.SaveNow());
+                {
+                    try
+                    {
+                        var saveTask = Task.Run(() => _persistenceService.SaveNowAsync());
+                        saveTask.Wait(TimeSpan.FromSeconds(3));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error saving on GoBack: {ex.Message}");
+                    }
+                }
 
                 BackRequested?.Invoke();
             }
@@ -655,7 +662,7 @@ namespace UltimateEnd.ViewModels
 
         #region Metadata Management
 
-        private void SaveMetadata() => _persistenceService.SaveNow();
+        private async void SaveMetadata() => await _persistenceService.SaveNowAsync();
 
         public void RequestSave() => _persistenceService.MarkAsChanged();
 
@@ -715,23 +722,50 @@ namespace UltimateEnd.ViewModels
 
         #region IDisposable
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (_disposed) return;
-
             _disposed = true;
 
-            _selectionSubscription?.Dispose();
-            SelectedGame = null;
+            try
+            {
+                _selectionSubscription?.Dispose();
+                _selectionSubscription = null;
 
-            if (_persistenceService.HasUnsavedChanges)
-                _ = Task.Run(() => _persistenceService.SaveNow());
+                if (_persistenceService.HasUnsavedChanges)
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    try
+                    {
+                        await _persistenceService.SaveNowAsync()
+                            .WaitAsync(cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Debug.WriteLine("Save cancelled due to timeout");
+                    }
+                }
 
-            _videoCoordinator.Dispose();
-            _collectionManager.Dispose();
-            _persistenceService.Dispose();
+                using var clearCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                try
+                {
+                    await Task.Run(() => _collectionManager.ClearCache(), clearCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Debug.WriteLine("Cache clear cancelled due to timeout");
+                }
 
-            _ = Task.Run(() => _collectionManager.ClearCache());
+                SelectedGame = null;
+
+                _videoCoordinator.Dispose();
+                _collectionManager.Dispose();
+                _persistenceService.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in DisposeAsync: {ex.Message}");
+            }
         }
 
         #endregion

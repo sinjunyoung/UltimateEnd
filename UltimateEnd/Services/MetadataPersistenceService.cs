@@ -5,6 +5,7 @@ using System.Reactive.Subjects;
 using ReactiveUI;
 using UltimateEnd.Models;
 using UltimateEnd.Managers;
+using System.Threading.Tasks;
 
 namespace UltimateEnd.Services
 {
@@ -23,7 +24,7 @@ namespace UltimateEnd.Services
             _metadataManager = new GameMetadataManager();
             _saveSubscription = _saveRequested?
                 .Throttle(TimeSpan.FromSeconds(SaveThrottleSeconds))
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .Subscribe(_ => ExecuteSave());
         }
 
@@ -50,12 +51,12 @@ namespace UltimateEnd.Services
             catch (ObjectDisposedException) { }
         }
 
-        public void SaveNow()
+        public async Task SaveNowAsync()
         {
             if (!HasUnsavedChanges)
                 return;
 
-            _metadataManager.SaveGames();
+            await _metadataManager.SaveGamesAsync();
         }
 
         private void ExecuteSave() => SaveRequested?.Invoke();

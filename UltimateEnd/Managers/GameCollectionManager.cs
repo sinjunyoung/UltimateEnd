@@ -116,20 +116,21 @@ namespace UltimateEnd.Managers
 
             _ = Task.Run(async () =>
             {
-                await Dispatcher.UIThread.InvokeAsync(() => UnsubscribeAllGames());
+                //await Dispatcher.UIThread.InvokeAsync(() => UnsubscribeAllGames());
 
                 _metadataExtractor?.Cancel();
                 _metadataExtractor = new ExtractMetadataEnricher(platformId);
 
                 await _metadataExtractor.ExtractInBackground(platformId, sortedGames);
 
-                GameMetadataManager.ForceSave(platformId);
+                //if (await _metadataExtractor.ExtractInBackground(platformId, sortedGames))
+                //    GameMetadataManager.ForceSave(platformId);                
 
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    foreach (var game in _allGames)
-                        SubscribeToGame(game);
-                });
+                //await Dispatcher.UIThread.InvokeAsync(() =>
+                //{
+                //    foreach (var game in _allGames)
+                //        SubscribeToGame(game);
+                //});
             });
 
             FilterGames();

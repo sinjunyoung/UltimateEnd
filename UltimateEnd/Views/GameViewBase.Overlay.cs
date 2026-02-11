@@ -599,7 +599,6 @@ namespace UltimateEnd.Views
         {
             ViewModel.IsDownloadingMedia = false;
             ScreenSaverManager.Instance.ResumeScreenSaver();
-
             OnScrapEnded();
         }
 

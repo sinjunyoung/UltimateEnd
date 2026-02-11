@@ -18,6 +18,7 @@ namespace UltimateEnd.Scraper
         private const string CACHE_FILE_NAME = "screenscraper_cache.ue";
         private const string FAILED_MARKER = "__SCRAPER_FAILED__";
         private static readonly SemaphoreSlim _fileLock = new(1, 1);
+        private static readonly SemaphoreSlim _loadLock = new(1, 1);
 
         private const int SuccessCacheExpiryDays = 30;
         private const int FailedCacheExpiryDays = 90;
@@ -25,9 +26,7 @@ namespace UltimateEnd.Scraper
         private static Dictionary<string, CachedEntry> _cache = [];
         private static bool _isLoaded = false;
         private static bool _isDirty = false;
-        private static readonly Timer? _autoSaveTimer = new(async _ => await AutoSaveAsync(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-
-        private static readonly TaskCompletionSource<bool> _loadCompletionSource = new();        
+        private static readonly Timer? _autoSaveTimer = new(async _ => await AutoSaveAsync(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5)); 
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -62,7 +61,7 @@ namespace UltimateEnd.Scraper
         {
             if (_isLoaded) return;
 
-            await _fileLock.WaitAsync();
+            await _loadLock.WaitAsync();
 
             try
             {
@@ -89,18 +88,15 @@ namespace UltimateEnd.Scraper
                 }
 
                 _isLoaded = true;
-                _loadCompletionSource.TrySetResult(true);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[Cache] 로드 실패: {ex.Message}");
                 _cache = [];
                 _isLoaded = true;
-                _loadCompletionSource.TrySetResult(false);
             }
             finally
             {
-                _fileLock.Release();
+                _loadLock.Release();
             }
         }
 
@@ -118,7 +114,6 @@ namespace UltimateEnd.Scraper
                 _cache.Remove(cacheKey);
                 _isDirty = true;
             }
-
             return null;
         }
 
@@ -202,12 +197,12 @@ namespace UltimateEnd.Scraper
             }
             catch { }
         }
-
+        
         private static async Task EnsureLoadedAsync()
         {
             if (_isLoaded) return;
 
-            await _loadCompletionSource.Task;
+            await LoadCacheAsync();
         }
 
         public static void Shutdown()
@@ -225,6 +220,8 @@ namespace UltimateEnd.Scraper
                     Debug.WriteLine($"[Cache] Shutdown 저장 실패: {ex.Message}");
                 }
             }
+
+            _isLoaded = false;
         }
 
         public static void FlushSync()

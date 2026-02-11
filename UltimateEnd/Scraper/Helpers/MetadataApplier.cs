@@ -20,13 +20,13 @@ namespace UltimateEnd.Scraper.Helpers
                 if (dbGame != null)
                 {
 
-                    if (Path.GetFileName(game.RomFile) == game.Title || (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(dbGame.Title)))
+                    if (Path.GetFileName(game.RomFile) == game.Title && (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(dbGame.Title)))
                     {
                         game.Title = dbGame.Title;
                         updated = true;
                     }
 
-                    if (string.IsNullOrEmpty(game.Description) || (ScreenScraperConfig.Instance.AllowScrapDescription && !string.IsNullOrEmpty(dbGame.Description)))
+                    if (string.IsNullOrEmpty(game.Description) && (ScreenScraperConfig.Instance.AllowScrapDescription && !string.IsNullOrEmpty(dbGame.Description)))
                     {
                         game.Description = dbGame.Description;
                         updated = true;
@@ -55,13 +55,13 @@ namespace UltimateEnd.Scraper.Helpers
                 }
             }
 
-            if (Path.GetFileName(game.RomFile) == game.Title || (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(scrapedGame.Title)))
+            if (Path.GetFileName(game.RomFile) == game.Title && (ScreenScraperConfig.Instance.AllowScrapTitle && !string.IsNullOrEmpty(scrapedGame.Title)))
             {
                 game.Title = scrapedGame.Title;
                 updated = true;
             }
 
-            if (string.IsNullOrEmpty(game.Description) || (ScreenScraperConfig.Instance.AllowScrapDescription && !string.IsNullOrEmpty(scrapedGame.Description)))
+            if (string.IsNullOrEmpty(game.Description) && (ScreenScraperConfig.Instance.AllowScrapDescription && !string.IsNullOrEmpty(scrapedGame.Description)))
             {
                 game.Description = scrapedGame.Description;
                 updated = true;

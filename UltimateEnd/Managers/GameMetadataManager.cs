@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using UltimateEnd.Models;
 
 namespace UltimateEnd.Managers
@@ -19,7 +20,8 @@ namespace UltimateEnd.Managers
         private readonly HashSet<string> _changedPlatforms = [];
         private readonly Lock _lockObject = new();
 
-        public static bool IsSpecialPlatform(string id) => SpecialPlatforms.Contains(id) || PlaylistManager.IsPlaylistPlatformId(id);
+        public static bool IsSpecialPlatform(string id) =>
+            SpecialPlatforms.Contains(id) || PlaylistManager.IsPlaylistPlatformId(id);
 
         public static List<GameMetadata> LoadGames(string platformId)
         {
@@ -33,56 +35,48 @@ namespace UltimateEnd.Managers
                 return AllGamesManager.Instance.GetPlatformGames(AndroidKey);
             if (platformId == DesktopKey)
                 return AllGamesManager.Instance.GetPlatformGames(DesktopKey);
-
             if (PlaylistManager.IsPlaylistPlatformId(platformId))
             {
                 var playlistId = PlaylistManager.ExtractPlaylistId(platformId);
                 return PlaylistManager.Instance.GetPlaylistGames(playlistId);
             }
-
             return AllGamesManager.Instance.GetPlatformGames(platformId);
         }
 
         public void MarkPlatformAsChanged(string? platformId)
         {
             if (string.IsNullOrEmpty(platformId)) return;
-
-            lock (_lockObject) _changedPlatforms.Add(platformId);
+            lock (_lockObject)
+                _changedPlatforms.Add(platformId);
         }
 
         public bool HasChangedPlatforms()
         {
-            lock (_lockObject) return _changedPlatforms.Count > 0;
+            lock (_lockObject)
+                return _changedPlatforms.Count > 0;
         }
 
-        public void SaveGames()
+        public async Task SaveGamesAsync()
         {
             HashSet<string> platformsToSave;
-
             lock (_lockObject)
             {
                 if (_changedPlatforms.Count == 0) return;
-
                 platformsToSave = [.. _changedPlatforms];
+                _changedPlatforms.Clear();
             }
 
-            foreach (var platformId in platformsToSave) AllGamesManager.Instance.SavePlatformGames(platformId);
-
-            lock (_lockObject) 
-                foreach (var platformId in platformsToSave) 
-                    _changedPlatforms.Remove(platformId);
-        }
-
-        public static void ForceSave(string platformId)
-        {
-            if (string.IsNullOrEmpty(platformId)) return;
-
-            AllGamesManager.Instance.SavePlatformGames(platformId);
+            await Task.WhenAll(
+                platformsToSave.Select(platformId =>
+                    Task.Run(() => AllGamesManager.Instance.SavePlatformGames(platformId))
+                )
+            );
         }
 
         public void ClearChangedPlatforms()
         {
-            lock (_lockObject) _changedPlatforms.Clear();
+            lock (_lockObject)
+                _changedPlatforms.Clear();
         }
     }
 }
