@@ -23,6 +23,8 @@ namespace UltimateEnd.Android.Services
 
             if (intent.Data != null && intent.Data.Scheme == "content") await _permissionManager.EnsurePermissionAsync(intent);
 
+            intent.AddFlags(ActivityFlags.NewTask);
+
             return intent;
         }
 

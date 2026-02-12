@@ -11,7 +11,7 @@ namespace UltimateEnd.Android.Utils
         public static List<string> SplitCommandLine(string commandLine)
         {
             if (string.IsNullOrWhiteSpace(commandLine))
-                return new List<string>();
+                return [];
 
             var result = new List<string>();
             var current = new StringBuilder();
@@ -262,7 +262,7 @@ namespace UltimateEnd.Android.Utils
                             var key = args[i++];
                             var value = ApplyTokens(args[i++], tokenReplacer);
                             var stringArray = SplitEscapedComma(value);
-                            intent.PutStringArrayListExtra(key, new List<string>(stringArray));
+                            intent.PutStringArrayListExtra(key, [.. stringArray]);
                         }
                         break;
 
@@ -484,7 +484,7 @@ namespace UltimateEnd.Android.Utils
             if (current.Length > 0)
                 result.Add(current.ToString());
 
-            return result.ToArray();
+            return [.. result];
         }
 
         private static string ApplyTokens(string value, Func<string, string> tokenReplacer)
@@ -552,7 +552,7 @@ namespace UltimateEnd.Android.Utils
                 {
                     var component = args[i + 1];
                     var slashIndex = component.IndexOf('/');
-                    return slashIndex > 0 ? component.Substring(0, slashIndex) : component;
+                    return slashIndex > 0 ? component[..slashIndex] : component;
                 }
                 else if (args[i].Equals("-p", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
                     return args[i + 1];

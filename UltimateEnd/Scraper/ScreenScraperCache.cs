@@ -89,7 +89,7 @@ namespace UltimateEnd.Scraper
 
                 _isLoaded = true;
             }
-            catch (Exception ex)
+            catch
             {
                 _cache = [];
                 _isLoaded = true;

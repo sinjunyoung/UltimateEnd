@@ -38,7 +38,6 @@
 					<TextBlock Grid.Column="1"
 					           Text="테마 선택"
 					           FontSize="20"
-					           
 					           Foreground="{DynamicResource Text.Primary}"
 							   Margin="15,0,0,0"
 					           VerticalAlignment="Center"/>
@@ -80,8 +79,7 @@
 									            Spacing="3"
 									            VerticalAlignment="Center">
 										<TextBlock Text="{Binding Name}"
-										           FontSize="15"
-										           
+										           FontSize="15"										           
 										           Foreground="{DynamicResource Text.Primary}"/>
 										<TextBlock Text="{Binding Description}"
 										           FontSize="12"

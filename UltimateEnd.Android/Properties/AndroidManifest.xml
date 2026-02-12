@@ -32,20 +32,19 @@
         android:largeHeap="true"
         android:theme="@style/MyTheme.NoActionBar.Fullscreen">
         <activity 
-            android:name="ultimateend.android.MainActivity"
-            android:label="UltimateEnd"
-            android:theme="@style/MyTheme.NoActionBar.Fullscreen"
-            android:icon="@drawable/icon"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize|uiMode">
+    android:name="ultimateend.android.MainActivity"
+    android:label="UltimateEnd"
+    android:theme="@style/MyTheme.NoActionBar.Fullscreen"
+    android:icon="@drawable/icon"
+    android:exported="true"
+    android:launchMode="singleTop"
+    android:alwaysRetainTaskState="true"
+    android:windowSoftInputMode="adjustResize"
+    android:configChanges="layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|navigation|keyboardHidden|keyboard|locale">
             
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         
@@ -64,7 +63,10 @@
                       android:path="/oauth2redirect" />
             </intent-filter>
         </activity>
-        
+        <service
+        android:name=".KeepAliveService"
+        android:exported="false"
+        android:foregroundServiceType="mediaPlayback" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.yamesoft.ultimateend.fileprovider"

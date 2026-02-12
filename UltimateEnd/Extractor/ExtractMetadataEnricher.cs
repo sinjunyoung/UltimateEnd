@@ -242,6 +242,7 @@ namespace UltimateEnd.Extractor
                 "playstationportable" => true,
                 "nintendods" => true,
                 "fbneo" => true,
+                "neogeo" => true,
                 _ => false
             };
         }

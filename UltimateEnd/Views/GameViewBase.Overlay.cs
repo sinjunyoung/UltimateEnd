@@ -54,6 +54,7 @@ namespace UltimateEnd.Views
 
         protected virtual void RegisterOverlays()
         {
+            _overlays.Clear();
             _overlays.Add("EmulatorSelectionOverlay", EmulatorOverlayBase);
             _overlays.Add("PlaylistSelectionOverlay", PlaylistSelectionOverlayBase);
             _overlays.Add("GameContextMenuOverlay", GameContextMenuOverlayBase);
