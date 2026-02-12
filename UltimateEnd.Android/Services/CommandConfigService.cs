@@ -65,7 +65,7 @@ namespace UltimateEnd.Android.Services
                     "-e CONFIGFILE \"/storage/emulated/0/Android/data/com.retroarch.aarch64/files/retroarch.cfg\" " +
                     "-e SDCARD \"/storage/emulated/0\" " +
                     "-e EXTERNAL \"/storage/emulated/0/Android/data/com.retroarch.aarch64/files\" " +
-                    "-e QUITFOCUS \"true\" " +
+//                    "-e QUITFOCUS \"true\" " +
                     "--activity-clear-task --activity-clear-top --activity-no-history"
             };
         }
