@@ -54,15 +54,14 @@ namespace UltimateEnd.Orchestrators
                 }
 
                 await DeactivateApp();
-
                 await launcher.LaunchGameAsync(game);
+                
+                LaunchCompleted?.Invoke();
+                IdleDetectionEnabled?.Invoke(true);
 
                 ActivateApp();
-                game.RefreshPlayHistory();
-                await Task.Delay(100);
 
-                IdleDetectionEnabled?.Invoke(true);
-                LaunchCompleted?.Invoke();           
+                game.RefreshPlayHistory();
             }
             catch (Exception ex)
             {

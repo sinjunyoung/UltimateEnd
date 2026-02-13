@@ -33,9 +33,9 @@
 
 	<!-- 메인 프라이머리 그라디언트 (실버 → 다크 그레이) -->
 	<LinearGradientBrush x:Key="Gradient.Primary" StartPoint="0%,0%" EndPoint="100%,100%">
-		<GradientStop Color="#E5E7EB" Offset="0"/>
-		<GradientStop Color="#9CA3AF" Offset="0.5"/>
-		<GradientStop Color="#6B7280" Offset="1"/>
+		<GradientStop Color="#FFFFFF" Offset="0"/>      <!-- 화이트 -->
+		<GradientStop Color="#67E8F9" Offset="0.5"/>    <!-- 시안 -->
+		<GradientStop Color="#06B6D4" Offset="1"/>      <!-- 딥시안 -->
 	</LinearGradientBrush>
 
 	<!-- 배경 그라디언트 (미묘한 다크 톤) -->

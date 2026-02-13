@@ -446,7 +446,7 @@
 							       Opacity="0.4"/>
 							<ScrollViewer VerticalScrollBarVisibility="Auto"
 										  Name="GameScrollViewer"
-										  AllowAutoHide="True"
+										  IsScrollChainingEnabled="False"
 										  Focusable="True">
 								
 								<!-- ItemsRepeater -->
@@ -460,15 +460,29 @@
 										<DataTemplate>
 											<Border CornerRadius="{StaticResource CornerRadius.Small}"
 													Cursor="Hand"
-													BorderThickness="0"
+													Classes.selected="{Binding IsSelected}"
 													Padding="{StaticResource Padding.ListItem}"
 													Name="GameItemBorder"
 													Tapped="OnDisplayItemTapped"
 													behaviors:LongPressBehavior.IsEnabled="True"
 													behaviors:LongPressBehavior.Target="{Binding #RootControl}"
 													behaviors:LongPressBehavior.MethodName="OnDisplayItemLongPress"
-													DoubleTapped="OnDisplayItemDoubleTapped"
+													DoubleTapped="OnDisplayItemDoubleTapped"										
 													Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}}">
+
+												<Border.Styles>
+													<Style Selector="Border">
+														<Setter Property="BorderThickness" Value="0"/>
+													</Style>
+													<Style Selector="Border.selected">
+														<Setter Property="BorderThickness" Value="2"/>
+													</Style>
+												</Border.Styles>
+
+												<Border.BorderBrush>
+													<DynamicResource ResourceKey="Gradient.Primary"/>
+												</Border.BorderBrush>
+												
 												<Grid>
 													<!-- 폴더 UI -->
 													<Grid ColumnDefinitions="Auto,*,Auto"
@@ -532,7 +546,7 @@
 																	  Foreground="{DynamicResource Text.Secondary}"
 																	  HorizontalAlignment="Center"
 																	  VerticalAlignment="Center"/>
-														</Border>
+														</Border>														
 													</Grid>
 
 													<!-- ⭐ 게임 UI (기존 코드) -->
@@ -694,7 +708,7 @@
 																				   Foreground="{DynamicResource Background.Primary}"/>
 																	</Border>
 																</StackPanel>
-															</StackPanel>
+															</StackPanel>															
 														</Grid>
 
 														<!-- 메뉴 버튼 (게임만) -->

@@ -406,15 +406,15 @@ namespace UltimateEnd.ViewModels
             _launchOrchestrator.VideoContainerVisibilityRequested += visible => Dispatcher.UIThread.Post(() => IsVideoContainerVisible = visible);
             _launchOrchestrator.LaunchCompleted += () => Dispatcher.UIThread.Post(() =>
             {
-                Dispatcher.UIThread.Post(() => RequestExplicitScroll?.Invoke(this, SelectedGame), DispatcherPriority.Background);
+                RequestExplicitScroll?.Invoke(this, SelectedGame);
                 IsLaunchingGame = false;
-            });
+            }, DispatcherPriority.Render);
             _launchOrchestrator.LaunchFailed += () => Dispatcher.UIThread.Post(() =>
             {
-                Dispatcher.UIThread.Post(() => RequestExplicitScroll?.Invoke(this, SelectedGame), DispatcherPriority.Background);
+                RequestExplicitScroll?.Invoke(this, SelectedGame);
                 IsLaunchingGame = false;
                 TryResumeVideo();
-            });                
+            }, DispatcherPriority.Render);                
 
             _launchOrchestrator.IdleDetectionEnabled += (isEnabled) => RequestIdleDetectionChange?.Invoke(this, isEnabled);
 

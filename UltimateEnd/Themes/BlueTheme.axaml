@@ -34,10 +34,9 @@
 
 	<!-- 메인 프라이머리 그라디언트 (밝은 블루 → 진한 블루) -->
 	<LinearGradientBrush x:Key="Gradient.Primary" StartPoint="0%,0%" EndPoint="100%,100%">
-		<GradientStop Color="#64B5F6" Offset="0"/>
-		<GradientStop Color="#42A5F5" Offset="0.33"/>
-		<GradientStop Color="#2196F3" Offset="0.66"/>
-		<GradientStop Color="#1E88E5" Offset="1"/>
+		<GradientStop Color="#00F5FF" Offset="0"/>      <!-- 시안 -->
+		<GradientStop Color="#B260FF" Offset="0.5"/>    <!-- 보라 -->
+		<GradientStop Color="#FF1493" Offset="1"/>      <!-- 핫핑크 -->
 	</LinearGradientBrush>
 
 	<!-- 배경 그라디언트 (깊은 다크 블루 톤) -->

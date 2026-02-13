@@ -25,7 +25,7 @@ namespace UltimateEnd.Converters
             if (brush is SolidColorBrush solidBrush)
             {
                 var color = solidBrush.Color;
-                return new SolidColorBrush(Color.FromArgb(128, color.R, color.G, color.B));
+                return new SolidColorBrush(Color.FromArgb(0, color.R, color.G, color.B));
             }
 
             return brush;

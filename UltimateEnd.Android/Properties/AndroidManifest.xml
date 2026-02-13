@@ -29,7 +29,6 @@
         android:label="UltimateEnd.Android"
         android:requestLegacyExternalStorage="true"
         android:hardwareAccelerated="true"
-        android:largeHeap="true"
         android:theme="@style/MyTheme.NoActionBar.Fullscreen">
         <activity 
     android:name="ultimateend.android.MainActivity"

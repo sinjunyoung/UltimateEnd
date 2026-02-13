@@ -33,10 +33,12 @@
 
 	<!-- 메인 프라이머리 그라디언트 (밝은 오렌지 → 진한 오렌지) -->
 	<LinearGradientBrush x:Key="Gradient.Primary" StartPoint="0%,0%" EndPoint="100%,100%">
-		<GradientStop Color="#FFB74D" Offset="0"/>
-		<GradientStop Color="#FFA726" Offset="0.33"/>
-		<GradientStop Color="#FF9800" Offset="0.66"/>
-		<GradientStop Color="#FB8C00" Offset="1"/>
+		<GradientStop Color="#FEF08A" Offset="0"/>
+		<!-- 레몬 -->
+		<GradientStop Color="#FDBA74" Offset="0.5"/>
+		<!-- 피치 -->
+		<GradientStop Color="#F97316" Offset="1"/>
+		<!-- 오렌지 -->
 	</LinearGradientBrush>
 
 	<!-- 배경 그라디언트 (따뜻한 다크 브라운 톤) -->

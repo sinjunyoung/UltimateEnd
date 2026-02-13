@@ -120,6 +120,7 @@
 
 									<!-- 선택 테두리 -->
 									<Border Name="SelectionBorder"
+											Grid.RowSpan="2"
 											BorderThickness="{Binding #PlatformListViewRoot.SelectionBorderThickness}"
 											CornerRadius="{Binding #PlatformListViewRoot.CardCornerRadius}"
 											IsHitTestVisible="False">

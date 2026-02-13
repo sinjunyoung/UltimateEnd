@@ -268,7 +268,7 @@ namespace UltimateEnd.Views
 
                     GameScrollViewerFocusLoaded();
 
-                }, DispatcherPriority.Background);
+                }, DispatcherPriority.Render);
             }
         }
 
@@ -305,7 +305,7 @@ namespace UltimateEnd.Views
             };
         }
 
-        protected void GameScrollViewerFocusLoaded() => Dispatcher.UIThread.Post(() => GameScrollViewerBase.Focus(), DispatcherPriority.Loaded);
+        protected void GameScrollViewerFocusLoaded() => Dispatcher.UIThread.Post(() => GameScrollViewerBase.Focus(), DispatcherPriority.Send);
 
         protected void ResetScrollToTop()
         {
