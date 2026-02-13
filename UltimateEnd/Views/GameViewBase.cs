@@ -202,6 +202,21 @@ namespace UltimateEnd.Views
 
                 return true;
             }
+            if(InputManager.IsButtonPressed(e, GamepadButton.Start))
+            {
+                await ViewModel?.LaunchRandomGame();
+
+                e.Handled = true;
+                return true;
+            }
+            if (InputManager.IsButtonPressed(e, GamepadButton.Select))
+            {
+                e.Handled = true;
+
+                Dispatcher.UIThread.Post(async () => await ShowSettingsMenuAsync(), DispatcherPriority.Input);
+
+                return true;
+            }
             switch (e.Key)
             {
                 case Key.F3:
@@ -381,7 +396,6 @@ namespace UltimateEnd.Views
             if (sender is Border border && border.DataContext is GameMetadata g)
             {
                 game = g;
-
                 return true;
             }
 
@@ -393,8 +407,7 @@ namespace UltimateEnd.Views
             var grid = menuButton.Parent as Grid;
             var itemBorder = grid?.Parent as Border;
 
-            if (itemBorder?.DataContext is GameMetadata game)
-                return game;
+            if (itemBorder?.DataContext is GameMetadata game) return game;
 
             return null;
         }
@@ -405,9 +418,7 @@ namespace UltimateEnd.Views
 
             if (DataContext is GameListViewModel vm)
             {
-                vm.ViewMode = vm.ViewMode == GameViewMode.List
-                    ? GameViewMode.Grid
-                    : GameViewMode.List;
+                vm.ViewMode = vm.ViewMode == GameViewMode.List ? GameViewMode.Grid : GameViewMode.List;
 
                 var setting = SettingsService.LoadSettings();
                 setting.GameViewMode = vm.ViewMode;

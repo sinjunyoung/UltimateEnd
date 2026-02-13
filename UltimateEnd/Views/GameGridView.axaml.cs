@@ -78,18 +78,6 @@ namespace UltimateEnd.Views
             EnsureVideoStopped();
         }
 
-        protected override void OnKeyDownCore(KeyEventArgs e)
-        {
-            if (ViewModel == null) return;
-
-            if (InputManager.IsButtonPressed(e, GamepadButton.Select))
-            {
-                e.Handled = true;
-                Dispatcher.UIThread.Post(async () => await ShowSettingsMenuAsync(), DispatcherPriority.Input);
-                return;
-            }
-        }
-
         protected override void OnGameSelected(GameMetadata game) => ViewModel?.StopVideo();
 
         #endregion

@@ -22,6 +22,7 @@ namespace UltimateEnd.Managers
         private readonly GameMetadataManager _metadataManager;
         private readonly ObservableCollection<GameMetadata> _allGames = [];
         private readonly ObservableCollection<string> _genres = [];
+        private HashSet<string>? _cachedGenres;
         private readonly ObservableCollection<GameGenreItem> _editingGenres = [];
         private readonly List<GameMetadata> _subscribedGames = [];
         private ExtractMetadataEnricher _metadataExtractor;
@@ -31,6 +32,7 @@ namespace UltimateEnd.Managers
         private GameMetadata? _selectedGame;
         private bool _disposed;
         private bool _isShowingDeletedGames = false;
+        private DateTime _lastFilterTime = DateTime.MinValue;
 
         public ObservableCollection<GameMetadata> Games { get; }
 
@@ -161,12 +163,24 @@ namespace UltimateEnd.Managers
 
         public void LoadGenres()
         {
-            _genres.Clear();
+            if (_cachedGenres != null)
+            {
+                _genres.Clear();
 
+                foreach (var genre in _cachedGenres.OrderBy(g => g))
+                    _genres.Add(genre);
+
+                return;
+            }
+
+            _genres.Clear();
             var gamesForGenre = _allGames.Where(g => _isShowingDeletedGames ? g.Ignore : !g.Ignore);
             var genres = GameFilterService.ExtractGenres(gamesForGenre);
 
-            foreach (var genre in genres) _genres.Add(genre);
+            _cachedGenres = [.. genres];
+
+            foreach (var genre in _cachedGenres.OrderBy(g => g))
+                _genres.Add(genre);
 
             _selectedGenre = "전체";
             LoadEditingGenres();
@@ -201,6 +215,9 @@ namespace UltimateEnd.Managers
 
         private void UpdateFilteredGames(List<GameMetadata> filtered, GameMetadata? currentSelection)
         {
+            if (Games.Count == filtered.Count && Games.SequenceEqual(filtered))
+                return;
+
             Games.Clear();
             Games.AddRange(filtered);
 
@@ -212,29 +229,36 @@ namespace UltimateEnd.Managers
 
         private void Game_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (_disposed) return;
+            if (_disposed || sender is not GameMetadata game) return;
 
-            if (sender is GameMetadata game)
+            if (e.PropertyName == nameof(GameMetadata.Title) ||
+                e.PropertyName == nameof(GameMetadata.Description) ||
+                e.PropertyName == nameof(GameMetadata.Developer) ||
+                e.PropertyName == nameof(GameMetadata.Genre) ||
+                e.PropertyName == nameof(GameMetadata.IsFavorite) ||
+                e.PropertyName == nameof(GameMetadata.Ignore) ||
+                e.PropertyName == nameof(GameMetadata.HasKorean) ||
+                e.PropertyName == nameof(GameMetadata.EmulatorId) ||
+                e.PropertyName == nameof(GameMetadata.CoverImagePath) ||
+                e.PropertyName == nameof(GameMetadata.LogoImagePath) ||
+                e.PropertyName == nameof(GameMetadata.VideoPath) ||
+                e.PropertyName == nameof(GameMetadata.ScrapHint))
+
             {
-                if (e.PropertyName == nameof(GameMetadata.Title) ||
-                    e.PropertyName == nameof(GameMetadata.Description) ||
-                    e.PropertyName == nameof(GameMetadata.Developer) ||
-                    e.PropertyName == nameof(GameMetadata.Genre) ||
-                    e.PropertyName == nameof(GameMetadata.IsFavorite) ||
-                    e.PropertyName == nameof(GameMetadata.Ignore) ||
-                    e.PropertyName == nameof(GameMetadata.HasKorean) ||
-                    e.PropertyName == nameof(GameMetadata.EmulatorId) ||
-                    e.PropertyName == nameof(GameMetadata.CoverImagePath) ||
-                    e.PropertyName == nameof(GameMetadata.LogoImagePath) ||
-                    e.PropertyName == nameof(GameMetadata.VideoPath) ||
-                    e.PropertyName == nameof(GameMetadata.ScrapHint))
+                GamePropertyChanged?.Invoke(game);
+            }
 
+            if (e.PropertyName == nameof(GameMetadata.Genre))
+                _cachedGenres = null;
+
+            if (e.PropertyName == nameof(GameMetadata.Genre) || e.PropertyName == nameof(GameMetadata.Ignore))
+            {
+                var now = DateTime.UtcNow;
+                if ((now - _lastFilterTime).TotalMilliseconds > 100)
                 {
-                    GamePropertyChanged?.Invoke(game);
-                }
-
-                if (e.PropertyName == nameof(GameMetadata.Genre) || e.PropertyName == nameof(GameMetadata.Ignore))
+                    _lastFilterTime = now;
                     FilterGames();
+                }
             }
         }
 

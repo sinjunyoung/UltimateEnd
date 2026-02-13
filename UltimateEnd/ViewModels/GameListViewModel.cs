@@ -59,11 +59,8 @@ namespace UltimateEnd.ViewModels
         private bool _simpleGameListMode = false;
 
         private double _gridTitleFontSize = 16;
-        public double GridTitleFontSize
-        {
-            get => _gridTitleFontSize;
-            set => this.RaiseAndSetIfChanged(ref _gridTitleFontSize, value);
-        }
+
+        private readonly Random _random = new();
 
         #endregion
 
@@ -100,9 +97,21 @@ namespace UltimateEnd.ViewModels
             get => _collectionManager.SelectedGame;
             set
             {
+                if (_collectionManager.SelectedGame == value) return;
+
                 _collectionManager.SelectedGame = value;
 
-                if (value != null) _gameSelectionSubject.OnNext(value);
+                if (value != null)
+                {
+                    var matchingItem = DisplayItems.FirstOrDefault(i => i.IsGame && i.Game == value);
+                    if (matchingItem != null && SelectedItem != matchingItem)
+                    {
+                        SelectedItem = matchingItem;
+                    }
+                    _gameSelectionSubject.OnNext(value);
+                }
+
+                this.RaisePropertyChanged();
             }
         }
 
@@ -143,14 +152,9 @@ namespace UltimateEnd.ViewModels
         }
 
         public ObservableCollection<GameMetadata> Games => _collectionManager.Games;
-        public ObservableCollection<string> Genres
-        {
-            get 
-            {
-                _collectionManager.LoadGenres();
-                return _collectionManager.Genres; 
-            }
-        }
+
+        public ObservableCollection<string> Genres => _collectionManager.Genres;
+
         public ObservableCollection<GameGenreItem> EditingGenres => _collectionManager.EditingGenres;
 
         public string SelectedGenre
@@ -232,6 +236,11 @@ namespace UltimateEnd.ViewModels
             }
         }
 
+        public double GridTitleFontSize
+        {
+            get => _gridTitleFontSize;
+            set => this.RaiseAndSetIfChanged(ref _gridTitleFontSize, value);
+        }
 
         #endregion
 
@@ -938,68 +947,36 @@ namespace UltimateEnd.ViewModels
 
         public void BuildDisplayItems()
         {
-            var items = new ObservableCollection<FolderItem>();
+            var newItems = new List<FolderItem>();
 
             if (_currentSubFolder == null)
             {
-                if (Platform.Id == GameMetadataManager.HistoriesKey)
-                {
-                    var addedFolders = new HashSet<string>();
+                var folderGroups = Games
+                    .Where(g => !string.IsNullOrEmpty(g.SubFolder))
+                    .GroupBy(g => g.SubFolder)
+                    .OrderBy(g => g.Key)
+                    .ToList();
 
-                    foreach (var game in Games)
-                    {
-                        if (!string.IsNullOrEmpty(game.SubFolder) && !addedFolders.Contains(game.SubFolder))
-                        {
-                            var folderGames = Games.Where(g => g.SubFolder == game.SubFolder).ToList();
+                foreach (var folder in folderGroups)
+                    newItems.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
 
-                            if (folderGames.Count > 0)
-                            {
-                                items.Add(FolderItem.CreateFolder(game.SubFolder, folderGames.Count));
-                                addedFolders.Add(game.SubFolder);
-                            }
-                        }
-                        else if (string.IsNullOrEmpty(game.SubFolder))
-                            items.Add(FolderItem.CreateGame(game));
-                    }
-                }
-                else
-                {
-                    var folders = Games
-                        .Where(g => !string.IsNullOrEmpty(g.SubFolder))
-                        .GroupBy(g => g.SubFolder)
-                        .OrderBy(g => g.Key);
-                    
-                    foreach (var folder in folders)
-                    {
-                        if (folder.Any()) items.Add(FolderItem.CreateFolder(folder.Key!, folder.Count()));
-                    }
-
-                    foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
-                    {
-                        var item = FolderItem.CreateGame(game);
-
-                        if (game == SelectedGame) item.IsSelected = true;
-
-                        items.Add(item);
-                    }
-                }
+                foreach (var game in Games.Where(g => string.IsNullOrEmpty(g.SubFolder)))
+                    newItems.Add(FolderItem.CreateGame(game));
             }
             else
             {
                 foreach (var game in Games.Where(g => g.SubFolder == _currentSubFolder))
-                {
-                    var item = FolderItem.CreateGame(game);
-
-                    if (game == SelectedGame) item.IsSelected = true;
-
-                    items.Add(item);
-                }
+                    newItems.Add(FolderItem.CreateGame(game));
             }
 
-            DisplayItems = items;
-            SelectedItem = DisplayItems.FirstOrDefault(i => i.IsSelected);
+            if (DisplayItems.Count == newItems.Count && DisplayItems.SequenceEqual(newItems, new FolderItemComparer()))
+                return;
 
-            if (SelectedItem == null && DisplayItems.Count > 0) SelectedItem = DisplayItems[0];
+            DisplayItems.Clear();
+            foreach (var item in newItems)
+                DisplayItems.Add(item);
+
+            SelectedItem = DisplayItems.FirstOrDefault(i => i.IsSelected) ?? DisplayItems.FirstOrDefault();
         }
 
         public void EnterFolder(string subFolder)
@@ -1025,5 +1002,56 @@ namespace UltimateEnd.ViewModels
         #endregion
 
         public void CommitSearch() => _collectionManager.CommittedSearchText = SearchText;
+
+        public async Task LaunchRandomGame()
+        {
+            if (this.Games.Count == 0)
+            {
+                await DialogService.Instance.ShowMessage("알림", "실행 가능한 게임이 없습니다.", MessageType.Warning);
+                return;
+            }
+
+            var favorites = this.Games.Where(g => g.IsFavorite).ToList();
+            var nonFavorites = this.Games.Where(g => !g.IsFavorite).ToList();
+
+            GameMetadata selectedGame;
+
+            if (favorites.Count > 0 && nonFavorites.Count > 0)
+            {
+                if (_random.NextDouble() < 0.2)
+                    selectedGame = favorites[_random.Next(favorites.Count)];
+                else
+                    selectedGame = nonFavorites[_random.Next(nonFavorites.Count)];
+            }
+            else if (favorites.Count > 0)
+                selectedGame = favorites[_random.Next(favorites.Count)];
+            else if (nonFavorites.Count > 0)
+                selectedGame = nonFavorites[_random.Next(nonFavorites.Count)];
+            else
+            {
+                await DialogService.Instance.ShowMessage("알림", "실행 가능한 게임이 없습니다.", MessageType.Warning);
+                return;
+            }
+            
+            this.SelectedGame = selectedGame;
+            await this.LaunchGameAsync(this.SelectedGame);            
+        }
+
+        private class FolderItemComparer : IEqualityComparer<FolderItem>
+        {
+            public bool Equals(FolderItem? x, FolderItem? y)
+            {
+                if (x == null || y == null) return x == y;
+                if (x.IsFolder != y.IsFolder) return false;
+                if (x.IsFolder) return x.SubFolder == y.SubFolder;
+
+                return x.Game == y.Game;
+            }
+
+            public int GetHashCode(FolderItem obj)
+            {
+                return obj.IsFolder ? obj.SubFolder?.GetHashCode() ?? 0 : obj.Game?.GetHashCode() ?? 0;
+            }
+        }
     }
 }
