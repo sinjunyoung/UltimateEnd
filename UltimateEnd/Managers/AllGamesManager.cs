@@ -45,12 +45,17 @@ namespace UltimateEnd.Managers
 
         public bool IsPlatformLoaded(string platformId)
         {
+            if (IsSystemAppPlatform(platformId))
+            {
+                lock (_gamesLock)
+                    return _loadedPlatforms.Contains(platformId);
+            }
+
             lock (_gamesLock)
             {
                 if (_loadedPlatforms.Contains(platformId)) return true;
 
                 var settings = SettingsService.LoadSettings();
-
                 if (settings.PlatformSettings == null) return false;
 
                 var converter = PathConverterFactory.Create?.Invoke();
@@ -67,6 +72,11 @@ namespace UltimateEnd.Managers
                 return false;
             }
         }
+
+        private static bool IsSystemAppPlatform(string platformId) =>
+            platformId == GameMetadataManager.AndroidKey ||
+            platformId == GameMetadataManager.DesktopKey ||
+            platformId == GameMetadataManager.SteamKey;
 
         private AllGamesManager() { }
 
@@ -119,44 +129,48 @@ namespace UltimateEnd.Managers
 
                     lock (_gamesLock) _loadedPlatforms.Add(compositeKey);
                 }
-                
-                var systemAppsPath = AppSettings.SystemAppsPath;
 
-                if (!string.IsNullOrEmpty(systemAppsPath))
-                {
-                    if (cancellationToken.IsCancellationRequested) return;
-
-                    if (OperatingSystem.IsWindows())
-                    {
-                        lock (_gamesLock)
-                        {
-                            if (!_loadedPlatforms.Contains(GameMetadataManager.SteamKey))
-                            {
-                                LoadSteamGames(systemAppsPath);
-                                _loadedPlatforms.Add(GameMetadataManager.SteamKey);
-                            }
-                        }
-                    }
-                    if (cancellationToken.IsCancellationRequested) return;
-
-                    var appProvider = AppProviderFactory.Create?.Invoke();
-
-                    if (appProvider != null)
-                    {
-                        lock (_gamesLock)
-                        {
-                            if (!_loadedPlatforms.Contains(appProvider.PlatformId))
-                            {
-                                LoadNativeApps(systemAppsPath, appProvider.PlatformId);
-                                _loadedPlatforms.Add(appProvider.PlatformId);
-                            }
-                        }
-                    }
-                }
+                LoadSystemApps(cancellationToken);
             }
             finally
             {
                 _isFullLoading = false;
+            }
+        }
+
+        private void LoadSystemApps(CancellationToken cancellationToken)
+        {
+            var systemAppsPath = AppSettings.SystemAppsPath;
+
+            if (string.IsNullOrEmpty(systemAppsPath)) return;
+
+            if (cancellationToken.IsCancellationRequested) return;
+
+            if (OperatingSystem.IsWindows())
+            {
+                lock (_gamesLock)
+                {
+                    if (!_loadedPlatforms.Contains(GameMetadataManager.SteamKey))
+                    {
+                        LoadSteamGames(systemAppsPath);
+                        _loadedPlatforms.Add(GameMetadataManager.SteamKey);
+                    }
+                }
+            }
+
+            if (cancellationToken.IsCancellationRequested) return;
+
+            var appProvider = AppProviderFactory.Create?.Invoke();
+            if (appProvider != null)
+            {
+                lock (_gamesLock)
+                {
+                    if (!_loadedPlatforms.Contains(appProvider.PlatformId))
+                    {
+                        LoadNativeApps(systemAppsPath, appProvider.PlatformId);
+                        _loadedPlatforms.Add(appProvider.PlatformId);
+                    }
+                }
             }
         }
 
@@ -177,6 +191,44 @@ namespace UltimateEnd.Managers
                 }
             }
 
+            if (IsSystemAppPlatform(platformId))
+            {
+                LoadSystemAppPlatform(platformId);
+                ResumeFullLoad();
+                return;
+            }
+
+            LoadRegularPlatform(platformId);
+            ResumeFullLoad();
+        }
+
+        private void LoadSystemAppPlatform(string platformId)
+        {
+            var systemAppsPath = AppSettings.SystemAppsPath;
+            if (string.IsNullOrEmpty(systemAppsPath)) return;
+
+            lock (_gamesLock)
+            {
+                if (_loadedPlatforms.Contains(platformId)) return;
+
+                if (platformId == GameMetadataManager.SteamKey)
+                {
+                    if (OperatingSystem.IsWindows())
+                    {
+                        LoadSteamGames(systemAppsPath);
+                        _loadedPlatforms.Add(platformId);
+                    }
+                }
+                else if (platformId == GameMetadataManager.AndroidKey || platformId == GameMetadataManager.DesktopKey)
+                {
+                    LoadNativeApps(systemAppsPath, platformId);
+                    _loadedPlatforms.Add(platformId);
+                }
+            }
+        }
+
+        private void LoadRegularPlatform(string platformId)
+        {
             var settings = SettingsService.LoadSettings();
 
             if (settings.PlatformSettings == null) return;
@@ -201,8 +253,6 @@ namespace UltimateEnd.Managers
                     lock (_gamesLock) _loadedPlatforms.Add(compositeKey);
                 }
             }
-
-            ResumeFullLoad();
         }
 
         private void LoadSinglePlatformInternal(string compositeKey, string realPath, string actualPlatformId)
@@ -292,7 +342,7 @@ namespace UltimateEnd.Managers
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.WriteLine($"Error loading native apps for platform {platformId}: {e}");
             }
@@ -402,7 +452,7 @@ namespace UltimateEnd.Managers
         }
 
         public List<GameMetadata> GetAllGames()
-        {   
+        {
             lock (_gamesLock) return [.. _allGames.Values];
         }
 
@@ -529,7 +579,7 @@ namespace UltimateEnd.Managers
 
             lock (_gamesLock) platformGames = [.. _allGames.Values.Where(g => g.PlatformId == platformId)];
 
-            if (platformId == GameMetadataManager.SteamKey || platformId == GameMetadataManager.DesktopKey || platformId == GameMetadataManager.AndroidKey)
+            if (IsSystemAppPlatform(platformId))
             {
                 var systemAppsPath = AppSettings.SystemAppsPath;
                 MetadataService.SaveMetadata(platformId, systemAppsPath, platformGames);
@@ -591,29 +641,10 @@ namespace UltimateEnd.Managers
                 }
             }
 
-            if (platformId == GameMetadataManager.SteamKey)
-            {
-                LoadSteamGames(AppSettings.SystemAppsPath);
-                lock (_gamesLock) _loadedPlatforms.Add(platformId);
-            }
+            if (IsSystemAppPlatform(platformId))
+                LoadSystemAppPlatform(platformId);
             else
-            {
-                var settings = SettingsService.LoadSettings();
-                var converter = PathConverterFactory.Create?.Invoke();
-
-                foreach (var platform in settings.PlatformSettings)
-                {
-                    var compositeKey = platform.Key;
-                    var realPath = converter?.FriendlyPathToRealPath(compositeKey) ?? compositeKey;
-                    var actualPlatformId = PlatformMappingService.Instance.GetMappedPlatformId(realPath) ?? PlatformInfoService.Instance.NormalizePlatformId(platform.Value.Name);
-
-                    if (actualPlatformId == platformId)
-                    {
-                        LoadSinglePlatformInternal(compositeKey, realPath, actualPlatformId);
-                        lock (_gamesLock) _loadedPlatforms.Add(compositeKey);
-                    }
-                }
-            }
+                LoadRegularPlatform(platformId);
         }
 
         public void InvalidatePlatformCache()

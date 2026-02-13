@@ -78,7 +78,7 @@
 					</Border>
 
 					<!-- 진행 상황 (기존 코드 그대로) -->
-					<Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,*,*,*" ColumnSpacing="15" RowSpacing="10">
+					<Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="15" RowSpacing="10" HorizontalAlignment="Center">
 						<!-- ... 기존 Grid 내용 그대로 ... -->
 
 						<!-- 전체 진행 -->

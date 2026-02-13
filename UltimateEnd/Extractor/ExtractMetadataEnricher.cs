@@ -217,6 +217,9 @@ namespace UltimateEnd.Extractor
             try
             {
                 var screenScraperSystemId = PlatformInfoService.Instance.GetScreenScraperSystemId(platformId);
+
+                if (screenScraperSystemId == Enums.ScreenScraperSystemId.NeoGeo) screenScraperSystemId = Enums.ScreenScraperSystemId.MAME;
+
                 var game = GameRepository.Instance.GetGame((int)screenScraperSystemId, metadata.Id);
 
                 if (game != null)
