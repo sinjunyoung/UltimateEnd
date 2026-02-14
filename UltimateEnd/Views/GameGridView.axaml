@@ -205,7 +205,25 @@
 											BorderThickness="4"
 											CornerRadius="12"
 											Background="#66007ACC"
-											IsVisible="{Binding IsSelected}"/>
+											IsVisible="{Binding IsSelected}">
+										<Border.Styles>
+											<Style Selector="Border">
+												<Style.Animations>
+													<Animation Duration="0:0:0.8" IterationCount="Infinite">
+														<KeyFrame Cue="0%">
+															<Setter Property="BorderBrush" Value="#2196F3"/>
+														</KeyFrame>
+														<KeyFrame Cue="50%">
+															<Setter Property="BorderBrush" Value="#002196F3"/>
+														</KeyFrame>
+														<KeyFrame Cue="100%">
+															<Setter Property="BorderBrush" Value="#2196F3"/>
+														</KeyFrame>
+													</Animation>
+												</Style.Animations>
+											</Style>
+										</Border.Styles>
+									</Border>
 								</Grid>
 
 								<!-- ⭐ 게임 UI (기존 코드) -->
@@ -288,6 +306,23 @@
 										<Border.BorderBrush>
 											<DynamicResource ResourceKey="Gradient.Primary"/>
 										</Border.BorderBrush>
+										<Border.Styles>
+											<Style Selector="Border">
+												<Style.Animations>
+													<Animation Duration="0:0:0.8" IterationCount="Infinite">
+														<KeyFrame Cue="0%">
+															<Setter Property="Opacity" Value="1.0"/>
+														</KeyFrame>
+														<KeyFrame Cue="50%">
+															<Setter Property="Opacity" Value="0.3"/>
+														</KeyFrame>
+														<KeyFrame Cue="100%">
+															<Setter Property="Opacity" Value="1.0"/>
+														</KeyFrame>
+													</Animation>
+												</Style.Animations>
+											</Style>
+										</Border.Styles>
 									</Border>
 								</Grid>
 							</Grid>

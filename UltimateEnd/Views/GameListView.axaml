@@ -467,7 +467,7 @@
 													behaviors:LongPressBehavior.IsEnabled="True"
 													behaviors:LongPressBehavior.Target="{Binding #RootControl}"
 													behaviors:LongPressBehavior.MethodName="OnDisplayItemLongPress"
-													DoubleTapped="OnDisplayItemDoubleTapped"										
+													DoubleTapped="OnDisplayItemDoubleTapped"
 													Background="{Binding IsSelected, Converter={StaticResource BoolToHighlightBrushConverter}}">
 
 												<Border.Styles>
@@ -476,6 +476,19 @@
 													</Style>
 													<Style Selector="Border.selected">
 														<Setter Property="BorderThickness" Value="2"/>
+														<Style.Animations>
+															<Animation Duration="0:0:0.8" IterationCount="Infinite">
+																<KeyFrame Cue="0%">
+																	<Setter Property="BoxShadow" Value="0 0 0 2 #2196F3"/>
+																</KeyFrame>
+																<KeyFrame Cue="50%">
+																	<Setter Property="BoxShadow" Value="0 0 0 2 #002196F3"/>
+																</KeyFrame>
+																<KeyFrame Cue="100%">
+																	<Setter Property="BoxShadow" Value="0 0 0 2 #2196F3"/>
+																</KeyFrame>
+															</Animation>
+														</Style.Animations>
 													</Style>
 												</Border.Styles>
 

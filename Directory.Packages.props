@@ -5,16 +5,16 @@
   <ItemGroup>
     <!-- Avalonia packages -->
     <!-- Important: keep version in sync! -->
-    <PackageVersion Include="Avalonia" Version="11.3.11" />
+    <PackageVersion Include="Avalonia" Version="11.3.12" />
     <PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
     <PackageVersion Include="Avalonia.Svg.Skia" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.11" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.11" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.11" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.3.11" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Desktop" Version="11.3.12" />
     <PackageVersion Include="Avalonia.iOS" Version="11.3.8" />
     <PackageVersion Include="Avalonia.Browser" Version="11.3.8" />
-    <PackageVersion Include="Avalonia.Android" Version="11.3.11" />
+    <PackageVersion Include="Avalonia.Android" Version="11.3.12" />
     <PackageVersion Include="Avalonia.Xaml.Interactivity" Version="11.3.0.6" />
     <PackageVersion Include="DirectShowLib" Version="1.0.0" />
     <PackageVersion Include="LoadingIndicators.Avalonia" Version="11.0.11.1" />
